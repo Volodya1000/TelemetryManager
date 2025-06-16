@@ -1,43 +1,56 @@
-{
-  "DeviceId": 1,
-  "Sensors": [
-    {
-      "TypeId": 3,
-      "TypeName": "Accelerometer",
-      "SourceId": 301,
-      "Parameters": {
-        "X": {
-          "Units": "mg",
-          "Min": -2000,
-          "Max": 2000,
-          "Warning": 1800,
-          "Critical": 1950
-        },
-        "Y": {
-          "Units": "mg",
-          "Min": -2000,
-          "Max": 2000
-        },
-        "Z": {
-          "Units": "mg",
-          "Warning": 1900,
-          "Critical": 1980
+[
+  {
+    "DeviceId": 1,
+    "Sensors": [
+      {
+        "TypeId": 3,
+        "TypeName": "Accelerometer",
+        "SourceId": 301,
+        "Parameters": {
+          "X": {
+            "Units": "mg",
+            "Min": -2000,
+            "Max": 2000
+          },
+          "Y": {
+            "Units": "mg",
+            "Min": -2000,
+            "Max": 2000
+          },
+          "Z": {
+            "Units": "mg"
+          }
+        }
+      },
+      {
+        "TypeId": 1,
+        "TypeName": "Temperature",
+        "SourceId": 101,
+        "Parameters": {
+          "Temperature": {
+            "Units": "°C",
+            "Min": -40.0,
+            "Max": 85.0
+          }
         }
       }
-    },
-    {
-      "TypeId": 1,
-      "TypeName": "Temperature",
-      "SourceId": 101,
-      "Parameters": {
-        "Temperature": {
-          "Units": "°C",
-          "Min": -40.0,
-          "Max": 85.0,
-          "Warning": 80.0,
-          "Critical": 83.0
+    ]
+  },
+  {
+    "DeviceId": 2,
+    "Sensors": [
+      {
+        "TypeId": 2,
+        "TypeName": "Humidity",
+        "SourceId": 201,
+        "Parameters": {
+          "Humidity": {
+            "Units": "%",
+            "Min": 0,
+            "Max": 100
+          }
         }
       }
-    }
-  ]
-}
+    ]
+  }
+]

@@ -4,5 +4,5 @@ namespace TelemetryManager.Core.Interfaces;
 
 public interface IConfigurationLoader
 {
-    DeviceProfile Load(string configFilePath);
+    List<DeviceProfile> Load(string configFilePath);
 }

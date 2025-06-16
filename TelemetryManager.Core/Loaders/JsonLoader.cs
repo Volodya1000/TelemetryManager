@@ -14,18 +14,18 @@ public class JsonLoader : IConfigurationLoader
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public DeviceProfile Load(string configFilePath)
+    public List<DeviceProfile> Load(string configFilePath)
     {
         if (!File.Exists(configFilePath))
             throw new FileNotFoundException("Configuration file not found", configFilePath);
 
         var json = File.ReadAllText(configFilePath);
 
-        DeviceProfile? profile;
+        List<DeviceProfile>? profile;
 
         try
         {
-            profile = JsonSerializer.Deserialize<DeviceProfile>(json, _options);
+            profile = JsonSerializer.Deserialize<List<DeviceProfile>>(json, _options);
         }
         catch (JsonException ex) 
         {

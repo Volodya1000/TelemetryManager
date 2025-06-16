@@ -4,6 +4,6 @@ namespace TelemetryManager.Core.Interfaces;
 
 public interface IConfigurationValidator
 {
-    public void Validate(DeviceProfile deviceProfile);
+    public void Validate(List<DeviceProfile> deviceProfile);
 }
 

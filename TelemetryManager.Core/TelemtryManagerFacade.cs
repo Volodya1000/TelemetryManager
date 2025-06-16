@@ -27,8 +27,8 @@ public class TelemtryManagerFacade
     }
     public void LoadConfiguration(string configFilePath)
     {
-        DeviceProfile deviceProfile = _configurationLoader.Load(configFilePath);
-        _configurationValidator.Validate(deviceProfile);
+        List<DeviceProfile> deviceProfiles = _configurationLoader.Load(configFilePath);
+        _configurationValidator.Validate(deviceProfiles);
     }
 
 
