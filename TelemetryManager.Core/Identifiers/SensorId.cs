@@ -1,7 +1,4 @@
 ﻿namespace TelemetryManager.Core.Identifiers;
 
-public readonly record struct SensorId(ushort DeviceId, ushort TypeId, byte SourceId)
-{
-    public override string ToString()=>
-         $"DeviceId={DeviceId}, Type={TypeId}, SourceId={SourceId}";
-}
+//TypeId нужен внутри SensorId так как по заданию  идентификатор датчика должен быть уникальным для каждого TypeId
+public readonly record struct SensorId(ushort DeviceId, ushort TypeId, byte SourceId);

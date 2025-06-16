@@ -1,5 +1,9 @@
-﻿namespace TelemetryManager.Core.Data;
+﻿using TelemetryManager.Core.Identifiers;
 
-public class SensorSnapshot
-{
-}
+namespace TelemetryManager.Core.Data;
+
+public record SensorSnapshot(
+    SensorId SensorId, 
+    string SensorName, 
+    DateTime TimeStamp,
+    IReadOnlyList<SensorParametrSnapshot> Parameters);
