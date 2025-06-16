@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.EventArgs;
 using TelemetryManager.Core.Interfaces;
+using TelemetryManager.Core.Parsing;
 
 namespace TelemetryManager.Core;
 
@@ -47,12 +48,12 @@ public class TelemtryManagerFacade
         {
             try
             {
-               // using var reader = new PacketStreamReader(input);
+                var reader = new PacketStreamParser(input);
                 while (!token.IsCancellationRequested)
                 {
-                    //var raw = reader.ReadNextPacket();
-                    //if (raw == null)
-                    //    continue; // шум или EOF
+                    var raw = reader.ReadNextPacket();
+                    if (raw == null)
+                        continue; // шум или EOF
 
                     //if (!_parser.TryParse(raw, out var packet))
                     //{
@@ -63,6 +64,9 @@ public class TelemtryManagerFacade
                     //var data = SensorDataDecoder.Decode(packet);
                     //_storage.AddData(data);
                     //OnSensorDataReceived(data);
+
+
+                   
 
                     //if (_validator.IsAnomalous(data, out var anomalyInfo))
                     //{
@@ -94,16 +98,16 @@ public class TelemtryManagerFacade
 
 
 
-    //protected virtual void OnSensorDataReceived(SensorDataEventArgs e)
-    //=> SensorDataReceived?.Invoke(this, e);
+    protected virtual void OnSensorDataReceived(SensorDataEventArgs e)
+    => SensorDataReceived?.Invoke(this, e);
 
 
-    //protected virtual void OnAnomalyDetected(AnomalyEventArgs e)
-    //   => AnomalyDetected?.Invoke(this, e);
+    protected virtual void OnAnomalyDetected(AnomalyEventArgs e)
+       => AnomalyDetected?.Invoke(this, e);
 
-    //protected virtual void OnPacketRejected(string reason, byte[] rawData)
-    //  => PacketRejected?.Invoke(this,
-    //      new PacketErrorEventArgs(reason, rawData, DateTime.UtcNow));
+    protected virtual void OnPacketRejected(string reason, byte[] rawData)
+      => PacketRejected?.Invoke(this,
+          new PacketErrorEventArgs(reason, rawData, DateTime.UtcNow));
 
 
 }

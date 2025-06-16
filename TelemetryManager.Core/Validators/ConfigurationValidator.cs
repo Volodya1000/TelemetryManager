@@ -2,7 +2,7 @@
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Interfaces;
 
-namespace TelemetryManager.Core;
+namespace TelemetryManager.Core.Validators;
 
 public class ConfigurationValidator : IConfigurationValidator
 {
