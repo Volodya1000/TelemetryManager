@@ -1,12 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
-namespace TelemetryManager.Core
+
+using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Interfaces;
+
+namespace TelemetryManager.Core;
+
+public class TelemtryManagerFacade
 {
-    internal class TelemtryManagerFacade
+    private readonly IConfigurationLoader _configurationLoader;
+    private readonly IConfigurationValidator _configurationValidator;
+
+    public TelemtryManagerFacade(
+        IConfigurationLoader configurationLoader,
+        IConfigurationValidator configurationValidator)
     {
+        _configurationLoader = configurationLoader;
+        _configurationValidator = configurationValidator;
     }
+    public void LoadConfiguration(string configFilePath)
+    {
+        DeviceProfile deviceProfile = _configurationLoader.Load(configFilePath);
+        _configurationValidator.Validate(deviceProfile);
+    }
+
 }

@@ -9,6 +9,7 @@ public class SensorParameterProfile
 
     public SensorParameterProfile(string name, string units, double minValue, double maxValue)
     {
+        if(String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
         ValidateInterval(minValue, maxValue);
         Name = name;
         Units = units;

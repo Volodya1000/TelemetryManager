@@ -14,18 +14,27 @@ public class JsonLoader : IConfigurationLoader
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public SensorProfile Load(string configFilePath)
+    public DeviceProfile Load(string configFilePath)
     {
         if (!File.Exists(configFilePath))
             throw new FileNotFoundException("Configuration file not found", configFilePath);
 
         var json = File.ReadAllText(configFilePath);
-        var config = JsonSerializer.Deserialize<SensorProfile>(json, _options);
 
-        if (config == null)
+        DeviceProfile? profile;
+
+        try
+        {
+            profile = JsonSerializer.Deserialize<DeviceProfile>(json, _options);
+        }
+        catch (JsonException ex) 
+        {
+            throw new InvalidDataException("Invalid JSON format in configuration file", ex);
+        }
+        if (profile == null)
             throw new InvalidDataException("Invalid or empty configuration");
 
-        return config;
+        return profile;
     }
 
 }
