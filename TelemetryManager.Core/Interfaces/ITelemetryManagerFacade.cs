@@ -30,11 +30,9 @@ public interface ITelemetryManagerFacade
     /// </summary>
     IReadOnlyList<SensorSnapshot> GetCurrentSensorValues();
 
-    // IReadOnlyList<ErrorLogEntry> RecentErrors { get; }
-    //IReadOnlyList
 
-
-    /// <summary>за сессию.
+    /// <summary>
+    /// Возвращает информацию о некорректных пакетах
     /// </summary>
     IReadOnlyList<AnomalyRecord> GetAnomalies();
 
