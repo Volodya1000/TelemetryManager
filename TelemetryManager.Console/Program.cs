@@ -1,18 +1,19 @@
-﻿using TelemetryManager.Core;
+﻿using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Application.Services;
+using TelemetryManager.Application.Validators;
+using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Enums;
-using TelemetryManager.Core.Interfaces;
 using TelemetryManager.Core.TelemetryPackegesGenerator;
-using TelemetryManager.Core.Validators;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
+using TelemetryManager.Infrastructure.Parsing;
 
 
 IConfigurationValidator configValidator = new ConfigurationValidator();
 IConfigurationLoader configurationLoader = new JsonLoader();
-var facade = new TelemtryManagerFacade(configurationLoader, configValidator);
-
-//string filePath = Path.Combine(AppContext.BaseDirectory,  "JsonConfigExample.json");
+IPacketStreamParser packetStreamParser = new PacketStreamParser();
+var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser);
 
 string workingDirectory = Environment.CurrentDirectory;
 string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
@@ -29,9 +30,9 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 10)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
     .SetNoiseRatio(0)
-    //.SetNoiseRatio(0.05) // 5% шанс повреждения
+    //.SetNoiseRatio(1) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
     .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
     .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)

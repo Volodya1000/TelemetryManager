@@ -1,6 +1,6 @@
 ﻿using TelemetryManager.Core.Data.Profiles;
 
-namespace TelemetryManager.Core.Interfaces;
+namespace TelemetryManager.Application.Interfaces;
 
 public interface IConfigurationLoader
 {

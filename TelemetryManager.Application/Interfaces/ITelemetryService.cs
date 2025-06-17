@@ -2,9 +2,9 @@
 using TelemetryManager.Core.EventArgs;
 using TelemetryManager.Core.Identifiers;
 
-namespace TelemetryManager.Core.Interfaces;
+namespace TelemetryManager.Application.Interfaces;
 
-public interface ITelemetryManagerFacade
+public interface ITelemetryService
 {
     int DeviceId { get; }
 
@@ -45,11 +45,6 @@ public interface ITelemetryManagerFacade
     /// Возникает при получении валидных данных о сенсоре.
     /// </summary>
     event EventHandler<SensorDataEventArgs> SensorDataReceived;
-
-    /// <summary>
-    /// Возникает при игнорировании или сбое разбора пакета.
-    /// </summary>
-    event EventHandler<PacketErrorEventArgs> PacketRejected;
 
     /// <summary>
     /// Возникает при возникновении аномалии (выхода парметра за допусккаемые границы).

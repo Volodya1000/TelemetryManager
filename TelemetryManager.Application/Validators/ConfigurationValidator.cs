@@ -1,8 +1,8 @@
-﻿using TelemetryManager.Core.Data.Profiles;
+﻿using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Enums;
-using TelemetryManager.Core.Interfaces;
 
-namespace TelemetryManager.Core.Validators;
+namespace TelemetryManager.Application.Validators;
 
 public class ConfigurationValidator : IConfigurationValidator
 {

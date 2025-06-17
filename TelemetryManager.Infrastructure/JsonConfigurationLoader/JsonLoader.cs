@@ -1,9 +1,8 @@
 ﻿using TelemetryManager.Core.Data.Profiles;
-using TelemetryManager.Core.Interfaces;
-
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader.Dtos;
+using TelemetryManager.Application.Interfaces;
 
 namespace TelemetryManager.Infrastructure.JsonConfigurationLoader;
 

@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\TelemetryManager.Application\TelemetryManager.Application.csproj" />
     <ProjectReference Include="..\TelemetryManager.Core\TelemetryManager.Core.csproj" />
   </ItemGroup>
 

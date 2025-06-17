@@ -3,7 +3,7 @@ using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Exceptions;
 using TelemetryManager.Core.Interfaces;
 
-namespace TelemetryManager.Core.Validators;
+namespace TelemetryManager.Application.Validators;
 
 public class SensorDataValidator
 {
