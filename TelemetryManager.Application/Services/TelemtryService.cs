@@ -1,4 +1,5 @@
-﻿using TelemetryManager.Application.Interfaces;
+﻿using System.Collections.Generic;
+using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Logger;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
@@ -17,6 +18,7 @@ public class TelemtryService
     private List<DeviceProfile> deviceProfiles;
 
     private readonly List<TelemetryPacket> recivedPackets = new List<TelemetryPacket>();
+    private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
 
     public TelemtryService(
@@ -45,13 +47,17 @@ public class TelemtryService
         using (var stream = File.OpenRead(filePath))
         {
             var packeges = _parser.Parse(stream);
-            recivedPackets.AddRange(packeges);
+            recivedPackets.AddRange(packeges.Packets);
+            parsingErrors.AddRange(packeges.Errors);
         }
     }
 
     public List<DeviceProfile> GetDevicesProfiles() => deviceProfiles;
 
     public List<TelemetryPacket> GetRecivedPackets() => recivedPackets;
+
+    public List<ParsingError> GetParsingErrors() => parsingErrors;
+
 
     //public void StartStream(Stream input)
     //{

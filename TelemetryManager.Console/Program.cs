@@ -32,14 +32,14 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 4)
-    .SetNoiseRatio(0.5)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 30)
+    .SetNoiseRatio(0.7)
     //.SetNoiseRatio(1) // 5% шанс повреждения
-    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData);
-    //.AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
-    //.AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
-    //.AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
-    //.AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
+    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
+.AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
+.AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
+.AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
+.AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
 
 generator.Generate(telemetryFilePath);
 
@@ -47,6 +47,10 @@ generator.Generate(telemetryFilePath);
 facade.ProcessTelemetryFile(telemetryFilePath);
 
 PrintTelemetryPackets(facade.GetRecivedPackets());
+
+PrintParsingErrors(facade.GetParsingErrors());
+
+
 
 static void DisplayDevices(List<DeviceProfile> devices)
 {
@@ -133,6 +137,41 @@ static void PrintTelemetryPackets(List<TelemetryPacket> packets)
         }
 
         Console.WriteLine("└────────────────────────────────────────────────────────────────────────┘");
+        Console.WriteLine();
+    }
+}
+
+
+static void PrintParsingErrors(IEnumerable<ParsingError> errors)
+{
+    if (errors == null || !errors.Any())
+    {
+        Console.WriteLine("Ошибок нет.");
+        return;
+    }
+
+    int errorIndex = 1;
+
+    foreach (var error in errors)
+    {
+        Console.WriteLine(new string('─', 30));
+        Console.WriteLine($"Ошибка #{errorIndex++}");
+        Console.WriteLine("┌──────────────────────────────┐");
+        Console.WriteLine("│     Ошибка парсинга данных   │");
+        Console.WriteLine("└──────────────────────────────┘");
+
+        Console.WriteLine($"Тип ошибки:      {error.ErrorType}");
+        Console.WriteLine($"Сообщение:       {error.Message}");
+        Console.WriteLine($"Позиция в потоке:{error.StreamPosition,10} байт");
+        Console.WriteLine($"Начало пакета:   {error.PacketStartOffset,10} байт");
+
+        if (error.DeviceId.HasValue)
+            Console.WriteLine($"ID устройства:   {error.DeviceId.Value}");
+
+        if (error.SensorType.HasValue)
+            Console.WriteLine($"Тип датчика:     {error.SensorType.Value}");
+
+        Console.WriteLine(new string('─', 30));
         Console.WriteLine();
     }
 }
