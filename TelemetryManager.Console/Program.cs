@@ -33,7 +33,7 @@ string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles"
 
 
 var generator = new TelemetryGenerator(devId: 1, totalPackets: 30)
-    .SetNoiseRatio(0.7)
+    .SetNoiseRatio(0.3)
     //.SetNoiseRatio(1) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
 .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
@@ -141,7 +141,6 @@ static void PrintTelemetryPackets(List<TelemetryPacket> packets)
     }
 }
 
-
 static void PrintParsingErrors(IEnumerable<ParsingError> errors)
 {
     if (errors == null || !errors.Any())
@@ -154,24 +153,59 @@ static void PrintParsingErrors(IEnumerable<ParsingError> errors)
 
     foreach (var error in errors)
     {
-        Console.WriteLine(new string('─', 30));
+        Console.WriteLine(new string('─', 50));
         Console.WriteLine($"Ошибка #{errorIndex++}");
-        Console.WriteLine("┌──────────────────────────────┐");
-        Console.WriteLine("│     Ошибка парсинга данных   │");
-        Console.WriteLine("└──────────────────────────────┘");
+        Console.WriteLine("┌──────────────────────────────────────────┐");
+        Console.WriteLine("│         Ошибка парсинга пакета           │");
+        Console.WriteLine("└──────────────────────────────────────────┘");
 
-        Console.WriteLine($"Тип ошибки:      {error.ErrorType}");
-        Console.WriteLine($"Сообщение:       {error.Message}");
-        Console.WriteLine($"Позиция в потоке:{error.StreamPosition,10} байт");
-        Console.WriteLine($"Начало пакета:   {error.PacketStartOffset,10} байт");
+        Console.WriteLine($"Тип ошибки:          {error.ErrorType}");
+        Console.WriteLine($"Сообщение:           {error.Message}");
+        Console.WriteLine($"Позиция в потоке:    {error.StreamPosition,15} байт");
+        Console.WriteLine($"Начало пакета:       {error.PacketStartOffset,15} байт");
+        Console.WriteLine($"Конец пакета:        {error.PacketEndOffset,15} байт");
 
-        if (error.DeviceId.HasValue)
-            Console.WriteLine($"ID устройства:   {error.DeviceId.Value}");
+        if (error.RawData != null && error.RawData.Length > 0)
+        {
+            string hex = BitConverter.ToString(error.RawData).Replace("-", " ");
+            Console.WriteLine($"Данные пакета:       {hex}");
+        }
 
-        if (error.SensorType.HasValue)
-            Console.WriteLine($"Тип датчика:     {error.SensorType.Value}");
-
-        Console.WriteLine(new string('─', 30));
+        Console.WriteLine(new string('─', 50));
         Console.WriteLine();
     }
 }
+
+//static void PrintParsingErrors(IEnumerable<ParsingError> errors)
+//{
+//    if (errors == null || !errors.Any())
+//    {
+//        Console.WriteLine("Ошибок нет.");
+//        return;
+//    }
+
+//    int errorIndex = 1;
+
+//    foreach (var error in errors)
+//    {
+//        Console.WriteLine(new string('─', 30));
+//        Console.WriteLine($"Ошибка #{errorIndex++}");
+//        Console.WriteLine("┌──────────────────────────────┐");
+//        Console.WriteLine("│     Ошибка парсинга данных   │");
+//        Console.WriteLine("└──────────────────────────────┘");
+
+//        Console.WriteLine($"Тип ошибки:      {error.ErrorType}");
+//        Console.WriteLine($"Сообщение:       {error.Message}");
+//        Console.WriteLine($"Позиция в потоке:{error.StreamPosition,10} байт");
+//        Console.WriteLine($"Начало пакета:   {error.PacketStartOffset,10} байт");
+
+//        if (error.DeviceId.HasValue)
+//            Console.WriteLine($"ID устройства:   {error.DeviceId.Value}");
+
+//        if (error.SensorType.HasValue)
+//            Console.WriteLine($"Тип датчика:     {error.SensorType.Value}");
+
+//        Console.WriteLine(new string('─', 30));
+//        Console.WriteLine();
+//    }
+//}
