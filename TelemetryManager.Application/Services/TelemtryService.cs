@@ -1,4 +1,5 @@
 ﻿using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Application.Logger;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
 
@@ -9,6 +10,7 @@ public class TelemtryService
     private readonly IConfigurationLoader _configurationLoader;
     private readonly IConfigurationValidator _configurationValidator;
     private readonly IPacketStreamParser _parser;
+    private readonly IErrorLogger _errorLogger;
 
     //  private CancellationTokenSource? _cts;
 
@@ -20,11 +22,13 @@ public class TelemtryService
     public TelemtryService(
          IConfigurationLoader configurationLoader,
          IConfigurationValidator configurationValidator,
-         IPacketStreamParser parser)
+         IPacketStreamParser parser,
+         IErrorLogger errorLogger)
     {
         _configurationLoader = configurationLoader;
         _configurationValidator = configurationValidator;
         _parser= parser;
+        _errorLogger = errorLogger;
     }
     public void LoadConfiguration(string configFilePath)
     {

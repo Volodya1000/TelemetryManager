@@ -1,4 +1,5 @@
 ﻿using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Application.Logger;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core;
@@ -13,7 +14,8 @@ using TelemetryManager.Infrastructure.Parsing;
 IConfigurationValidator configValidator = new ConfigurationValidator();
 IConfigurationLoader configurationLoader = new JsonLoader();
 IPacketStreamParser packetStreamParser = new PacketStreamParser();
-var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser);
+IErrorLogger logger = new MemoryErrorLogger();
+var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, logger);
 
 string workingDirectory = Environment.CurrentDirectory;
 string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
@@ -30,14 +32,14 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
-    .SetNoiseRatio(0)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 4)
+    .SetNoiseRatio(0.5)
     //.SetNoiseRatio(1) // 5% шанс повреждения
-    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
-    .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
-    .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
-    .AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
-    .AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
+    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData);
+    //.AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
+    //.AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
+    //.AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
+    //.AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
 
 generator.Generate(telemetryFilePath);
 

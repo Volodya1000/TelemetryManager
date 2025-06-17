@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using System.IO;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
@@ -9,17 +8,17 @@ using TelemetryManager.Core.Utils;
 
 namespace TelemetryManager.Infrastructure.Parsing;
 
+//(IEnumerable<TelemetryPacket>, IEnumerable<ParsingError>) Parse(Stream stream)
 public class PacketStreamParser: IPacketStreamParser
 {
     private const int MaxPacketSize = 1024;
     private  Stream _stream;
     private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
 
-    
-
     public List<TelemetryPacket> Parse(Stream stream)
     {
-        _stream= stream;
+        _stream=stream;
+
         var packets = new List<TelemetryPacket>();
 
         while (true)
@@ -53,6 +52,7 @@ public class PacketStreamParser: IPacketStreamParser
 
         return packets;
     }
+   
 
     private long FindSyncMarker()
     {
