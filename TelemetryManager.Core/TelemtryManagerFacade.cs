@@ -2,6 +2,7 @@
 
 
 using System.ComponentModel.DataAnnotations;
+using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.EventArgs;
 using TelemetryManager.Core.Interfaces;
@@ -18,6 +19,8 @@ public class TelemtryManagerFacade
 
     private List<DeviceProfile> deviceProfiles;
 
+    private readonly List<TelemetryPacket> recivedPackets = new List<TelemetryPacket>();
+
 
    public TelemtryManagerFacade(
         IConfigurationLoader configurationLoader,
@@ -32,13 +35,22 @@ public class TelemtryManagerFacade
         _configurationValidator.Validate(deviceProfiles);
     }
 
-    void ProcessTelemetryFile(string filePath)
+    public void ProcessTelemetryFile(string filePath)
     {
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"File {filePath} does not exist.", filePath);
+        
 
+        using (var stream = File.OpenRead(filePath))
+        {
+            var parser = new PacketStreamParser(stream);
+            recivedPackets.AddRange(parser.Parse());
+        }
     }
 
     public List<DeviceProfile> GetDevicesProfiles() => deviceProfiles;
 
+    public List<TelemetryPacket> GetRecivedPackets() => recivedPackets;
 
     //public void StartStream(Stream input)
     //{
