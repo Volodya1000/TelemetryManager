@@ -1,193 +1,282 @@
-﻿using System.Buffers.Binary;
+﻿using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.IO;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Utils;
 
-namespace TelemetryManager.Infrastructure.Parsing
+namespace TelemetryManager.Infrastructure.Parsing;
+
+
+public class PacketStreamParser : IPacketStreamParser
 {
-    public class PacketStreamParser : IPacketStreamParser
+    private const int MaxPacketSize = 1024;
+    private Stream _stream;
+    private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
+
+    public PacketParsingResult Parse(Stream stream)
     {
-        private const int MaxPacketSize = 1024;
-        private readonly byte[] _syncMarker = PacketConstants.SyncMarkerBytes;
-        private Stream _stream;
+        _stream = stream;
+        var packets = new List<TelemetryPacket>();
+        var errors = new List<ParsingError>();
 
-        public PacketParsingResult Parse(Stream stream)
+        while (true)
         {
-            _stream = stream;
-            var packets = new List<TelemetryPacket>();
-            var errors = new List<ParsingError>();
+            long packetStart = FindSyncMarker();
+            if (packetStart < 0)
+                break;
 
-            while (true)
+            _stream.Position = packetStart + PacketConstants.SyncMarkerLength;
+
+            // Read header
+            byte[] headerBytes;
+            try
             {
-                long packetStart = FindSyncMarker();
-                if (packetStart < 0)
-                    break;
-
-                try
-                {
-                    var packet = ParseSinglePacket(packetStart);
-                    packets.Add(packet);
-                }
-                catch (PacketParsingException ex)
-                {
-                    // Определяем границы «битого» участка
-                    long errorEnd = FindNextSyncOrEnd();
-                    var rawDataLength = errorEnd - packetStart;
-                    byte[] rawData = ReadRaw(packetStart, rawDataLength);
-
-                    errors.Add(new ParsingError(
-                        StreamPosition: packetStart,
-                        ErrorType: ex.ErrorType,
-                        Message: ex.Message,
-                        PacketStartOffset: packetStart,
-                        PacketEndOffset: errorEnd,
-                        RawData: rawData
-                    ));
-
-                    // Устанавливаем позицию на начало следующего синхромаркера
-                    _stream.Position = errorEnd;
-                }
+                headerBytes = ReadHeader();
+            }
+            catch (PacketParsingException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.IncompleteHeader,
+                    ex.Message));
+                continue;
             }
 
-            return new PacketParsingResult(packets, errors);
-        }
-
-        private TelemetryPacket ParseSinglePacket(long packetStart)
-        {
-            // 1) читаем и парсим заголовок
-            byte[] header = ReadExactly(PacketStructure.HeaderLength, ParsingErrorType.IncompletePacketHeader);
-            var hdr = ParseHeader(header);
-
-            // 2) проверяем размер
-            ValidateSize(hdr.Size, hdr.Type);
-
-            // 3) читаем payload
-            byte[] payload = ReadExactly(hdr.Size, ParsingErrorType.ContentReadFailed);
-
-            // 4) скипаем паддинг
-            int padding = PacketStructure.CalculatePadding(hdr.Size);
-            if (padding > 0)
-                ReadExactly(padding, ParsingErrorType.PaddingReadFailed);
-
-            // 5) проверяем контрольную сумму
-            ValidateChecksum(header, payload, padding);
-
-            // 6) парсим данные датчика
-            var parser = SensorDataFactory.CreateParser(hdr.Type);
-            parser.Parse(payload);
-
-            return new TelemetryPacket(hdr.Time, hdr.DevId, hdr.Type, hdr.SourceId, payload, parser);
-        }
-
-        #region Helpers
-
-        private long FindSyncMarker()
-        {
-            int b;
-            while ((b = _stream.ReadByte()) != -1)
+            // Parse header
+            if (!TryParseHeader(headerBytes, out uint time, out ushort devId, out SensorType typeId, out byte sourceId, out ushort size))
             {
-                if (b != _syncMarker[0]) continue;
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.InvalidHeaderFormat,
+                    "Неверный формат заголовка",
+                    Time: null,
+                    DeviceId: null,
+                    SensorType: null));
+                continue;
+            }
+
+            // Validate packet size and sensor type
+            try
+            {
+                if (size == 0 || size > MaxPacketSize)
+                    throw new PacketParsingException($"Unsupported size: {size}");
+                int expected = SensorDataFactory.GetExpectedLength(typeId);
+                if (size != expected)
+                    throw new PacketParsingException($"Size mismatch for {typeId}. Expected: {expected}, Actual: {size}");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.UnknownSensorType,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId));
+                continue;
+            }
+            catch (PacketParsingException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.SizeMismatch,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId,
+                    SourceId: sourceId,
+                    Size: size));
+                continue;
+            }
+
+            // Read content
+            byte[] content;
+            try
+            {
+                content = ReadContent(size);
+            }
+            catch (PacketParsingException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.ContentReadFailed,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId,
+                    SourceId: sourceId,
+                    Size: size));
+                SkipInvalidPacket(size);
+                continue;
+            }
+
+            // Skip padding
+            int padding;
+            try
+            {
+                padding = SkipPadding(size);
+            }
+            catch (PacketParsingException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.PaddingReadFailed,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId,
+                    SourceId: sourceId,
+                    Size: size));
+                SkipInvalidPacket(size);
+                continue;
+            }
+
+            // Validate checksum
+            try
+            {
+                ValidateChecksum(headerBytes, content, size, padding);
+            }
+            catch (PacketParsingException ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.ChecksumMismatch,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId,
+                    SourceId: sourceId,
+                    Size: size));
+                SkipInvalidPacket(size);
+                continue;
+            }
+
+            // Create telemetry packet
+            try
+            {
+                var parser = SensorDataFactory.CreateParser(typeId);
+                parser.Parse(content);
+                var packet = new TelemetryPacket(time, devId, typeId, sourceId, content, parser);
+                packets.Add(packet);
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new ParsingError(
+                    packetStart,
+                    ParsingErrorType.DataValidationFailed,
+                    ex.Message,
+                    Time: time,
+                    DeviceId: devId,
+                    SensorType: typeId,
+                    SourceId: sourceId,
+                    Size: size));
+                SkipInvalidPacket(size);
+                continue;
+            }
+        }
+
+        return new PacketParsingResult(packets, errors);
+    }
+
+    private long FindSyncMarker()
+    {
+        int b;
+        while ((b = _stream.ReadByte()) != -1)
+        {
+            if (b == _syncMarkerBytes[0])
+            {
                 long pos = _stream.Position - 1;
-                // читаем потенциальный маркер
-                Span<byte> buf = stackalloc byte[_syncMarker.Length];
+                var buf = new byte[PacketConstants.SyncMarkerLength];
                 buf[0] = (byte)b;
-                int read = _stream.Read(buf.Slice(1));
-                if (read == _syncMarker.Length - 1 && buf.SequenceEqual(_syncMarker))
+                int read = _stream.Read(buf, 1, PacketConstants.SyncMarkerLength - 1);
+                if (read < PacketConstants.SyncMarkerLength - 1)
+                {
+                    _stream.Position = pos + 1;
+                    continue;
+                }
+
+                if (buf.AsSpan().SequenceEqual(_syncMarkerBytes))
                     return pos;
+
                 _stream.Position = pos + 1;
             }
-            return -1;
         }
-
-        private long FindNextSyncOrEnd()
-        {
-            long start = _stream.Position;
-            if (FindSyncMarker() is long next && next >= 0)
-                return next;
-            return _stream.Length;
-        }
-
-        private byte[] ReadRaw(long offset, long length)
-        {
-            byte[] buffer = new byte[length];
-            long old = _stream.Position;
-            _stream.Position = offset;
-            _stream.Read(buffer, 0, (int)length);
-            _stream.Position = old;
-            return buffer;
-        }
-
-        private byte[] ReadExactly(int count, ParsingErrorType errorType)
-        {
-            byte[] buf = new byte[count];
-            int total = 0;
-            while (total < count)
-            {
-                int r = _stream.Read(buf, total, count - total);
-                if (r <= 0)
-                    throw new PacketParsingException(errorType,
-                        $"Failed to read {count} bytes (read {total}).");
-                total += r;
-            }
-            return buf;
-        }
-
-        private (uint Time, ushort DevId, SensorType Type, byte SourceId, ushort Size) ParseHeader(byte[] data)
-        {
-            if (data.Length != PacketStructure.HeaderLength)
-                throw new PacketParsingException(ParsingErrorType.InvalidPacketFormat,
-                    "Header length mismatch.");
-
-            uint time = BinaryPrimitives.ReadUInt32BigEndian(data);
-            ushort devId = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(4));
-            SensorType type = (SensorType)data[6];
-            byte src = data[7];
-            ushort size = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(8));
-
-            return (time, devId, type, src, size);
-        }
-
-        private void ValidateSize(ushort size, SensorType type)
-        {
-            if (size == 0 || size > MaxPacketSize)
-                throw new PacketParsingException(ParsingErrorType.InvalidPacketSize,
-                    $"Unsupported packet size: {size}.");
-
-            int expected = SensorDataFactory.GetExpectedLength(type);
-            if (size != expected)
-                throw new PacketParsingException(ParsingErrorType.InvalidPacketSize,
-                    $"Size mismatch for {type}. Expected {expected}, got {size}.");
-        }
-
-        private void ValidateChecksum(byte[] header, byte[] payload, int padding)
-        {
-            int dataLen = header.Length + payload.Length + padding;
-            byte[] data = PacketStructure.CombineArrays(header, payload, new byte[padding]);
-            ushort expected = ReadUInt16();
-            ushort actual = ChecksumCalculator.Compute(data);
-            if (expected != actual)
-                throw new PacketParsingException(ParsingErrorType.ChecksumMismatch,
-                    $"Checksum fail: expected {expected}, actual {actual}.");
-        }
-
-        private ushort ReadUInt16()
-        {
-            Span<byte> buf = stackalloc byte[2];
-            if (_stream.Read(buf) != 2)
-                throw new PacketParsingException(ParsingErrorType.InvalidPacketFormat,
-                    "Failed to read checksum bytes.");
-            return BinaryPrimitives.ReadUInt16BigEndian(buf);
-        }
-
-        #endregion
+        return -1;
     }
 
-    public class PacketParsingException : Exception
+    private byte[] ReadHeader()
     {
-        public ParsingErrorType ErrorType { get; }
-        public PacketParsingException(ParsingErrorType type, string message)
-            : base(message) => ErrorType = type;
+        var header = new byte[PacketStructure.HeaderLength];
+        int read = _stream.Read(header, 0, header.Length);
+        if (read != header.Length)
+            throw new PacketParsingException($"Неполный заголовок. Ожидалось: {header.Length}, получено: {read}");
+        return header;
     }
+
+    public static bool TryParseHeader(byte[] data, out uint time, out ushort devId, out SensorType type, out byte sourceId, out ushort size)
+    {
+        if (data.Length < PacketStructure.HeaderLength)
+        {
+            time = 0; devId = 0; type = default; sourceId = 0; size = 0;
+            return false;
+        }
+        time = BinaryPrimitives.ReadUInt32BigEndian(data);
+        devId = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(4));
+        type = (SensorType)data[6];
+        sourceId = data[7];
+        size = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(8));
+        return true;
+    }
+
+    private byte[] ReadContent(int size)
+    {
+        var buffer = new byte[size];
+        int total = 0;
+        while (total < size)
+        {
+            int r = _stream.Read(buffer, total, size - total);
+            if (r == 0)
+                throw new PacketParsingException("Не удалось прочитать содержимое");
+            total += r;
+        }
+        return buffer;
+    }
+
+    private int SkipPadding(int contentSize)
+    {
+        int pad = PacketStructure.CalculatePadding(contentSize);
+        if (pad > 0 && _stream.ReadByte() == -1)
+            throw new PacketParsingException("Ошибка чтения выравнивающих байтов");
+        return pad;
+    }
+
+    private void ValidateChecksum(byte[] header, byte[] content, int contentSize, int paddingSize)
+    {
+        var data = PacketStructure.CombineArrays(header, content, new byte[paddingSize]);
+        var csBytes = new byte[2];
+        if (_stream.Read(csBytes, 0, 2) != 2)
+            throw new PacketParsingException("Ошибка чтения контрольной суммы");
+        ushort expected = BinaryPrimitives.ReadUInt16BigEndian(csBytes);
+        ushort actual = ChecksumCalculator.Compute(data);
+        if (expected != actual)
+            throw new PacketParsingException($"Ошибка контрольной суммы. Ожидалось: {expected}, получено: {actual}");
+    }
+
+    private void SkipInvalidPacket(int contentSize)
+    {
+        int pad = contentSize % 2;
+        long skip = contentSize + pad + 2;
+        if (_stream.Position + skip <= _stream.Length)
+            _stream.Position += skip;
+    }
+}
+
+public class PacketParsingException : Exception
+{
+    public PacketParsingException(string message) : base(message) { }
+    public PacketParsingException(string message, Exception inner) : base(message, inner) { }
 }

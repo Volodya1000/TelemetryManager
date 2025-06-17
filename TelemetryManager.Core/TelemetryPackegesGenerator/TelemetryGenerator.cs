@@ -78,7 +78,7 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
             using var fileStream = new FileStream(filePath, FileMode.Create);
             for (int i = 0; i < _totalPackets; i++)
             {
-                //GenerateNoise(fileStream);
+                GenerateNoise(fileStream);
                 var packet = GenerateValidPacket();
                 CorruptPacketIfNeeded(ref packet);
                 fileStream.Write(packet, 0, packet.Length);

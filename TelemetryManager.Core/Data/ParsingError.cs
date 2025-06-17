@@ -4,21 +4,24 @@ namespace TelemetryManager.Core.Data;
 
 public enum ParsingErrorType
 {
-    IncompletePacketHeader,
-    InvalidPacketFormat,
-    InvalidPacketSize,
+    SyncMarkerNotFound,
+    IncompleteHeader,
+    InvalidHeaderFormat,
+    SizeMismatch,
+    UnknownSensorType,
     ContentReadFailed,
-    PaddingReadFailed,
     ChecksumMismatch,
-    DataValidationFailed,
-    UnexpectedStreamError
+    PaddingReadFailed,
+    DataValidationFailed
 }
 
 public record ParsingError(
-        long StreamPosition,
-        ParsingErrorType ErrorType,
-        string Message,
-        long PacketStartOffset,
-        long PacketEndOffset,
-        byte[] RawData = null
-    );
+    long PacketStartOffset,
+    ParsingErrorType ErrorType,
+    string Message,
+    uint? Time = null,
+    ushort? DeviceId = null,
+    SensorType? SensorType = null,
+    byte? SourceId = null,
+    ushort? Size = null
+);

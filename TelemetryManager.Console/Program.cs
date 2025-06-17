@@ -32,8 +32,8 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 30)
-    .SetNoiseRatio(0.3)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 20)
+    .SetNoiseRatio(0.7)
     //.SetNoiseRatio(1) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
 .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
@@ -161,15 +161,22 @@ static void PrintParsingErrors(IEnumerable<ParsingError> errors)
 
         Console.WriteLine($"Тип ошибки:          {error.ErrorType}");
         Console.WriteLine($"Сообщение:           {error.Message}");
-        Console.WriteLine($"Позиция в потоке:    {error.StreamPosition,15} байт");
         Console.WriteLine($"Начало пакета:       {error.PacketStartOffset,15} байт");
-        Console.WriteLine($"Конец пакета:        {error.PacketEndOffset,15} байт");
 
-        if (error.RawData != null && error.RawData.Length > 0)
-        {
-            string hex = BitConverter.ToString(error.RawData).Replace("-", " ");
-            Console.WriteLine($"Данные пакета:       {hex}");
-        }
+        if (error.Time.HasValue)
+            Console.WriteLine($"Время:               {new DateTime(1970, 1, 1).AddSeconds(error.Time.Value)}");
+
+        if (error.DeviceId.HasValue)
+            Console.WriteLine($"ID устройства:       {error.DeviceId.Value}");
+
+        if (error.SensorType.HasValue)
+            Console.WriteLine($"Тип датчика:         {error.SensorType.Value}");
+
+        if (error.SourceId.HasValue)
+            Console.WriteLine($"Источник:            {error.SourceId.Value}");
+
+        if (error.Size.HasValue)
+            Console.WriteLine($"Размер пакета:       {error.Size.Value} байт");
 
         Console.WriteLine(new string('─', 50));
         Console.WriteLine();

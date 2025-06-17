@@ -15,5 +15,10 @@ public class DeviceProfile
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Sensors = sensors ?? throw new ArgumentNullException(nameof(sensors));
     }
+
+    public void AddSensor(SensorProfile sensor)
+    {
+
+    }
 }
 
