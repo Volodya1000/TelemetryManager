@@ -1,4 +1,4 @@
-﻿namespace TelemetryManager.Core.Helpers;
+﻿namespace TelemetryManager.Core.Utils;
 
 public static class BinaryUtils
 {

@@ -1,4 +1,4 @@
-﻿using TelemetryManager.Core.Helpers;
+﻿using TelemetryManager.Core.Utils;
 using TelemetryManager.Core.Interfaces;
 
 namespace TelemetryManager.Core.Data.SensorData;

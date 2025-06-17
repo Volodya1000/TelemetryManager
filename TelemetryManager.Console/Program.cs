@@ -30,7 +30,7 @@ string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles"
 
 
 // Обязательные параметры в конструкторе
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 5)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
     //.SetNoiseRatio(0.05) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, () =>
     {
@@ -49,7 +49,7 @@ var generator = new TelemetryGenerator(devId: 1, totalPackets: 5)
 //        .ToArray();
 //});
 
-//generator.Generate(telemetryFilePath);
+generator.Generate(telemetryFilePath);
 
 
 facade.ProcessTelemetryFile(telemetryFilePath);
