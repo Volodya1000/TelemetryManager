@@ -31,11 +31,17 @@ string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles"
 
 // Обязательные параметры в конструкторе
 var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
+    .SetNoiseRatio(0)
     //.SetNoiseRatio(0.05) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, () =>
     {
-        short temp = (short)(new Random().Next(-500, 500)); // -50.0°C to +50.0°C
-        return BitConverter.GetBytes(temp).Reverse().ToArray();
+        float temp = new Random().Next(-500, 500) / 10.0f; // -50.0°C to +50.0°C
+        byte[] bytes = BitConverter.GetBytes(temp);
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(bytes); // Конвертируем в Big Endian
+        }
+        return bytes;
     });
 //.AddSensor(SensorType.Accelerometer, 1, () =>
 //{
@@ -127,8 +133,17 @@ static void PrintTelemetryPackets(List<TelemetryPacket> packets)
         // Печать ISensorData, если реализован ToString()
         if (packet.ParsedContent != null)
         {
+            var values = packet.ParsedContent.GetValues();
+
             Console.WriteLine("├────────────────────────────────────────────────────────────────────────┤");
-            Console.WriteLine($"│ Parsed Data: {packet.ParsedContent.ToString()} ");
+            Console.WriteLine("│ Parsed Data:");
+
+            foreach (var kvp in values)
+            {
+                Console.WriteLine($"│   {kvp.Key}: {kvp.Value}");
+            }
+
+            Console.WriteLine("│");
         }
 
         Console.WriteLine("└────────────────────────────────────────────────────────────────────────┘");

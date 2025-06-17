@@ -1,4 +1,5 @@
-﻿using TelemetryManager.Core.Data;
+﻿using System.Buffers.Binary;
+using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Utils;
 
@@ -45,23 +46,28 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
             return this;
         }
 
-        public TelemetryGenerator AddSensor(byte typeId, byte sourceId, Func<byte[]> contentGenerator)
+        public TelemetryGenerator AddSensor(SensorType type, byte sourceId, Func<byte[]> contentGenerator)
         {
-            if (contentGenerator == null)
-                throw new ArgumentNullException(nameof(contentGenerator));
+            // Валидация длины при добавлении сенсора
+            int expectedLength = SensorDataFactory.GetExpectedLength(type);
 
             _sensors.Add(new SensorConfig
             {
-                TypeId = typeId,
+                TypeId = (byte)type,
                 SourceId = sourceId,
-                ContentGenerator = contentGenerator
+                ContentGenerator = () =>
+                {
+                    byte[] data = contentGenerator();
+                    if (data.Length != expectedLength)
+                    {
+                        throw new InvalidOperationException(
+                            $"Content length mismatch for {type}. Expected: {expectedLength}, Actual: {data.Length}");
+                    }
+                    return data;
+                }
             });
-            return this;
-        }
 
-        public TelemetryGenerator AddSensor(SensorType type, byte sourceId, Func<byte[]> contentGenerator)
-        {
-            return AddSensor((byte)type, sourceId, contentGenerator);
+            return this;
         }
 
         public void Generate(string filePath)
@@ -72,7 +78,7 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
             using var fileStream = new FileStream(filePath, FileMode.Create);
             for (int i = 0; i < _totalPackets; i++)
             {
-                GenerateNoise(fileStream);
+                //GenerateNoise(fileStream);
                 var packet = GenerateValidPacket();
                 CorruptPacketIfNeeded(ref packet);
                 fileStream.Write(packet, 0, packet.Length);
@@ -91,28 +97,41 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
         private byte[] GenerateValidPacket()
         {
             var sensor = _sensors[_random.Next(_sensors.Count)];
-            var content = sensor.ContentGenerator();
-            bool needPadding = (content.Length % 2) != 0;
+            byte[] content = sensor.ContentGenerator();
+
+            uint time = _timeGenerator();
+            int paddingSize = PacketStructure.CalculatePadding(content.Length);
+
+            byte[] headerBytes = PacketStructure.BuildHeaderBytes(
+                time,
+                _devId,
+                (SensorType)sensor.TypeId,
+                sensor.SourceId,
+                (ushort)content.Length
+            );
 
             using var ms = new MemoryStream();
-            // Header
-            ms.Write(_syncPattern, 0, PacketConstants.SyncMarkerLength);             // Sync (4 bytes)
-            WriteBigEndian(ms, _timeGenerator());       // Time (4 bytes)
-            WriteBigEndian(ms, _devId);                 // DevId (2 bytes)
-            ms.WriteByte(sensor.TypeId);                // TypeId (1 byte)
-            ms.WriteByte(sensor.SourceId);              // SourceId (1 byte)
-            WriteBigEndian(ms, (ushort)content.Length); // Size (2 bytes)
-            ms.Write(content, 0, content.Length);       // Content
-            if (needPadding) ms.WriteByte(0);           // Padding
+            ms.Write(_syncPattern, 0, PacketConstants.SyncMarkerLength);
+            ms.Write(headerBytes, 0, headerBytes.Length);
+            ms.Write(content, 0, content.Length);
 
-            // Получаем данные БЕЗ синхромаркера для контрольной суммы
-            var dataWithoutSync = ms.ToArray().Skip(4).ToArray();
-            var checksum = ChecksumCalculator.Compute(dataWithoutSync);
+            if (paddingSize > 0) ms.WriteByte(0);
 
-            return ms.ToArray()
-                .Concat(new[] { (byte)(checksum >> 8), (byte)checksum })
-                .ToArray();
+            // Вычисление контрольной суммы (без синхромаркера)
+            byte[] dataForChecksum = PacketStructure.CombineArrays(
+                headerBytes,
+                content,
+                new byte[paddingSize]
+            );
+
+            ushort checksum = ChecksumCalculator.Compute(dataForChecksum);
+            byte[] csBytes = new byte[2];
+            BinaryPrimitives.WriteUInt16BigEndian(csBytes, checksum);
+            ms.Write(csBytes, 0, 2);
+
+            return ms.ToArray();
         }
+
 
         private void CorruptPacketIfNeeded(ref byte[] packet)
         {
