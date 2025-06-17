@@ -11,7 +11,10 @@ public static class SensorDataFactory
         return type switch
         {
             SensorType.Temperature => new TemperatureData(),
+            SensorType.Pressure => new PressureData(), 
             SensorType.Accelerometer => new AccelerometerData(),
+            SensorType.Magnetometer => new MagnetometerData(),
+            SensorType.FreeFall => new FreeFallData(),
             _ => throw new ArgumentException($"Unsupported sensor type: {type}")
         };
     }
@@ -19,9 +22,9 @@ public static class SensorDataFactory
     public static int GetExpectedLength(SensorType type) => type switch
     {
         SensorType.Temperature => 4,
-        SensorType.Pressure => 2,
-        SensorType.Accelerometer => 6,  // 3 оси * 2 байта
-        SensorType.Magnetometer => 6,   // 3 оси * 2 байта
+        SensorType.Pressure => 4,
+        SensorType.Accelerometer => 12,  // 3 оси * 4 байта
+        SensorType.Magnetometer => 12,    // 3 оси * 4 байта
         SensorType.FreeFall => 1,
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };

@@ -142,20 +142,6 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
             packet[index] = (byte)_random.Next(256);
         }
 
-        private void WriteBigEndian(Stream stream, ushort value)
-        {
-            stream.WriteByte((byte)(value >> 8));
-            stream.WriteByte((byte)value);
-        }
-
-        private void WriteBigEndian(Stream stream, uint value)
-        {
-            stream.WriteByte((byte)(value >> 24));
-            stream.WriteByte((byte)(value >> 16));
-            stream.WriteByte((byte)(value >> 8));
-            stream.WriteByte((byte)value);
-        }
-
         private class SensorConfig
         {
             public byte TypeId { get; set; }

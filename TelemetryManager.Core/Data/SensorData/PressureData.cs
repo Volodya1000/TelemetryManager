@@ -3,9 +3,9 @@ using TelemetryManager.Core.Interfaces;
 
 namespace TelemetryManager.Core.Data.SensorData;
 
-public class TemperatureData : ISensorData
+public class PressureData : ISensorData
 {
-    public float Value { get; private set; }
+    public float Value { get; private set; } // в hPa (гектопаскалях)
 
     public void Parse(byte[] data)
     {
@@ -14,6 +14,6 @@ public class TemperatureData : ISensorData
 
     public IReadOnlyDictionary<string, double> GetValues() => new Dictionary<string, double>
     {
-        ["Temperature"] = Value
+        ["Pressure"] = Value
     };
 }

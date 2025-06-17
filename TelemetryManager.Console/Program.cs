@@ -29,33 +29,16 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-// Обязательные параметры в конструкторе
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 10)
     .SetNoiseRatio(0)
     //.SetNoiseRatio(0.05) // 5% шанс повреждения
-    .AddSensor(SensorType.Temperature, 1, () =>
-    {
-        float temp = new Random().Next(-50, 50) / 10.0f; // -50.0°C to +50.0°C
-        byte[] bytes = BitConverter.GetBytes(temp);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(bytes); // Конвертируем в Big Endian
-        }
-        return bytes;
-    });
-//.AddSensor(SensorType.Accelerometer, 1, () =>
-//{
-//    var rnd = new Random();
-//    float x = -20f + 40f * (float)rnd.NextDouble();
-//    float y = -20f + 40f * (float)rnd.NextDouble();
-//    float z = -20f + 40f * (float)rnd.NextDouble();
-//    return BitConverter.GetBytes(x).Reverse()
-//        .Concat(BitConverter.GetBytes(y).Reverse())
-//        .Concat(BitConverter.GetBytes(z).Reverse())
-//        .ToArray();
-//});
+    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
+    .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
+    .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
+    .AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
+    .AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
 
-//generator.Generate(telemetryFilePath);
+generator.Generate(telemetryFilePath);
 
 
 facade.ProcessTelemetryFile(telemetryFilePath);
