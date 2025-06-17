@@ -4,41 +4,43 @@ public class SensorParameterProfile
 {
     public string Name { get; }
     public string Units { get; }
-    public double MinValue { get; private set; } 
-    public double MaxValue { get; private set; }
+    public double Min { get; private set; }
+    public double Max { get; private set; }
 
-    public SensorParameterProfile(string name, string units, double minValue, double maxValue)
+    public SensorParameterProfile(string name, string units, double min, double max)
     {
-        if(String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-        ValidateInterval(minValue, maxValue);
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentNullException(nameof(name), "Sensor parameter name cannot be null or empty.");
+
+        ValidateInterval(min, max, nameof(min));
         Name = name;
         Units = units;
-        MinValue = minValue;
-        MaxValue = maxValue;
+        Min = min;
+        Max = max;
     }
 
     public void SetMinValue(double newMinValue)
     {
-        ValidateInterval(newMinValue, MaxValue);
-        MinValue = newMinValue;
+        ValidateInterval(newMinValue, Max, nameof(newMinValue));
+        Min = newMinValue;
     }
 
     public void SetMaxValue(double newMaxValue)
     {
-        ValidateInterval(MinValue, newMaxValue);
-        MaxValue = newMaxValue;
+        ValidateInterval(Min, newMaxValue, nameof(newMaxValue));
+        Max = newMaxValue;
     }
 
     public void SetInterval(double newMinValue, double newMaxValue)
     {
-        ValidateInterval(newMinValue, newMaxValue);
-        MinValue = newMinValue;
-        MaxValue = newMaxValue;
+        ValidateInterval(newMinValue, newMaxValue, nameof(newMinValue));
+        Min = newMinValue;
+        Max = newMaxValue;
     }
 
-    private static void ValidateInterval(double min, double max)
+    private static void ValidateInterval(double min, double max, string paramName)
     {
         if (min >= max)
-            throw new ArgumentException("MinValue must be less than MaxValue.");
+            throw new ArgumentException($"'{paramName}': Minimum value must be less than maximum value.", paramName);
     }
 }

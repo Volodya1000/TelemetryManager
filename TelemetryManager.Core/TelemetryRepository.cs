@@ -12,5 +12,5 @@ public class TelemetryRepository
     private readonly Dictionary<SensorId, SensorHistoryRecord> _history;
 
 
-    public void AddSensorSnapshot
+   
 }

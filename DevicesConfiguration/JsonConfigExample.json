@@ -1,0 +1,33 @@
+[
+  {
+    "DeviceId": 1,
+    "Name": "MyDevice",
+    "Sensors": [
+      {
+        "TypeId": 3,
+        "Name": "MainAccelerometer",
+        "SourceId": 120,
+        "Parameters": [
+          {
+            "Name": "X",
+            "Units": "mg",
+            "Min": -2000,
+            "Max": 2000
+          },
+          {
+            "Name": "Y",
+            "Units": "mg",
+            "Min": -2000,
+            "Max": 2000
+          },
+          {
+            "Name": "Z",
+            "Units": "mg",
+            "Min": -2000,
+            "Max": 2000
+          }
+        ]
+      }
+    ]
+  }
+]

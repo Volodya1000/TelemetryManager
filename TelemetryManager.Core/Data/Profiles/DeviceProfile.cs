@@ -6,15 +6,14 @@ namespace TelemetryManager.Core.Data.Profiles;
 public class DeviceProfile
 {
     public ushort DeviceId { get; init; }
-    public required string DeviceName { get; init; }
-    public List<SensorProfile> Sensors { get; init; }
+    public required string Name { get; init; }
+    public required List<SensorProfile> Sensors { get; init; }
 
-    public DeviceProfile(ushort deviceId, string deviceName, List<SensorProfile> sensors)
+    public DeviceProfile(ushort deviceId, string name, List<SensorProfile> sensors)
     {
-        if (String.IsNullOrEmpty(deviceName)) throw new ArgumentNullException("name");
         DeviceId = deviceId;
-        DeviceName = deviceName;
-        Sensors= sensors;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        Sensors = sensors ?? throw new ArgumentNullException(nameof(sensors));
     }
 }
 

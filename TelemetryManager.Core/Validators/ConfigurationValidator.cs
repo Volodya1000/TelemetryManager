@@ -57,13 +57,13 @@ public class ConfigurationValidator : IConfigurationValidator
     private void ValidateSensorTypeIds(DeviceProfile deviceProfile)
     {
         var invalidSensors = deviceProfile.Sensors
-            .Where(s => !_validSensorTypeIds.Contains(s.SensorId.TypeId))
+            .Where(s => !_validSensorTypeIds.Contains((byte)s.TypeId))
             .ToList();
 
         if (invalidSensors.Any())
         {
             var invalidTypeIds = invalidSensors
-                .Select(s => s.SensorId.TypeId)
+                .Select(s => s.TypeId)
                 .Distinct()
                 .OrderBy(id => id);
 
@@ -79,9 +79,9 @@ public class ConfigurationValidator : IConfigurationValidator
     private void ValidateSourceIdsUniqueness(DeviceProfile deviceProfile)
     {
         var duplicateSourceIds = deviceProfile.Sensors
-            .GroupBy(s => s.SensorId.TypeId)
+            .GroupBy(s => s.TypeId)
             .SelectMany(group => group
-                .GroupBy(s => s.SensorId.SourceId)
+                .GroupBy(s => s.SourceId)
                 .Where(g => g.Count() > 1)
                 .Select(g => new { TypeId = group.Key, SourceId = g.Key }))
             .ToList();
