@@ -28,36 +28,7 @@ public static class PacketStructure
         return headerBytes;
     }
 
-    public static bool TryParseHeader(byte[] data, out uint time, out ushort devId, out SensorType type, out byte sourceId, out ushort size)
-    {
-        if (data.Length < HeaderLength)
-        {
-            time = 0; devId = 0; type = 0; sourceId = 0; size = 0;
-            return false;
-        }
-
-        time = (uint)(
-            (data[0] << 24) |
-            (data[1] << 16) |
-            (data[2] << 8) |
-            data[3]
-        );
-
-        devId = (ushort)(
-            (data[4] << 8) |
-            data[5]
-        );
-
-        type = (SensorType)data[6];
-        sourceId = data[7];
-
-        size = (ushort)(
-            (data[8] << 8) |
-            data[9]
-        );
-
-        return true;
-    }
+    
 
     public static int CalculatePadding(int contentSize) => contentSize % 2 == 0 ? 0 : 1;
 

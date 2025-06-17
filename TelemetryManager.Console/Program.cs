@@ -35,7 +35,7 @@ var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
     //.SetNoiseRatio(0.05) // 5% шанс повреждения
     .AddSensor(SensorType.Temperature, 1, () =>
     {
-        float temp = new Random().Next(-500, 500) / 10.0f; // -50.0°C to +50.0°C
+        float temp = new Random().Next(-50, 50) / 10.0f; // -50.0°C to +50.0°C
         byte[] bytes = BitConverter.GetBytes(temp);
         if (BitConverter.IsLittleEndian)
         {
@@ -55,7 +55,7 @@ var generator = new TelemetryGenerator(devId: 1, totalPackets: 1)
 //        .ToArray();
 //});
 
-generator.Generate(telemetryFilePath);
+//generator.Generate(telemetryFilePath);
 
 
 facade.ProcessTelemetryFile(telemetryFilePath);
