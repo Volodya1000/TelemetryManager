@@ -5,8 +5,8 @@ namespace TelemetryManager.Core.Interfaces.Repositories;
 
 public interface ITelemetryRepository
 {
-    Task AddPacketAsync(TelemetryPacketWithDate packet);
-    Task<PagedResponse<TelemetryPacketWithDate>> GetPacketsAsync(
+    Task AddPacketAsync(TelemetryPacket packet);
+    Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(
         DateTime? dateFrom = null,
         DateTime? dateTo = null,
         ushort? deviceId = null,

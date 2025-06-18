@@ -4,6 +4,7 @@ using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Persistence.Entities;
+using TelemetryManager.Persistence.Mapping;
 
 namespace TelemetryManager.Persistence.Repositories;
 
@@ -13,24 +14,15 @@ public class TelemetryRepository : ITelemetryRepository
 
     public TelemetryRepository(TelemetryContext context) => _context = context;
 
-    public async Task AddPacketAsync(TelemetryPacketWithDate packet)
+    public async Task AddPacketAsync(TelemetryPacket packet)
     {
-        var entity = new TelemetryPacketEntity
-        {
-            Time =packet.DateTimeOfSending,
-            DevId = packet.DevId,
-            SensorType = packet.SensorId.TypeId,
-            SensorSourceId = packet.SensorId.SourceId,
-            ContentItems = packet.Content
-                .Select(kv => new ContentItemEntity { Key = kv.Key, Value = kv.Value })
-                .ToList()
-        };
+        var entity = TelemetryPacketMapper.MapToEntity(packet);
 
         await _context.TelemetryPackets.AddAsync(entity);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResponse<TelemetryPacketWithDate>> GetPacketsAsync(
+    public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(
      DateTime? dateFrom = null,
      DateTime? dateTo = null,
      ushort? deviceId = null,
@@ -72,14 +64,14 @@ public class TelemetryRepository : ITelemetryRepository
             .ToListAsync();
 
         // Преобразуем в DTO
-        var data = entities.Select(p => new TelemetryPacketWithDate(
+        var data = entities.Select(p => new TelemetryPacket(
             DateTimeOfSending: p.Time,
             DevId: p.DevId,
             SensorId: new SensorId(p.SensorType, p.SensorSourceId),
             Content: p.ContentItems.ToDictionary(i => i.Key, i => i.Value)
         )).ToList();
 
-        return new PagedResponse<TelemetryPacketWithDate>(
+        return new PagedResponse<TelemetryPacket>(
             data: data,
             pageNumber: pageNumber,
             pageSize: pageSize,

@@ -25,7 +25,6 @@ public class TelemtryService
 
     private List<DeviceProfile> deviceProfiles;
 
-    private readonly List<TelemetryPacketWithDate> recivedPackets = new List<TelemetryPacketWithDate>();
     private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
 
@@ -57,15 +56,14 @@ public class TelemtryService
 
             SetActivationTimeForDevices(parsingResult.Packets);
 
-            IEnumerable<TelemetryPacketWithDate> packetWithDate = 
+            IEnumerable<TelemetryPacket> packetWithDate = 
                 parsingResult.Packets.Select(p => 
                 {
                     TimeSpan uptimeDuration = TimeSpan.FromMilliseconds(p.Time);
                     DateTime sendTime = DateTime.UtcNow + uptimeDuration;
-                    return new TelemetryPacketWithDate(sendTime, p.DevId, p.SensorId, p.Content);
+                    return new TelemetryPacket(sendTime, p.DevId, p.SensorId, p.Content);
                     });
             parsingErrors.AddRange(parsingResult.Errors);
-            recivedPackets.AddRange(packetWithDate);
             foreach (var packet in packetWithDate)
                 _telemetryRepository.AddPacketAsync(packet);
         }
@@ -73,14 +71,13 @@ public class TelemtryService
 
     public ICollection<DeviceProfileDto> GetDevicesProfiles() => deviceProfiles.Select(d=>d.ToDto()).ToList();
 
-    public Task<PagedResponse<TelemetryPacketWithDate>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
+    public Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
     {
         return _telemetryRepository.GetPacketsAsync(
            filter.DateFrom, filter.DateTo, filter.DeviceId, 
            filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
     }
 
-    public List<TelemetryPacketWithDate> GetRecivedPackets() => recivedPackets;
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
 

@@ -2,7 +2,7 @@
 
 namespace TelemetryManager.Core.Data;
 
-public  record TelemetryPacketWithDate
+public  record TelemetryPacket
 (
     DateTime DateTimeOfSending,
     ushort DevId,

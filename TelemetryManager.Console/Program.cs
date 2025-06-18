@@ -1,20 +1,25 @@
 ﻿using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Logger;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
-using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Enums;
-using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
+using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
 using TelemetryManager.Infrastructure.Parsing;
-using TelemetryManager.Core.Interfaces.Repositories;
+using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
+using TelemetryManager.Persistence;
+using TelemetryManager.Persistence.Repositories;
 
 
 IConfigurationValidator configValidator = new ConfigurationValidator();
 IConfigurationLoader configurationLoader = new JsonLoader();
 IPacketStreamParser packetStreamParser = new PacketStreamParser();
-ITelemetryRepository telemetryRepository = null;// new TelemetryRepository();
+
+var context = new TelemetryContext();
+context.Database.EnsureCreated();
+ITelemetryRepository telemetryRepository = new TelemetryRepository(context);
 var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, telemetryRepository);
 
 string workingDirectory = Environment.CurrentDirectory;
@@ -42,11 +47,11 @@ var generator = new TelemetryGenerator(devId: 1, totalPackets: 6, noiseRatio: 0)
 generator.Generate(telemetryFilePath);
 
 
-facade.ProcessTelemetryFile(telemetryFilePath);
+//facade.ProcessTelemetryFile(telemetryFilePath);
 
 //DisplayDevices(devices);
 
-PrintTelemetryPackets(facade.GetRecivedPackets());
+PrintPagedTelemetryPackets(await facade.GetPacketsAsync(new TelemetryPacketRequestFilter()));
 
 PrintParsingErrors(facade.GetParsingErrors());
 
@@ -104,45 +109,37 @@ static void DisplayDevices(ICollection<DeviceProfileDto> devices)
 }
 
 
-
-
-static void PrintTelemetryPackets(List<TelemetryPacketWithDate> packets)
+void PrintPagedTelemetryPackets(PagedResponse<TelemetryPacket> pagedResponse)
 {
-    if (packets == null || packets.Count == 0)
+    Console.WriteLine("================================================================================");
+    Console.WriteLine($"Page: {pagedResponse.PageNumber} | Page Size: {pagedResponse.PageSize}");
+    Console.WriteLine($"Total Records: {pagedResponse.TotalRecords} | Total Pages: {pagedResponse.TotalPages}");
+    Console.WriteLine("================================================================================");
+
+    if (pagedResponse.Data == null || !pagedResponse.Data.Any())
     {
-        Console.WriteLine("Нет данных для отображения.");
+        Console.WriteLine("No telemetry packets found.");
+        Console.WriteLine("================================================================================");
         return;
     }
 
-    Console.WriteLine(new string('-', 80));
-    Console.WriteLine($"{nameof(TelemetryPacketWithUIntTime)} List ({packets.Count} элементов):");
-    Console.WriteLine(new string('-', 80));
-
-    foreach (var packet in packets)
+    foreach (var packet in pagedResponse.Data)
     {
-        Console.WriteLine("┌────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine($"│ Sending Time: {packet.DateTimeOfSending,-10} | DevId: {packet.DevId,-5} | SourceId: {packet.SensorId.SourceId} │");
-        Console.WriteLine($"│ TypeId: {packet.SensorId.TypeId,-12}      │");
-
-        // Печать ISensorData, если реализован ToString()
-        if (packet.Content != null)
-        {
-            var values = packet.Content;
-
-            Console.WriteLine("├────────────────────────────────────────────────────────────────────────┤");
-            Console.WriteLine("│ Parsed Data:");
-
-            foreach (var kvp in values)
-            {
-                Console.WriteLine($"│   {kvp.Key}: {kvp.Value}");
-            }
-
-            Console.WriteLine("│");
-        }
-
-        Console.WriteLine("└────────────────────────────────────────────────────────────────────────┘");
         Console.WriteLine();
+        Console.WriteLine("-------------------------------------------------------------------------------");
+        Console.WriteLine($"Timestamp: {packet.DateTimeOfSending:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"Device ID: {packet.DevId}");
+        Console.WriteLine($"Sensor ID: {packet.SensorId}");
+        Console.WriteLine("Content:");
+        foreach (var kvp in packet.Content)
+        {
+            Console.WriteLine($"  - {kvp.Key}: {kvp.Value:F2}");
+        }
+        Console.WriteLine("-------------------------------------------------------------------------------");
     }
+
+    Console.WriteLine();
+    Console.WriteLine("================================================================================");
 }
 
 static void PrintParsingErrors(IEnumerable<ParsingError> errors)
