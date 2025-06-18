@@ -2,11 +2,10 @@
 using TelemetryManager.Application.Logger;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
-using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Enums;
-using TelemetryManager.Core.TelemetryPackegesGenerator;
+using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
 using TelemetryManager.Infrastructure.Parsing;
 
@@ -32,7 +31,7 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 20, noiseRatio: 0.7)
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 20, noiseRatio: 0)
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
     .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
     .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
@@ -89,7 +88,7 @@ static void DisplayDevices(List<DeviceProfile> devices)
                 Console.WriteLine("    ------------------------------");
                 Console.WriteLine($"    Параметр: {param.Name}");
                 Console.WriteLine($"    Единицы измерения: {param.Units}");
-                Console.WriteLine($"    Диапазон: от {param.Min} до {param.Max}");
+                Console.WriteLine($"    Диапазон: от {param.ValueRange.Min} до {param.ValueRange.Max}");
             }
         }
     }

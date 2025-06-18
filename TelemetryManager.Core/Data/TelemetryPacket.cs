@@ -5,8 +5,6 @@ namespace TelemetryManager.Core.Data;
 
 public class TelemetryPacket
 {
-    public const int HeaderSize = 14; // Sync(4) + Time(4) + DevId(2) + TypeId(1) + SourceId(1) + Size(2)
-
     public uint Time { get; }
     public ushort DevId { get; }
     public SensorType TypeId { get; }

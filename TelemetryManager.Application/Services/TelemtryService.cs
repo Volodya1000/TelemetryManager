@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Logger;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Application.Services;
 
@@ -46,7 +48,7 @@ public class TelemtryService
 
         using (var stream = File.OpenRead(filePath))
         {
-            var packeges = _parser.Parse(stream);
+            var packeges = _parser.Parse(stream, GetAvailableDeviceIdsWithSensorIds());
             recivedPackets.AddRange(packeges.Packets);
             parsingErrors.AddRange(packeges.Errors);
         }
@@ -57,6 +59,9 @@ public class TelemtryService
     public List<TelemetryPacket> GetRecivedPackets() => recivedPackets;
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
+
+    private Dictionary<ushort, IReadOnlyList<SensorId>> GetAvailableDeviceIdsWithSensorIds()=>
+        deviceProfiles.ToDictionary(d => d.DeviceId, d => d.SensorIds);
 
 
     //public void StartStream(Stream input)

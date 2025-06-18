@@ -1,46 +1,26 @@
-﻿namespace TelemetryManager.Core.Data.Profiles;
+﻿using TelemetryManager.Core.Data.ValueObjects;
+
+namespace TelemetryManager.Core.Data.Profiles;
 
 public class SensorParameterProfile
 {
-    public string Name { get; }
+    public ParametrName Name { get; }
     public string Units { get; }
-    public double Min { get; private set; }
-    public double Max { get; private set; }
+    public Interval ValueRange { get; private set; }
 
-    public SensorParameterProfile(string name, string units, double min, double max)
+    public SensorParameterProfile(ParametrName name, string units, double min, double max)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentNullException(nameof(name), "Sensor parameter name cannot be null or empty.");
-
-        ValidateInterval(min, max, nameof(min));
         Name = name;
         Units = units;
-        Min = min;
-        Max = max;
+        ValueRange = new Interval(min, max);
     }
 
-    public void SetMinValue(double newMinValue)
-    {
-        ValidateInterval(newMinValue, Max, nameof(newMinValue));
-        Min = newMinValue;
-    }
+    public void SetMinValue(double newMin) =>
+        ValueRange = new Interval(newMin, ValueRange.Max);
 
-    public void SetMaxValue(double newMaxValue)
-    {
-        ValidateInterval(Min, newMaxValue, nameof(newMaxValue));
-        Max = newMaxValue;
-    }
+    public void SetMaxValue(double newMax) =>
+        ValueRange = new Interval(ValueRange.Min, newMax);
 
-    public void SetInterval(double newMinValue, double newMaxValue)
-    {
-        ValidateInterval(newMinValue, newMaxValue, nameof(newMinValue));
-        Min = newMinValue;
-        Max = newMaxValue;
-    }
-
-    private static void ValidateInterval(double min, double max, string paramName)
-    {
-        if (min >= max)
-            throw new ArgumentException($"'{paramName}': Minimum value must be less than maximum value.", paramName);
-    }
+    public void SetInterval(double newMin, double newMax) =>
+        ValueRange = new Interval(newMin, newMax);
 }

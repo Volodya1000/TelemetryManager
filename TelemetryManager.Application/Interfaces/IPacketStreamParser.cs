@@ -1,9 +1,10 @@
 ﻿using TelemetryManager.Core.Data;
+using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Application.Interfaces;
 
 public interface IPacketStreamParser
 {
-    PacketParsingResult Parse(Stream stream);
+    public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyList<SensorId>> availableSensorsInDevices);
    // IReadOnlyList<ParsingError> Errors { get; }
 }

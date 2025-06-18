@@ -12,7 +12,9 @@ public enum ParsingErrorType
     ContentReadFailed,
     ChecksumMismatch,
     PaddingReadFailed,
-    DataValidationFailed
+    DataValidationFailed,
+    UnknownDeviceId,
+    DeviceDontContainsSensorWithSuchSourceId
 }
 
 public record ParsingError(

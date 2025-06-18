@@ -1,9 +1,10 @@
 ﻿using System.Buffers.Binary;
+using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Utils;
 
-namespace TelemetryManager.Core.TelemetryPackegesGenerator
+namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
 {
     public class TelemetryGenerator
     {

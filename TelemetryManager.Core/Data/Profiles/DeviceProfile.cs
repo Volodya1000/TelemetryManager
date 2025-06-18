@@ -11,6 +11,8 @@ public class DeviceProfile
 
     public IReadOnlyList<SensorProfile> Sensors => _sensorsDict.Values.ToList();
 
+    public IReadOnlyList<SensorId> SensorIds => _sensorsDict.Values.Select(s => s.Id).ToList();
+
 
     public DeviceProfile(ushort deviceId, Name name)
     {

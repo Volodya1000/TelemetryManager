@@ -1,11 +1,9 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Buffers.Binary;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Enums;
+using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Utils;
 
 namespace TelemetryManager.Infrastructure.Parsing;
@@ -17,7 +15,14 @@ public class PacketStreamParser : IPacketStreamParser
     private Stream _stream;
     private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
 
-    public PacketParsingResult Parse(Stream stream)
+   // private readonly IReadOnlyDictionary<ushort, List<SensorId>> _availableSensorsInDevices;
+
+    //public PacketStreamParser(Dictionary<ushort, List<SensorId>> availableSensorsInDevices)
+    //{
+    //    _availableSensorsInDevices= availableSensorsInDevices;
+    //}
+
+    public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyList<SensorId>> availableSensorsInDevices)
     {
         _stream = stream;
         var packets = new List<TelemetryPacket>();
@@ -56,6 +61,35 @@ public class PacketStreamParser : IPacketStreamParser
                     Time: null,
                     DeviceId: null,
                     SensorType: null));
+                continue;
+            }
+
+            if(!availableSensorsInDevices.TryGetValue(devId,out var availableSensors))
+            {
+                errors.Add(new ParsingError(
+                   packetStart,
+                   ParsingErrorType.UnknownDeviceId,
+                   $"Device with Id {devId} not exists",
+                   Time: time,
+                   DeviceId: devId,
+                   SensorType: typeId,
+                   SourceId: sourceId,
+                   Size: size));
+                continue;
+            }
+
+            var currentsSensorId = (new SensorId(typeId, sourceId));
+            if (availableSensors.Contains(currentsSensorId))
+            {
+                errors.Add(new ParsingError(
+                   packetStart,
+                   ParsingErrorType.DeviceDontContainsSensorWithSuchSourceId,
+                   $"Device with Id {devId} don t contains sensor with {currentsSensorId}",
+                   Time: time,
+                   DeviceId: devId,
+                   SensorType: typeId,
+                   SourceId: sourceId,
+                   Size: size));
                 continue;
             }
 

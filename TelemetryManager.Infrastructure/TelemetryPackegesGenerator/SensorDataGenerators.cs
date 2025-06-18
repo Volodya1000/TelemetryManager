@@ -1,4 +1,4 @@
-﻿namespace TelemetryManager.Core.TelemetryPackegesGenerator;
+﻿namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 
 public static class SensorDataGenerators
 {
