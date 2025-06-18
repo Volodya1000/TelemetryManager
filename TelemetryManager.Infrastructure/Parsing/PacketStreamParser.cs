@@ -15,13 +15,6 @@ public class PacketStreamParser : IPacketStreamParser
     private Stream _stream;
     private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
 
-   // private readonly IReadOnlyDictionary<ushort, List<SensorId>> _availableSensorsInDevices;
-
-    //public PacketStreamParser(Dictionary<ushort, List<SensorId>> availableSensorsInDevices)
-    //{
-    //    _availableSensorsInDevices= availableSensorsInDevices;
-    //}
-
     public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
     {
         _stream = stream;
@@ -244,7 +237,7 @@ public class PacketStreamParser : IPacketStreamParser
 
     private byte[] ReadHeader()
     {
-        var header = new byte[PacketStructure.HeaderLength];
+        var header = new byte[PacketHelper.HeaderLength];
         int read = _stream.Read(header, 0, header.Length);
         if (read != header.Length)
             throw new PacketParsingException($"Неполный заголовок. Ожидалось: {header.Length}, получено: {read}");
@@ -253,7 +246,7 @@ public class PacketStreamParser : IPacketStreamParser
 
     public static bool TryParseHeader(byte[] data, out uint time, out ushort devId, out SensorType type, out byte sourceId, out ushort size)
     {
-        if (data.Length < PacketStructure.HeaderLength)
+        if (data.Length < PacketHelper.HeaderLength)
         {
             time = 0; devId = 0; type = default; sourceId = 0; size = 0;
             return false;
@@ -282,7 +275,7 @@ public class PacketStreamParser : IPacketStreamParser
 
     private int SkipPadding(int contentSize)
     {
-        int pad = PacketStructure.CalculatePadding(contentSize);
+        int pad = PacketHelper.CalculatePadding(contentSize);
         if (pad > 0 && _stream.ReadByte() == -1)
             throw new PacketParsingException("Ошибка чтения выравнивающих байтов");
         return pad;
@@ -290,7 +283,7 @@ public class PacketStreamParser : IPacketStreamParser
 
     private void ValidateChecksum(byte[] header, byte[] content, int contentSize, int paddingSize)
     {
-        var data = PacketStructure.CombineArrays(header, content, new byte[paddingSize]);
+        var data = PacketHelper.CombineArrays(header, content, new byte[paddingSize]);
         var csBytes = new byte[2];
         if (_stream.Read(csBytes, 0, 2) != 2)
             throw new PacketParsingException("Ошибка чтения контрольной суммы");

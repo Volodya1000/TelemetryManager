@@ -3,9 +3,12 @@ using System.Linq;
 using System.Net.Sockets;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Logger;
+using TelemetryManager.Application.Mapping;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Identifiers;
+using TelemetryManager.Core.Interfaces.Repositories;
 
 namespace TelemetryManager.Application.Services;
 
@@ -14,7 +17,7 @@ public class TelemtryService
     private readonly IConfigurationLoader _configurationLoader;
     private readonly IConfigurationValidator _configurationValidator;
     private readonly IPacketStreamParser _parser;
-    private readonly IErrorLogger _errorLogger;
+    private readonly ITelemetryRepository _telemetryRepository;
 
     //  private CancellationTokenSource? _cts;
 
@@ -28,12 +31,12 @@ public class TelemtryService
          IConfigurationLoader configurationLoader,
          IConfigurationValidator configurationValidator,
          IPacketStreamParser parser,
-         IErrorLogger errorLogger)
+         ITelemetryRepository telemetryRepository)
     {
         _configurationLoader = configurationLoader;
         _configurationValidator = configurationValidator;
         _parser= parser;
-        _errorLogger = errorLogger;
+        _telemetryRepository = telemetryRepository;
     }
     public void LoadConfiguration(string configFilePath)
     {
@@ -59,13 +62,19 @@ public class TelemtryService
                     DateTime sendTime = DateTime.UtcNow + uptimeDuration;
                     return new TelemetryPacketWithDate(sendTime, p.DevId, p.SensorId, p.Content);
                     });
-            recivedPackets.AddRange(packetWithDate);
             parsingErrors.AddRange(parsingResult.Errors);
-          
+            recivedPackets.AddRange(packetWithDate);
+            foreach (var packet in packetWithDate)
+                _telemetryRepository.AddPacketAsync(packet);
         }
     }
 
-    public List<DeviceProfile> GetDevicesProfiles() => deviceProfiles;
+    public ICollection<DeviceProfileDto> GetDevicesProfiles() => deviceProfiles.Select(d=>d.ToDto()).ToList();
+
+    public Task<PagedResponse<TelemetryPacketWithDate>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
+    {
+        return _telemetryRepository.GetPacketsAsync(filter);
+    }
 
     public List<TelemetryPacketWithDate> GetRecivedPackets() => recivedPackets;
 
@@ -73,6 +82,9 @@ public class TelemtryService
 
     private Dictionary<ushort, IReadOnlyCollection<SensorId>> GetAvailableDeviceIdsWithSensorIds()=>
         deviceProfiles.ToDictionary(d => d.DeviceId, d => d.SensorIds);
+
+
+
 
 
     /// <summary>

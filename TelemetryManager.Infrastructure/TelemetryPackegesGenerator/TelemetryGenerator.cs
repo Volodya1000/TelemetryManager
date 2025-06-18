@@ -96,9 +96,9 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             byte[] content = sensor.ContentGenerator();
 
             uint time = _timeGenerator();
-            int paddingSize = PacketStructure.CalculatePadding(content.Length);
+            int paddingSize = PacketHelper.CalculatePadding(content.Length);
 
-            byte[] headerBytes = PacketStructure.BuildHeaderBytes(
+            byte[] headerBytes = PacketHelper.BuildHeaderBytes(
                 time,
                 _devId,
                 (SensorType)sensor.TypeId,
@@ -114,7 +114,7 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             if (paddingSize > 0) ms.WriteByte(0);
 
             // Вычисление контрольной суммы (без синхромаркера)
-            byte[] dataForChecksum = PacketStructure.CombineArrays(
+            byte[] dataForChecksum = PacketHelper.CombineArrays(
                 headerBytes,
                 content,
                 new byte[paddingSize]

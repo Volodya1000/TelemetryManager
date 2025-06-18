@@ -3,18 +3,19 @@ using TelemetryManager.Application.Logger;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
-using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
 using TelemetryManager.Infrastructure.Parsing;
+using TelemetryManager.Core.Interfaces.Repositories;
 
 
 IConfigurationValidator configValidator = new ConfigurationValidator();
 IConfigurationLoader configurationLoader = new JsonLoader();
 IPacketStreamParser packetStreamParser = new PacketStreamParser();
-IErrorLogger logger = new MemoryErrorLogger();
-var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, logger);
+ITelemetryRepository telemetryRepository = null;
+var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, telemetryRepository);
 
 string workingDirectory = Environment.CurrentDirectory;
 string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
@@ -51,7 +52,7 @@ PrintParsingErrors(facade.GetParsingErrors());
 
 
 
-static void DisplayDevices(List<DeviceProfile> devices)
+static void DisplayDevices(ICollection<DeviceProfileDto> devices)
 {
     if (devices == null || devices.Count == 0)
     {
@@ -92,9 +93,9 @@ static void DisplayDevices(List<DeviceProfile> devices)
             foreach (var param in sensor.Parameters)
             {
                 Console.WriteLine("    ------------------------------");
-                Console.WriteLine($"    Параметр: {param.Name}");
+                Console.WriteLine($"    Параметр: {param.ParameterName}");
                 Console.WriteLine($"    Единицы измерения: {param.Units}");
-                Console.WriteLine($"    Диапазон: от {param.ValueRange.Min} до {param.ValueRange.Max}");
+                Console.WriteLine($"    Диапазон: от {param.MinValue} до {param.MaxValue}");
             }
         }
     }

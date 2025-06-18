@@ -2,7 +2,7 @@
 
 namespace TelemetryManager.Core.Utils;
 
-public static class PacketStructure
+public static class PacketHelper
 {
     public const int HeaderLength = 10; // 4(time) + 2(devId) + 1(type) + 1(source) + 2(size)
 
