@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader.Dtos;
 
@@ -53,9 +54,10 @@ public class JsonLoader : IConfigurationLoader
                 $"Device ID {deviceDto.DeviceId} is out of range for ushort (0-65535)");
         }
 
+        var deviceName = new Name(deviceDto.Name);
         var device = new DeviceProfile(
             deviceId: (ushort)deviceDto.DeviceId,
-            name: deviceDto.Name
+            name: deviceName
         );
 
         foreach (var sensorDto in deviceDto.Sensors)
@@ -70,9 +72,10 @@ public class JsonLoader : IConfigurationLoader
             var sensorId = new SensorId(sensorDto.TypeId, (byte)sensorDto.SourceId);
             var parameters = MapParameters(sensorDto.Parameters);
 
+            var sensorName = new Name(sensorDto.Name);
             var sensorProfile = new SensorProfile(
                 id: sensorId,
-                name: sensorDto.Name,
+                name: sensorName,
                 parameters: parameters
             );
 

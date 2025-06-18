@@ -1,20 +1,21 @@
-﻿using TelemetryManager.Core.Identifiers;
+﻿using TelemetryManager.Core.Data.ValueObjects;
+using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Core.Data.Profiles;
 
 public class DeviceProfile
 {
     public ushort DeviceId { get; init; }
-    public string Name { get; init; }
+    public Name Name { get; init; }
     private readonly Dictionary<SensorId,SensorProfile> _sensorsDict = new();
 
     public IReadOnlyList<SensorProfile> Sensors => _sensorsDict.Values.ToList();
 
 
-    public DeviceProfile(ushort deviceId, string name)
+    public DeviceProfile(ushort deviceId, Name name)
     {
         DeviceId = deviceId;
-        Name = name ?? throw new ArgumentNullException(nameof(name));
+        Name = name;
     }
 
     public void AddSensor(SensorProfile newSensor)

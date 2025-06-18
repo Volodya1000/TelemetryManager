@@ -32,14 +32,12 @@ DisplayDevices(devices);
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 20)
-    .SetNoiseRatio(0.7)
-    //.SetNoiseRatio(1) // 5% шанс повреждения
+var generator = new TelemetryGenerator(devId: 1, totalPackets: 20, noiseRatio: 0.7)
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
-.AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
-.AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
-.AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
-.AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
+    .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
+    .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
+    .AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
+    .AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
 
 generator.Generate(telemetryFilePath);
 

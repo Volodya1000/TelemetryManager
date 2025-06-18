@@ -16,28 +16,23 @@ namespace TelemetryManager.Core.TelemetryPackegesGenerator
         private readonly List<SensorConfig> _sensors = new List<SensorConfig>();
         private readonly Random _random = new Random();
 
-        public TelemetryGenerator(ushort devId, int totalPackets)
+        public TelemetryGenerator(ushort devId, int totalPackets, double noiseRatio)
         {
             if (totalPackets < 1)
                 throw new ArgumentException("Total packets must be at least 1", nameof(totalPackets));
 
+            if (noiseRatio < 0 || noiseRatio > 1)
+                throw new ArgumentException("Noise ratio must be between 0.0 and 1.0");
             _devId = devId;
             _totalPackets = totalPackets;
             _timeGenerator = DefaultTimeGenerator;
+            _noiseRatio = noiseRatio;
         }
 
         private uint DefaultTimeGenerator()
         {
             _currentTime += (uint)_random.Next(1, 101);
             return _currentTime;
-        }
-
-        public TelemetryGenerator SetNoiseRatio(double ratio)
-        {
-            if (ratio < 0 || ratio > 1)
-                throw new ArgumentException("Noise ratio must be between 0.0 and 1.0");
-            _noiseRatio = ratio;
-            return this;
         }
 
         public TelemetryGenerator SetTimeGenerator(Func<uint> timeGenerator)
