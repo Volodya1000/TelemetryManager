@@ -34,7 +34,7 @@ public interface ITelemetryService
     /// <summary>
     /// Возвращает информацию о некорректных пакетах
     /// </summary>
-    IReadOnlyList<AnomalyRecord> GetAnomalies();
+   // IReadOnlyList<AnomalyRecord> GetAnomalies();
 
 
     IReadOnlyList<SensorHistoryRecord> GetSendorHistory(SensorId sensorId);

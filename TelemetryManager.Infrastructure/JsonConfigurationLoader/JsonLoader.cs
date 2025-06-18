@@ -1,8 +1,9 @@
-﻿using TelemetryManager.Core.Data.Profiles;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using TelemetryManager.Infrastructure.JsonConfigurationLoader.Dtos;
 using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Identifiers;
+using TelemetryManager.Infrastructure.JsonConfigurationLoader.Dtos;
 
 namespace TelemetryManager.Infrastructure.JsonConfigurationLoader;
 
@@ -40,49 +41,47 @@ public class JsonLoader : IConfigurationLoader
 
     private List<DeviceProfile> MapToDomainModels(List<DeviceDto> devicesDto)
     {
-        var deviceProfiles = new List<DeviceProfile>();
+        return devicesDto.Select(MapDevice).ToList();
+    }
 
-        foreach (var deviceDto in devicesDto)
+    private DeviceProfile MapDevice(DeviceDto deviceDto)
+    {
+        // Проверка DeviceId
+        if (deviceDto.DeviceId < ushort.MinValue || deviceDto.DeviceId > ushort.MaxValue)
         {
-            // Проверка DeviceId на диапазон ushort
-            if (deviceDto.DeviceId < ushort.MinValue || deviceDto.DeviceId > ushort.MaxValue)
-            {
-                throw new InvalidDataException(
-                    $"Device ID {deviceDto.DeviceId} is out of range for ushort (0-65535)");
-            }
-
-            var sensorProfiles = new List<SensorProfile>();
-
-            foreach (var sensorDto in deviceDto.Sensors)
-            {
-                // Проверка SourceId на диапазон byte
-                if (sensorDto.SourceId < byte.MinValue || sensorDto.SourceId > byte.MaxValue)
-                {
-                    throw new InvalidDataException(
-                        $"Source ID {sensorDto.SourceId} is out of range for byte (0-255)");
-                }
-
-                var parameterProfiles = MapParameters(sensorDto.Parameters);
-
-                var sensorProfile = new SensorProfile(
-                    TypeId: sensorDto.TypeId,
-                    SourceId: (byte)sensorDto.SourceId,
-                    Name: sensorDto.Name,
-                    Parameters: parameterProfiles
-                );
-
-                sensorProfiles.Add(sensorProfile);
-            }
-
-            deviceProfiles.Add(new DeviceProfile(
-                deviceId: (ushort)deviceDto.DeviceId,
-                name: deviceDto.Name,
-                sensors: sensorProfiles
-            ));
+            throw new InvalidDataException(
+                $"Device ID {deviceDto.DeviceId} is out of range for ushort (0-65535)");
         }
 
-        return deviceProfiles;
+        var device = new DeviceProfile(
+            deviceId: (ushort)deviceDto.DeviceId,
+            name: deviceDto.Name
+        );
+
+        foreach (var sensorDto in deviceDto.Sensors)
+        {
+            // Проверка SourceId
+            if (sensorDto.SourceId < byte.MinValue || sensorDto.SourceId > byte.MaxValue)
+            {
+                throw new InvalidDataException(
+                    $"Source ID {sensorDto.SourceId} is out of range for byte (0-255)");
+            }
+
+            var sensorId = new SensorId(sensorDto.TypeId, (byte)sensorDto.SourceId);
+            var parameters = MapParameters(sensorDto.Parameters);
+
+            var sensorProfile = new SensorProfile(
+                id: sensorId,
+                name: sensorDto.Name,
+                parameters: parameters
+            );
+
+            device.AddSensor(sensorProfile);
+        }
+
+        return device;
     }
+
 
     private List<SensorParameterProfile> MapParameters(List<ParameterDto> parametersDto)
     {

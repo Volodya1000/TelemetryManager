@@ -1,23 +1,22 @@
 ﻿using TelemetryManager.Core.Enums;
+using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Core.Data.Profiles;
 
 public class SensorProfile
 {
-    public SensorType TypeId { get; }
+    public SensorId Id { get; }
 
-    public byte SourceId { get; }
+    public SensorType TypeId => Id.TypeId;
+    public byte SourceId => Id.SourceId;
 
     public string Name { get; init; }
     public IReadOnlyList<SensorParameterProfile> Parameters { get; init; }
 
-    public SensorProfile( SensorType TypeId, byte SourceId, string Name, IReadOnlyList<SensorParameterProfile> Parameters)
+    public SensorProfile(SensorId id, string name, IReadOnlyList<SensorParameterProfile> parameters)
     {
-        this.TypeId = TypeId;
-        this.SourceId = SourceId;
-        this.Name = Name;
-        this.Parameters =Parameters;// new List<SensorParameterProfile>();
-
-        var sensorType = TypeId;
+        Id = id;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
     }
 }

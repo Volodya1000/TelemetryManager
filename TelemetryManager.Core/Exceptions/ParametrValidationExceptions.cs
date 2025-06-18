@@ -1,6 +1,6 @@
 ﻿namespace TelemetryManager.Core.Exceptions;
 
-public class ValidationError:Exception
+public class ParametrValidationExceptions: Exception
 {
     public string ParameterName { get; }
     public string Message { get; }
@@ -8,7 +8,7 @@ public class ValidationError:Exception
     public double? MinValue { get; }
     public double? MaxValue { get; }
 
-    public ValidationError(string parameterName, string message, double? value = null, double? minValue = null, double? maxValue = null)
+    public ParametrValidationExceptions(string parameterName, string message, double? value = null, double? minValue = null, double? maxValue = null)
     {
         ParameterName = parameterName;
         Message = message;
