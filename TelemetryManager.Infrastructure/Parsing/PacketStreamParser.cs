@@ -194,7 +194,7 @@ public class PacketStreamParser : IPacketStreamParser
             {
                 var parser = SensorDataFactory.CreateParser(typeId);
                 parser.Parse(content);
-                var packet = new TelemetryPacket(time, devId, typeId, sourceId, content, parser);
+                var packet = new TelemetryPacket(time, devId, currentsSensorId,parser.GetValues());
                 packets.Add(packet);
             }
             catch (Exception ex)

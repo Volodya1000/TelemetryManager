@@ -6,7 +6,13 @@ namespace TelemetryManager.Core.Data.Profiles;
 public class DeviceProfile
 {
     public ushort DeviceId { get; init; }
+
     public Name Name { get; init; }
+
+    public DateTime? ActivationTime { get; private set; }
+
+
+
     private readonly Dictionary<SensorId,SensorProfile> _sensorsDict = new();
 
     public IReadOnlyList<SensorProfile> Sensors => _sensorsDict.Values.ToList();
@@ -29,6 +35,17 @@ public class DeviceProfile
 
         _sensorsDict.Add(newSensor.Id, newSensor);
 
+    }
+
+    /// <summary>
+    /// Время активации изначально не известно и оно устанавливается только один раз  по времени первого полученого пакета
+    /// </summary>
+    public void SetDeviceActivationTime(DateTime activationTime)
+    {
+        if (ActivationTime.HasValue)
+            throw new InvalidOperationException(
+                "Activation time has already been set and cannot be modified");
+        ActivationTime =activationTime;
     }
 }
 

@@ -114,13 +114,13 @@ static void PrintTelemetryPackets(List<TelemetryPacket> packets)
     foreach (var packet in packets)
     {
         Console.WriteLine("┌────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine($"│ Timestamp: {packet.Time,-10} | DevId: {packet.DevId,-5} | SourceId: {packet.SourceId} │");
-        Console.WriteLine($"│ TypeId: {packet.TypeId,-12} | Content Length: {packet.Content.Length,4} bytes     │");
+        Console.WriteLine($"│ Timestamp: {packet.Time,-10} | DevId: {packet.DevId,-5} | SourceId: {packet.SensorId.SourceId} │");
+        Console.WriteLine($"│ TypeId: {packet.SensorId.TypeId,-12}      │");
 
         // Печать ISensorData, если реализован ToString()
-        if (packet.ParsedContent != null)
+        if (packet.Content != null)
         {
-            var values = packet.ParsedContent.GetValues();
+            var values = packet.Content;
 
             Console.WriteLine("├────────────────────────────────────────────────────────────────────────┤");
             Console.WriteLine("│ Parsed Data:");
