@@ -105,7 +105,7 @@ static void DisplayDevices(List<DeviceProfile> devices)
 
 
 
-static void PrintTelemetryPackets(List<TelemetryPacket> packets)
+static void PrintTelemetryPackets(List<TelemetryPacketWithDate> packets)
 {
     if (packets == null || packets.Count == 0)
     {
@@ -114,13 +114,13 @@ static void PrintTelemetryPackets(List<TelemetryPacket> packets)
     }
 
     Console.WriteLine(new string('-', 80));
-    Console.WriteLine($"{nameof(TelemetryPacket)} List ({packets.Count} элементов):");
+    Console.WriteLine($"{nameof(TelemetryPacketWithUIntTime)} List ({packets.Count} элементов):");
     Console.WriteLine(new string('-', 80));
 
     foreach (var packet in packets)
     {
         Console.WriteLine("┌────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine($"│ Timestamp: {packet.Time,-10} | DevId: {packet.DevId,-5} | SourceId: {packet.SensorId.SourceId} │");
+        Console.WriteLine($"│ Sending Time: {packet.DateTimeOfSending,-10} | DevId: {packet.DevId,-5} | SourceId: {packet.SensorId.SourceId} │");
         Console.WriteLine($"│ TypeId: {packet.SensorId.TypeId,-12}      │");
 
         // Печать ISensorData, если реализован ToString()

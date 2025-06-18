@@ -25,7 +25,7 @@ public class PacketStreamParser : IPacketStreamParser
     public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
     {
         _stream = stream;
-        var packets = new List<TelemetryPacket>();
+        var packets = new List<TelemetryPacketWithUIntTime>();
         var errors = new List<ParsingError>();
 
         while (true)
@@ -194,7 +194,7 @@ public class PacketStreamParser : IPacketStreamParser
             {
                 var parser = SensorDataFactory.CreateParser(typeId);
                 parser.Parse(content);
-                var packet = new TelemetryPacket(time, devId, currentsSensorId,parser.GetValues());
+                var packet = new TelemetryPacketWithUIntTime(time, devId, currentsSensorId,parser.GetValues());
                 packets.Add(packet);
             }
             catch (Exception ex)

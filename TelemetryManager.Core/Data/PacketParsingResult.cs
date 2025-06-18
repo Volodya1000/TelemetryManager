@@ -2,10 +2,10 @@
 
 public class PacketParsingResult
 {
-    public IReadOnlyList<TelemetryPacket> Packets { get; init; }
-    public IReadOnlyList<ParsingError> Errors { get; init; }
+    public IReadOnlyCollection<TelemetryPacketWithUIntTime> Packets { get; init; }
+    public IReadOnlyCollection<ParsingError> Errors { get; init; }
 
-    public PacketParsingResult(List<TelemetryPacket> packets, List<ParsingError> errors)
+    public PacketParsingResult(List<TelemetryPacketWithUIntTime> packets, List<ParsingError> errors)
     {
         Packets = packets;
         Errors = errors;

@@ -4,7 +4,7 @@ using TelemetryManager.Core.Interfaces;
 
 namespace TelemetryManager.Core.Data;
 
-public record class TelemetryPacket(
+public record class TelemetryPacketWithUIntTime(
     uint Time,
     ushort DevId,
     SensorId SensorId,

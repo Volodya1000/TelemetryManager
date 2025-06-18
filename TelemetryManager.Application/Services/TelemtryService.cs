@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Logger;
 using TelemetryManager.Core.Data;
@@ -19,7 +20,7 @@ public class TelemtryService
 
     private List<DeviceProfile> deviceProfiles;
 
-    private readonly List<TelemetryPacket> recivedPackets = new List<TelemetryPacket>();
+    private readonly List<TelemetryPacketWithDate> recivedPackets = new List<TelemetryPacketWithDate>();
     private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
 
@@ -48,15 +49,25 @@ public class TelemtryService
         using (var stream = File.OpenRead(filePath))
         {
             var parsingResult = _parser.Parse(stream, GetAvailableDeviceIdsWithSensorIds());
-            recivedPackets.AddRange(parsingResult.Packets);
-            parsingErrors.AddRange(parsingResult.Errors);
+
             SetActivationTimeForDevices(parsingResult.Packets);
+
+            IEnumerable<TelemetryPacketWithDate> packetWithDate = 
+                parsingResult.Packets.Select(p => 
+                {
+                    TimeSpan uptimeDuration = TimeSpan.FromMilliseconds(p.Time);
+                    DateTime sendTime = DateTime.UtcNow + uptimeDuration;
+                    return new TelemetryPacketWithDate(sendTime, p.DevId, p.SensorId, p.Content);
+                    });
+            recivedPackets.AddRange(packetWithDate);
+            parsingErrors.AddRange(parsingResult.Errors);
+          
         }
     }
 
     public List<DeviceProfile> GetDevicesProfiles() => deviceProfiles;
 
-    public List<TelemetryPacket> GetRecivedPackets() => recivedPackets;
+    public List<TelemetryPacketWithDate> GetRecivedPackets() => recivedPackets;
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
 
@@ -69,7 +80,7 @@ public class TelemtryService
     /// Время активации вычисляется на основе самого раннего телеметрического пакета каждого устройства.
     /// </summary>
     /// <param name="receivedPackets">Коллекция полученных телеметрических пакетов</param>
-    private void SetActivationTimeForDevices(IReadOnlyCollection<TelemetryPacket> receivedPackets)
+    private void SetActivationTimeForDevices(IReadOnlyCollection<TelemetryPacketWithUIntTime> receivedPackets)
     {
         if(receivedPackets.Count == 0) return;
 
@@ -99,12 +110,6 @@ public class TelemtryService
 
             device.SetActivationTime(activationTime);
         }
-    }
-
-    public void UpdateSensorParametrMaxValue(ushort deviceId,SensorId SensorId,double newValue)
-    {
-        var sensor= deviceProfiles.Where(d => d.DeviceId==deviceId).FirstOrDefault();
-
     }
 
 
