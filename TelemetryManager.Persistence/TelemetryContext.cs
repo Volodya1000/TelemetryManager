@@ -11,8 +11,8 @@ public class TelemetryContext : DbContext
     public DbSet<TelemetryPacketEntity> TelemetryPackets => Set<TelemetryPacketEntity>();
     public DbSet<ContentItemEntity> ContentItems => Set<ContentItemEntity>();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite("Data Source=TelemetryManagerSqliteDataBase.db;");
+    public  TelemetryContext(DbContextOptions<TelemetryContext> options)
+          : base(options){ }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,5 +1,6 @@
-﻿using TelemetryManager.Application.Interfaces;
-using TelemetryManager.Application.Logger;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
@@ -13,29 +14,43 @@ using TelemetryManager.Persistence;
 using TelemetryManager.Persistence.Repositories;
 
 
-IConfigurationValidator configValidator = new ConfigurationValidator();
-IConfigurationLoader configurationLoader = new JsonLoader();
-IPacketStreamParser packetStreamParser = new PacketStreamParser();
+var serviceCollection = new ServiceCollection();
 
-var context = new TelemetryContext();
-context.Database.EnsureCreated();
-ITelemetryRepository telemetryRepository = new TelemetryRepository(context);
-var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, telemetryRepository);
+serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>();
+serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
+serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
+serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>();
+serviceCollection.AddTransient<TelemtryService>();
+
+
+serviceCollection.AddDbContext<TelemetryContext>(options =>
+    options.UseSqlite("Data Source=TelemetryManagerSqliteDataBase.db;"));
+
+var serviceProvider = serviceCollection.BuildServiceProvider();
+
+
+using (var scope = serviceProvider.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<TelemetryContext>();
+    context.Database.EnsureCreated();
+}
+
+
+var facade = serviceProvider.GetRequiredService<TelemtryService>();
 
 string workingDirectory = Environment.CurrentDirectory;
 string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
 
-string configurationFilePath = Path.Combine(projectDirectory, "DeviceConfiguration", "JsonConfigExample.json");
 
+string configurationFilePath = Path.Combine(projectDirectory, "DeviceConfiguration", "JsonConfigExample.json");
 facade.LoadConfiguration(configurationFilePath);
 
-var devices=facade.GetDevicesProfiles();
 
+var devices = facade.GetDevicesProfiles();
 DisplayDevices(devices);
 
 
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
-
 
 var generator = new TelemetryGenerator(devId: 1, totalPackets: 6, noiseRatio: 0)
     .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
@@ -49,12 +64,9 @@ generator.Generate(telemetryFilePath);
 
 //facade.ProcessTelemetryFile(telemetryFilePath);
 
-//DisplayDevices(devices);
 
 PrintPagedTelemetryPackets(await facade.GetPacketsAsync(new TelemetryPacketRequestFilter()));
-
 PrintParsingErrors(facade.GetParsingErrors());
-
 
 
 static void DisplayDevices(ICollection<DeviceProfileDto> devices)
