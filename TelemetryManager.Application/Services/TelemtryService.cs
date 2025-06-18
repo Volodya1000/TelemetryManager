@@ -7,8 +7,10 @@ using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TelemetryManager.Application.Services;
 
@@ -73,7 +75,9 @@ public class TelemtryService
 
     public Task<PagedResponse<TelemetryPacketWithDate>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
     {
-        return _telemetryRepository.GetPacketsAsync(filter);
+        return _telemetryRepository.GetPacketsAsync(
+           filter.DateFrom, filter.DateTo, filter.DeviceId, 
+           filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
     }
 
     public List<TelemetryPacketWithDate> GetRecivedPackets() => recivedPackets;

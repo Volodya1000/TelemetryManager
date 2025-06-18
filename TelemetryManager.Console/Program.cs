@@ -14,7 +14,7 @@ using TelemetryManager.Core.Interfaces.Repositories;
 IConfigurationValidator configValidator = new ConfigurationValidator();
 IConfigurationLoader configurationLoader = new JsonLoader();
 IPacketStreamParser packetStreamParser = new PacketStreamParser();
-ITelemetryRepository telemetryRepository = null;
+ITelemetryRepository telemetryRepository = null;// new TelemetryRepository();
 var facade = new TelemtryService(configurationLoader, configValidator, packetStreamParser, telemetryRepository);
 
 string workingDirectory = Environment.CurrentDirectory;

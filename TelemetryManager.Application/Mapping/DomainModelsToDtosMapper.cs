@@ -3,7 +3,7 @@ using TelemetryManager.Core.Data.Profiles;
 
 namespace TelemetryManager.Application.Mapping;
 
-public static class DomainModelsToDtosMapping
+public static class DomainModelsToDtosMapper
 {
     public static DeviceProfileDto ToDto(this DeviceProfile domain)
     {

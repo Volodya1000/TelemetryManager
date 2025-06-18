@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TelemetryManager.Application\TelemetryManager.Application.csproj" />
     <ProjectReference Include="..\TelemetryManager.Infrastructure\TelemetryManager.Infrastructure.csproj" />
+    <ProjectReference Include="..\TelemetryManager.Persistence\TelemetryManager.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
