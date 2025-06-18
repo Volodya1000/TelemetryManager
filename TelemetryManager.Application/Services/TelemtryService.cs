@@ -45,12 +45,12 @@ public class TelemtryService
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File {filePath} does not exist.", filePath);
 
-
         using (var stream = File.OpenRead(filePath))
         {
-            var packeges = _parser.Parse(stream, GetAvailableDeviceIdsWithSensorIds());
-            recivedPackets.AddRange(packeges.Packets);
-            parsingErrors.AddRange(packeges.Errors);
+            var parsingResult = _parser.Parse(stream, GetAvailableDeviceIdsWithSensorIds());
+            recivedPackets.AddRange(parsingResult.Packets);
+            parsingErrors.AddRange(parsingResult.Errors);
+            SetActivationTimeForDevices(parsingResult.Packets);
         }
     }
 
@@ -60,8 +60,52 @@ public class TelemtryService
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
 
-    private Dictionary<ushort, IReadOnlyList<SensorId>> GetAvailableDeviceIdsWithSensorIds()=>
+    private Dictionary<ushort, IReadOnlyCollection<SensorId>> GetAvailableDeviceIdsWithSensorIds()=>
         deviceProfiles.ToDictionary(d => d.DeviceId, d => d.SensorIds);
+
+
+    /// <summary>
+    /// Устанавливает время активации для устройств, у которых оно еще не установлено.
+    /// Время активации вычисляется на основе самого раннего телеметрического пакета каждого устройства.
+    /// </summary>
+    /// <param name="receivedPackets">Коллекция полученных телеметрических пакетов</param>
+    private void SetActivationTimeForDevices(IReadOnlyCollection<TelemetryPacket> receivedPackets)
+    {
+        if(receivedPackets.Count == 0) return;
+
+        var devicesWithoutActivationTime = deviceProfiles
+            .Where(d => !d.ActivationTime.HasValue)
+            .ToList();
+
+        if (!devicesWithoutActivationTime.Any())
+            return;
+
+        var packetsByDevice = receivedPackets
+            .GroupBy(p => p.DevId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.MinBy(p => p.Time) // Находим пакет с минимальным временем для каждого устройства
+            );
+
+        foreach (var device in devicesWithoutActivationTime)
+        {
+            if (!packetsByDevice.TryGetValue(device.DeviceId, out var packet) || packet == null)
+                continue;
+            // Преобразуем миллисекунды в TimeSpan
+            TimeSpan uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
+
+            // Вычисляем время активации: текущее время минус продолжительность работы
+            DateTime activationTime = DateTime.UtcNow - uptimeDuration;
+
+            device.SetActivationTime(activationTime);
+        }
+    }
+
+    public void UpdateSensorParametrMaxValue(ushort deviceId,SensorId SensorId,double newValue)
+    {
+        var sensor= deviceProfiles.Where(d => d.DeviceId==deviceId).FirstOrDefault();
+
+    }
 
 
     //public void StartStream(Stream input)

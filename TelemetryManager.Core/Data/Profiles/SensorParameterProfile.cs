@@ -15,12 +15,12 @@ public class SensorParameterProfile
         ValueRange = new Interval(min, max);
     }
 
-    public void SetMinValue(double newMin) =>
-        ValueRange = new Interval(newMin, ValueRange.Max);
+    internal void SetMinValue(double newMin) =>
+      ValueRange = new Interval(newMin, ValueRange.Max);
 
-    public void SetMaxValue(double newMax) =>
+    internal void SetMaxValue(double newMax) =>
         ValueRange = new Interval(ValueRange.Min, newMax);
 
-    public void SetInterval(double newMin, double newMax) =>
+    internal void SetInterval(double newMin, double newMax) =>
         ValueRange = new Interval(newMin, newMax);
 }

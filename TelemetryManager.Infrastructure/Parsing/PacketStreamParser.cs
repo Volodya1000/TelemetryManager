@@ -22,7 +22,7 @@ public class PacketStreamParser : IPacketStreamParser
     //    _availableSensorsInDevices= availableSensorsInDevices;
     //}
 
-    public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyList<SensorId>> availableSensorsInDevices)
+    public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
     {
         _stream = stream;
         var packets = new List<TelemetryPacket>();
