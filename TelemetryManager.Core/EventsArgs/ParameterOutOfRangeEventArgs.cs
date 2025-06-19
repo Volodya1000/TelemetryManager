@@ -1,5 +1,4 @@
 ﻿using TelemetryManager.Core.Identifiers;
-using System;
 
 namespace TelemetryManager.Core.EventsArgs;
 

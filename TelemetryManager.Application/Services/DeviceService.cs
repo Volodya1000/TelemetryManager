@@ -83,6 +83,16 @@ public class DeviceService
         return device.IsSensorConnectedAt(sensorId, timestamp);
     }
 
+    public async Task<bool> IsSensorCurrentlyConnectedAsync(
+    ushort deviceId, byte sensorTypeId, byte sensorSourceId)
+    {
+        return await IsSensorConnectedAtAsync(
+            deviceId,
+            sensorTypeId,
+            sensorSourceId,
+            DateTime.Now); 
+    }
+
     public async Task SetParameterIntervalAsync(
        ushort deviceId,
        byte sensorTypeId,

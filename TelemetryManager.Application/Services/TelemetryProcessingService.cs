@@ -72,12 +72,22 @@ public class TelemetryProcessingService
             var sendTime = baseTime + uptimeDuration;
             telemetryPackets.Add(new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content));
 
-            // Обновляем минимальное время для активации
-            if (devicesWithoutActivation.Contains(packet.DevId))
+            bool isCurrentlyConnected = await _deviceService.IsSensorCurrentlyConnectedAsync(
+           packet.DevId,
+           (byte)packet.SensorId.TypeId,
+           packet.SensorId.SourceId);
+
+            // Обрабатываем только пакеты от подключенных сенсоров
+            if (isCurrentlyConnected)
             {
-                if (!minUptimes.TryGetValue(packet.DevId, out var currentMin) || packet.Time < currentMin)
+                telemetryPackets.Add(new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content));
+
+                if (devicesWithoutActivation.Contains(packet.DevId))
                 {
-                    minUptimes[packet.DevId] = packet.Time;
+                    if (!minUptimes.TryGetValue(packet.DevId, out var currentMin) || packet.Time < currentMin)
+                    {
+                        minUptimes[packet.DevId] = packet.Time;
+                    }
                 }
             }
         }
