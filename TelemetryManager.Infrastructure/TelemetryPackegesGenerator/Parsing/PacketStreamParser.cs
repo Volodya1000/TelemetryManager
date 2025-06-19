@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using TelemetryManager.Application.ContentTypeRegistration;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
@@ -16,6 +17,15 @@ public class PacketStreamParser : IPacketStreamParser
     private const int MaxPacketSize = 1024;
     private Stream _stream;
     private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
+    private readonly IContentTypeParser _contentTypeParser;
+    private readonly IContentTypeProvider _contentTypeProvider;
+
+
+    public PacketStreamParser(IContentTypeParser contentTypeParser, IContentTypeProvider contentTypeProvider)
+    {
+        _contentTypeParser = contentTypeParser;
+        _contentTypeProvider = contentTypeProvider;
+    }
 
     public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
     {
@@ -47,7 +57,7 @@ public class PacketStreamParser : IPacketStreamParser
             }
 
             // Parse header
-            if (!TryParseHeader(headerBytes, out uint time, out ushort devId, out SensorType typeId, out byte sourceId, out ushort size))
+            if (!TryParseHeader(headerBytes, out uint time, out ushort devId, out byte typeId, out byte sourceId, out ushort size))
             {
                 errors.Add(new ParsingError(
                     packetStart,
@@ -93,7 +103,7 @@ public class PacketStreamParser : IPacketStreamParser
             {
                 if (size == 0 || size > MaxPacketSize)
                     throw new PacketParsingException($"Unsupported size: {size}");
-                int expected = SensorDataFactory.GetExpectedLength(typeId);
+                int expected = _contentTypeProvider.GetDefinition(typeId).TotalSizeBytes;
                 if (size != expected)
                     throw new PacketParsingException($"Size mismatch for {typeId}. Expected: {expected}, Actual: {size}");
             }
@@ -187,9 +197,8 @@ public class PacketStreamParser : IPacketStreamParser
             // Create telemetry packet
             try
             {
-                var parser = SensorDataFactory.CreateParser(typeId);
-                parser.Parse(content);
-                var packet = new TelemetryPacketWithUIntTime(time, devId, currentsSensorId,parser.GetValues());
+                var values = _contentTypeParser.Parse(typeId, content);
+                var packet = new TelemetryPacketWithUIntTime(time, devId, currentsSensorId, values);
                 packets.Add(packet);
             }
             catch (Exception ex)
@@ -246,7 +255,7 @@ public class PacketStreamParser : IPacketStreamParser
         return header;
     }
 
-    public static bool TryParseHeader(byte[] data, out uint time, out ushort devId, out SensorType type, out byte sourceId, out ushort size)
+    public static bool TryParseHeader(byte[] data, out uint time, out ushort devId, out byte type, out byte sourceId, out ushort size)
     {
         if (data.Length < PacketHelper.HeaderLength)
         {
@@ -255,7 +264,7 @@ public class PacketStreamParser : IPacketStreamParser
         }
         time = BinaryPrimitives.ReadUInt32BigEndian(data);
         devId = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(4));
-        type = (SensorType)data[6];
+        type = data[6];
         sourceId = data[7];
         size = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(8));
         return true;

@@ -23,7 +23,7 @@ public record ParsingError(
     string Message,
     uint? Time = null,
     ushort? DeviceId = null,
-    SensorType? SensorType = null,
+    byte? SensorType = null,
     byte? SourceId = null,
     ushort? Size = null
 );

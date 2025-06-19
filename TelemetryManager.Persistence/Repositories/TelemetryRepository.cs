@@ -27,7 +27,7 @@ public class TelemetryRepository : ITelemetryRepository
      DateTime? dateFrom = null,
      DateTime? dateTo = null,
      ushort? deviceId = null,
-     SensorType? sensorType = null,
+     byte? sensorType = null,
      byte? sensorId = null,
      int pageNumber = 1,
      int pageSize = 50)

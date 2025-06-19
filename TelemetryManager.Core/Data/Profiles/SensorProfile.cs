@@ -8,7 +8,7 @@ namespace TelemetryManager.Core.Data.Profiles;
 public class SensorProfile
 {
     public SensorId Id { get; }
-    public SensorType TypeId => Id.TypeId;
+    public byte TypeId => Id.TypeId;
     public byte SourceId => Id.SourceId;
     public Name Name { get; init; }
 

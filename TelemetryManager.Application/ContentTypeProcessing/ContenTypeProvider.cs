@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core.Data.SensorParameter;
 
 namespace TelemetryManager.Application.ContentTypeRegistration;
@@ -9,7 +10,7 @@ namespace TelemetryManager.Application.ContentTypeRegistration;
 /// и предоставление полной информации о параметрах контента.
 /// Используется для парсинга и валидации телеметрических данных.
 /// </summary>
-public class ContenTypeProvider
+public class ContenTypeProvider: IContentTypeProvider
 {
     private readonly ConcurrentDictionary<byte, ContentDefinition> _defs = new();
 

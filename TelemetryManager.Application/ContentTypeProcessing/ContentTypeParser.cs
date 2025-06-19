@@ -1,13 +1,14 @@
 ﻿using TelemetryManager.Application.ContentTypeRegistration;
+using TelemetryManager.Application.Interfaces;
 
 namespace TelemetryManager.Application.ContentTypeProcessing;
 
 
 public class ContentTypeParser
 {
-    private readonly ContenTypeProvider _registry;
+    private readonly IContentTypeProvider _registry;
 
-    public ContentTypeParser(ContenTypeProvider registry) => _registry = registry;
+    public ContentTypeParser(IContentTypeProvider registry) => _registry = registry;
 
     public IReadOnlyDictionary<string, object> ParseRaw(byte typeId, byte[] data)
     {

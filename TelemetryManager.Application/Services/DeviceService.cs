@@ -40,7 +40,7 @@ public class DeviceService
       params (string name, string unit, double min, double max)[] parameters)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var sensorId = new SensorId((SensorType)sensorTypeId, sensorSourceId);
+        var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         var sensorNameVO = new Name(sensorName);
 
         var sensorParameterList = new Collection<SensorParameterProfile>();
@@ -61,7 +61,7 @@ public class DeviceService
         ushort deviceId, byte sensorTypeId, byte sensorSourceId, DateTime timestamp)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var sensorId = new SensorId((SensorType)sensorTypeId, sensorSourceId);
+        var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         device.MarkSensorConnected(sensorId, timestamp);
         await _deviceRepository.UpdateAsync(device);
     }
@@ -70,7 +70,7 @@ public class DeviceService
         ushort deviceId, byte sensorTypeId, byte sensorSourceId, DateTime timestamp)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var sensorId = new SensorId((SensorType)sensorTypeId, sensorSourceId);
+        var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         device.MarkSensorDisconnected(sensorId, timestamp);
         await _deviceRepository.UpdateAsync(device);
     }
@@ -79,7 +79,7 @@ public class DeviceService
         ushort deviceId, byte sensorTypeId, byte sensorSourceId, DateTime timestamp)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var sensorId = new SensorId((SensorType)sensorTypeId, sensorSourceId);
+        var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         return device.IsSensorConnectedAt(sensorId, timestamp);
     }
 
@@ -102,7 +102,7 @@ public class DeviceService
        double max)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var sensorId = new SensorId((SensorType)sensorTypeId, sensorSourceId);
+        var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         var name = new ParameterName(parameterName);
         device.SetParameterInterval(sensorId, name, min, max);
         await _deviceRepository.UpdateAsync(device);

@@ -56,14 +56,14 @@ string configurationFilePath = Path.Combine(projectDirectory, "DeviceConfigurati
 
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
-var generator = new TelemetryGenerator(devId: 1, totalPackets: 6, noiseRatio: 0)
-    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
-    .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
-    .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
-    .AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
-    .AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
+//var generator = new TelemetryGenerator(devId: 1, totalPackets: 6, noiseRatio: 0)
+//    .AddSensor(SensorType.Temperature, 1, SensorDataGenerators.GenerateTemperatureData)
+//    .AddSensor(SensorType.Accelerometer, 2, SensorDataGenerators.GenerateAccelerometerData)
+//    .AddSensor(SensorType.Magnetometer, 3, SensorDataGenerators.GenerateMagnetometerData)
+//    .AddSensor(SensorType.FreeFall, 4, SensorDataGenerators.GenerateFreeFallData)
+//    .AddSensor(SensorType.Pressure, 5, SensorDataGenerators.GeneratePressureData);
 
-generator.Generate(telemetryFilePath);
+//generator.Generate(telemetryFilePath);
 
 
 //facade.ProcessTelemetryFile(telemetryFilePath);
