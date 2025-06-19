@@ -1,4 +1,4 @@
-﻿using TelemetryManager.Core.Data;
+﻿using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Persistence.Entities;
 

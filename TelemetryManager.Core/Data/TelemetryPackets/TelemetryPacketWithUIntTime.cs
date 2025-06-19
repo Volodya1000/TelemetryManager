@@ -2,7 +2,7 @@
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces;
 
-namespace TelemetryManager.Core.Data;
+namespace TelemetryManager.Core.Data.TelemetryPackets;
 
 public record class TelemetryPacketWithUIntTime(
     uint Time,

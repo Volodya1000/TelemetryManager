@@ -3,9 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.OutputDtos;
+using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
+using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure.FileReader;
@@ -14,7 +16,6 @@ using TelemetryManager.Infrastructure.Parsing;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.Persistence;
 using TelemetryManager.Persistence.Repositories;
-
 
 var serviceCollection = new ServiceCollection();
 
@@ -46,11 +47,11 @@ string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Pa
 
 
 string configurationFilePath = Path.Combine(projectDirectory, "DeviceConfiguration", "JsonConfigExample.json");
-facade.LoadConfiguration(configurationFilePath);
+//facade.LoadConfiguration(configurationFilePath);
 
 
-var devices = facade.GetDevicesProfiles();
-DisplayDevices(devices);
+//var devices = facade.GetDevicesProfiles();
+//DisplayDevices(devices);
 
 
 string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
@@ -68,7 +69,7 @@ generator.Generate(telemetryFilePath);
 //facade.ProcessTelemetryFile(telemetryFilePath);
 
 
-PrintPagedTelemetryPackets(await facade.GetPacketsAsync(new TelemetryPacketRequestFilter()));
+PrintPagedTelemetryPackets(await facade.GetPacketsAsync(new TelemetryPacketFilterRequest()));
 PrintParsingErrors(facade.GetParsingErrors());
 
 

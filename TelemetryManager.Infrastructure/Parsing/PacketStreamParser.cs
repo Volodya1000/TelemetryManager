@@ -2,9 +2,11 @@
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
+using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Utils;
+using TelemetryManager.Infrastructure.Parsing.Data;
 
 namespace TelemetryManager.Infrastructure.Parsing;
 

@@ -77,5 +77,24 @@ public class DeviceProfile
 
         return sensor;
     }
+
+    public (bool isValid, double deviation, Interval currentInterval)
+       CheckParameterValue(SensorId sensorId, ParameterName parameterName, double value)
+    {
+        var parameter = GetParameter(sensorId, parameterName);
+        var interval = parameter.CurrentInterval;
+
+        if (value < interval.Min)
+        {
+            return (false, value - interval.Min, interval);
+        }
+
+        if (value > interval.Max)
+        {
+            return (false, value - interval.Max, interval);
+        }
+
+        return (true, 0, interval);
+    }
 }
 

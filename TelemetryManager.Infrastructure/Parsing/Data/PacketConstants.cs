@@ -1,4 +1,4 @@
-﻿namespace TelemetryManager.Core.Data;
+﻿namespace TelemetryManager.Infrastructure.Parsing.Data;
 
 public static class PacketConstants
 {

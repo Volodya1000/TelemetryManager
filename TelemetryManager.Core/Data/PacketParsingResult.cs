@@ -1,4 +1,6 @@
-﻿namespace TelemetryManager.Core.Data;
+﻿using TelemetryManager.Core.Data.TelemetryPackets;
+
+namespace TelemetryManager.Core.Data;
 
 public class PacketParsingResult
 {

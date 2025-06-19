@@ -1,5 +1,4 @@
 ﻿using TelemetryManager.Core.Data;
-using TelemetryManager.Core.EventArgs;
 using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Application.Interfaces;
@@ -41,14 +40,14 @@ public interface ITelemetryService
 
 
 
-    /// <summary>
-    /// Возникает при получении валидных данных о сенсоре.
-    /// </summary>
-    event EventHandler<SensorDataEventArgs> SensorDataReceived;
+    ///// <summary>
+    ///// Возникает при получении валидных данных о сенсоре.
+    ///// </summary>
+    //event EventHandler<SensorDataEventArgs> SensorDataReceived;
 
-    /// <summary>
-    /// Возникает при возникновении аномалии (выхода парметра за допусккаемые границы).
-    /// </summary>
-    event EventHandler<AnomalyEventArgs> AnomalyDetected;
+    ///// <summary>
+    ///// Возникает при возникновении аномалии (выхода парметра за допусккаемые границы).
+    ///// </summary>
+    //event EventHandler<ParameterOutOfRangeEventArgs> AnomalyDetected;
 }
 

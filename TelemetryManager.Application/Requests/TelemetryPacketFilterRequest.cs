@@ -1,5 +1,4 @@
 ﻿using TelemetryManager.Core.Enums;
-using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Application.Requests;
 

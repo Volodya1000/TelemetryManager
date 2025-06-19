@@ -3,8 +3,11 @@ using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
+using TelemetryManager.Application.Requests;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Data.TelemetryPackets;
+using TelemetryManager.Core.EventsArgs;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
@@ -20,13 +23,11 @@ public class TelemetryProcessingService
     private readonly IFileReaderService _fileReader;
 
 
-    //  private CancellationTokenSource? _cts;
-
-
     private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
+    public event EventHandler<ParameterOutOfRangeEventArgs>? ParameterOutOfRange;
 
-   
+
     public TelemetryProcessingService(
         IConfigurationLoader configurationLoader,
         IConfigurationValidator configurationValidator,
@@ -43,77 +44,77 @@ public class TelemetryProcessingService
         _fileReader = fileReader;
     }
 
-    //public void LoadConfiguration(string configFilePath)
-    //{
-    //    deviceProfiles = _configurationLoader.Load(configFilePath);
-    //    _configurationValidator.Validate(deviceProfiles);
-    //}
-
-    public async Task ProcessTelemetryFile(string filePath)
+    public async Task ProcessTelemetryStream(Stream stream)
     {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"File {filePath} does not exist.", filePath);
-
-        using var stream = File.OpenRead(filePath);
         var deviceSensorsIdsDictionary = await _deviceService.GetAllDeviceSensorsIdsDictionaryAsync();
         var parsingResult = _parser.Parse(stream, deviceSensorsIdsDictionary);
 
-      
+        var baseTime = DateTime.UtcNow;
 
+        // Получаем устройства без активации
+        var devicesWithoutActivation = (await _deviceService.GetDevicesWithoutActivationTimeAsync())
+            .ToHashSet();
 
-        await SetActivationTimeForDevicesAsync(parsingResult.Packets);
+        // Создаем финальные пакеты и находим минимальное время для активации
+        var telemetryPackets = new List<TelemetryPacket>();
+        var minUptimes = new Dictionary<ushort, long>();
 
-        var packets = parsingResult.Packets.Select(p =>
+        foreach (var packet in parsingResult.Packets)
         {
-            var uptimeDuration = TimeSpan.FromMilliseconds(p.Time);
-            var sendTime = DateTime.UtcNow + uptimeDuration;
-            return new TelemetryPacket(sendTime, p.DevId, p.SensorId, p.Content);
-        });
-   
+            // Вычисляем время отправки
+            var uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
+            var sendTime = baseTime + uptimeDuration;
+            telemetryPackets.Add(new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content));
+
+            // Обновляем минимальное время для активации
+            if (devicesWithoutActivation.Contains(packet.DevId))
+            {
+                if (!minUptimes.TryGetValue(packet.DevId, out var currentMin) || packet.Time < currentMin)
+                {
+                    minUptimes[packet.DevId] = packet.Time;
+                }
+            }
+        }
+
+        // Устанавливаем время активации
+        foreach (var (deviceId, minUptime) in minUptimes)
+        {
+            var activationTime = baseTime - TimeSpan.FromMilliseconds(minUptime);
+            await _deviceService.SetActivationTimeAsync(deviceId, activationTime);
+        }
+
+        // Обрабатываем ошибки
         parsingErrors.AddRange(parsingResult.Errors);
 
-        foreach (var packet in packets)
-            await _telemetryRepository.AddPacketAsync(packet);
-    }
-
-
-    /// <summary>
-    /// Устанавливает время активации для устройств, у которых оно еще не установлено.
-    /// Время активации вычисляется на основе самого раннего телеметрического пакета каждого устройства.
-    /// </summary>
-    private async Task SetActivationTimeForDevicesAsync(
-      IReadOnlyCollection<TelemetryPacketWithUIntTime> receivedPackets)
-    {
-        if (receivedPackets.Count == 0) return;
-
-        // Получаем устройства без времени активации через сервис
-        var devicesWithoutActivation = await _deviceService.GetDevicesWithoutActivationTimeAsync();
-
-        if (!devicesWithoutActivation.Any()) return;
-
-        var packetsByDevice = receivedPackets
-            .GroupBy(p => p.DevId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.MinBy(p => p.Time)
-            );
-
-        foreach (var deviceId in devicesWithoutActivation)
+        // Сохраняем пакеты
+        foreach (var packet in telemetryPackets)
         {
-            if (!packetsByDevice.TryGetValue(deviceId, out var packet) || packet == null)
-                continue;
+            foreach (var parametr in packet.Content)
+            {
+                var result =await _deviceService.CheckParameterValue(packet.DevId, packet.SensorId, parametr.Key, parametr.Value);
 
-            // Преобразуем миллисекунды в TimeSpan
-            var uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
-            // Вычисляем время активации: текущее время минус продолжительность работы
-            var activationTime = DateTime.UtcNow - uptimeDuration;
+                var parameterOutOfRangeEventArgs = new ParameterOutOfRangeEventArgs(packet.DevId, 
+                    packet.SensorId, 
+                    parametr.Key, 
+                    parametr.Value, 
+                    result.currentInterval.Min, 
+                    result.currentInterval.Max);
+                ParameterOutOfRange?.Invoke(this, parameterOutOfRangeEventArgs);
+            }
 
-            await _deviceService.SetActivationTimeAsync(deviceId, activationTime);
+            await _telemetryRepository.AddPacketAsync(packet);
         }
     }
 
+    public async Task ProcessTelemetryFile(string filePath)
+    {
+        await using var stream = _fileReader.OpenRead(filePath);
 
-    public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
+        await ProcessTelemetryStream(stream);
+    }
+ 
+
+    public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketFilterRequest filter)
     {
         return  await _telemetryRepository.GetPacketsAsync(
             filter.DateFrom, filter.DateTo, filter.DeviceId,
@@ -122,69 +123,6 @@ public class TelemetryProcessingService
 
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
-
-
-
-
-
-
-
-    //public void StartStream(Stream input)
-    //{
-    //    // Если предыдущий поток запущен, остановим его
-    //    if (_cts != null)
-    //    {
-    //        StopStream();
-    //    }
-
-    //    _cts = new CancellationTokenSource();
-    //    var token = _cts.Token;
-
-    //    Task.Run(() =>
-    //    {
-    //        try
-    //        {
-    //            var reader = new PacketStreamParser(input);
-    //            while (!token.IsCancellationRequested)
-    //            {
-    //                var raw = reader.ReadNextPacket();
-    //                if (raw == null)
-    //                    continue; // шум или EOF
-
-    //                //if (!_parser.TryParse(raw, out var packet))
-    //                //{
-    //                //    OnPacketRejected("Parse error", raw.ToArray());
-    //                //    continue;
-    //                //}
-
-    //                //var data = SensorDataDecoder.Decode(packet);
-    //                //_storage.AddData(data);
-    //                //OnSensorDataReceived(data);
-
-
-
-
-    //                //if (_validator.IsAnomalous(data, out var anomalyInfo))
-    //                //{
-    //                //    _storage.AddAnomaly(anomalyInfo);
-    //                //    OnAnomalyDetected(anomalyInfo);
-    //                //}
-    //            }
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //           // _logger.Error("Stream processing failed", ex);
-    //        }
-    //    }, token);
-    //}
-
-    //public void StopStream()
-    //{
-    //    if (_cts == null) return;
-    //    _cts.Cancel();
-    //    _cts = null;
-    //}
-
 
 
 

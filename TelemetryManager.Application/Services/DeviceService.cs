@@ -118,4 +118,16 @@ public class DeviceService
             .Where(d => !d.ActivationTime.HasValue)
             .Select(d => d.DeviceId);
     }
+
+    public async ValueTask<(bool isValid, double deviation, Interval currentInterval)> 
+        CheckParameterValue(ushort deviceId,
+                            SensorId sensorId,
+                            string parameterName,
+                            double parameterValue)
+    {
+        var device = await _deviceRepository.GetByIdAsync(deviceId);
+
+        var parameterNameVO = new ParameterName(parameterName);
+        return device.CheckParameterValue(sensorId, parameterNameVO, parameterValue);
+    }
 }
