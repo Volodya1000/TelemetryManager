@@ -20,6 +20,7 @@ public class TelemetryProcessingService
     private readonly IPacketStreamParser _parser;
     private readonly ITelemetryRepository _telemetryRepository;
     private readonly DeviceService _deviceService;
+    private readonly ParameterValidationService _parameterValidationService;
     private readonly IFileReaderService _fileReader;
 
 
@@ -34,7 +35,8 @@ public class TelemetryProcessingService
         IPacketStreamParser parser,
         ITelemetryRepository telemetryRepository,
         DeviceService deviceService,
-        IFileReaderService fileReader) 
+        IFileReaderService fileReader,
+        ParameterValidationService parameterValidationService) 
     {
         _configurationLoader = configurationLoader;
         _configurationValidator = configurationValidator;
@@ -42,6 +44,10 @@ public class TelemetryProcessingService
         _telemetryRepository = telemetryRepository;
         _deviceService = deviceService;
         _fileReader = fileReader;
+        _parameterValidationService = parameterValidationService;
+
+        _parameterValidationService.ParameterOutOfRange += (sender, args) =>
+            ParameterOutOfRange?.Invoke(sender, args);
     }
 
     public async Task ProcessTelemetryStream(Stream stream)
@@ -89,17 +95,14 @@ public class TelemetryProcessingService
         // Сохраняем пакеты
         foreach (var packet in telemetryPackets)
         {
-            foreach (var parametr in packet.Content)
+            foreach (var parameter in packet.Content)
             {
-                var result =await _deviceService.CheckParameterValue(packet.DevId, packet.SensorId, parametr.Key, parametr.Value);
-
-                var parameterOutOfRangeEventArgs = new ParameterOutOfRangeEventArgs(packet.DevId, 
-                    packet.SensorId, 
-                    parametr.Key, 
-                    parametr.Value, 
-                    result.currentInterval.Min, 
-                    result.currentInterval.Max);
-                ParameterOutOfRange?.Invoke(this, parameterOutOfRangeEventArgs);
+                await _parameterValidationService.ValidateAsync(
+                    packet.DevId,
+                    packet.SensorId,
+                    parameter.Key,
+                    parameter.Value
+                );
             }
 
             await _telemetryRepository.AddPacketAsync(packet);
@@ -123,19 +126,4 @@ public class TelemetryProcessingService
 
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
-
-
-
-    //public event EventHandler<SensorDataEventArgs>? SensorDataReceived;
-    //public event EventHandler<AnomalyEventArgs>? AnomalyDetected;
-
-
-
-    //protected virtual void OnSensorDataReceived(SensorDataEventArgs e)
-    //=> SensorDataReceived?.Invoke(this, e);
-
-
-    //protected virtual void OnAnomalyDetected(AnomalyEventArgs e)
-    //   => AnomalyDetected?.Invoke(this, e);
-
 }
