@@ -8,7 +8,6 @@ using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
-using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure.FileReader;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
@@ -19,7 +18,6 @@ using TelemetryManager.Persistence.Repositories;
 
 var serviceCollection = new ServiceCollection();
 
-serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>();
 serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
 serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>();

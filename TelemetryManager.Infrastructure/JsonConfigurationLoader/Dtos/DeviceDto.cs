@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using TelemetryManager.Core.Enums;
 
 namespace TelemetryManager.Infrastructure.JsonConfigurationLoader.Dtos;
 
@@ -19,7 +18,7 @@ public class DeviceDto
 public class SensorDto
 {
     [JsonPropertyName("TypeId")]
-    public SensorType TypeId { get; set; }
+    public byte TypeId { get; set; }
 
     [JsonPropertyName("Name")]
     public string Name { get; set; }

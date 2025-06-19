@@ -3,7 +3,6 @@ using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Data.ValueObjects;
-using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 

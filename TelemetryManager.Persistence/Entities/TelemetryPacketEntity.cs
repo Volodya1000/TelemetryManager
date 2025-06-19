@@ -1,4 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
+﻿
 
 namespace TelemetryManager.Persistence.Entities;
 

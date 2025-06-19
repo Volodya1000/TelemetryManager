@@ -1,8 +1,9 @@
 ﻿using System.Buffers.Binary;
+using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
-using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Utils;
+using TelemetryManager.Infrastructure.Parsing.Data;
 
 namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
 {
@@ -16,8 +17,9 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
         private double _noiseRatio;
         private readonly List<SensorConfig> _sensors = new List<SensorConfig>();
         private readonly Random _random = new Random();
+        IContentTypeProvider _contentTypeProvider;
 
-        public TelemetryGenerator(ushort devId, int totalPackets, double noiseRatio)
+        public TelemetryGenerator(IContentTypeProvider сontentTypeProvider,ushort devId, int totalPackets, double noiseRatio)
         {
             if (totalPackets < 1)
                 throw new ArgumentException("Total packets must be at least 1", nameof(totalPackets));
@@ -28,6 +30,7 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             _totalPackets = totalPackets;
             _timeGenerator = DefaultTimeGenerator;
             _noiseRatio = noiseRatio;
+            _contentTypeProvider= сontentTypeProvider;
         }
 
         private uint DefaultTimeGenerator()
@@ -42,10 +45,10 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             return this;
         }
 
-        public TelemetryGenerator AddSensor(SensorType type, byte sourceId, Func<byte[]> contentGenerator)
+        public TelemetryGenerator AddSensor(byte type, byte sourceId, Func<byte[]> contentGenerator)
         {
             // Валидация длины при добавлении сенсора
-            int expectedLength = SensorDataFactory.GetExpectedLength(type);
+            int expectedLength = _contentTypeProvider.GetDefinition(type).TotalSizeBytes;
 
             _sensors.Add(new SensorConfig
             {
@@ -101,7 +104,7 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             byte[] headerBytes = PacketHelper.BuildHeaderBytes(
                 time,
                 _devId,
-                (SensorType)sensor.TypeId,
+                sensor.TypeId,
                 sensor.SourceId,
                 (ushort)content.Length
             );

@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Application.Requests;
+﻿namespace TelemetryManager.Application.Requests;
 
 public record TelemetryPacketFilterRequest(
     DateTime? DateFrom = null,

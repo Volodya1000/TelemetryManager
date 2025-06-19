@@ -1,12 +1,10 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Infrastructure.Parsing;
+﻿namespace TelemetryManager.Infrastructure.Parsing;
 
 public static class PacketHelper
 {
     public const int HeaderLength = 10; // 4(time) + 2(devId) + 1(type) + 1(source) + 2(size)
 
-    public static byte[] BuildHeaderBytes(uint time, ushort devId, SensorType typeId, byte sourceId, ushort size)
+    public static byte[] BuildHeaderBytes(uint time, ushort devId, byte typeId, byte sourceId, ushort size)
     {
         byte[] headerBytes = new byte[HeaderLength];
         // Time (4 bytes big-endian)

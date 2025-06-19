@@ -1,9 +1,7 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Application.OutputDtos;
+﻿namespace TelemetryManager.Application.OutputDtos;
 
 public sealed record SensorProfileDto(
     byte SourceId,
-    SensorType TypeId,
+    byte TypeId,
     string Name,
     IReadOnlyList<SensorParameterProfileDto> Parameters);
