@@ -1,6 +1,6 @@
 ﻿namespace TelemetryManager.Core.Data;
 
-public record SensorParametrSnapshot(
+public record SensorParameterSnapshot(
     string Name,
     double Value,
     double MinValue,

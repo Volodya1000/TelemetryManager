@@ -1,26 +1,30 @@
 ﻿using TelemetryManager.Core.Data.ValueObjects;
+using TelemetryManager.Core.Data.ValueObjects.HistoryRecords;
 
 namespace TelemetryManager.Core.Data.Profiles;
 
 public class SensorParameterProfile
 {
-    public ParametrName Name { get; }
+    public ParameterName Name { get; }
     public string Units { get; }
-    public Interval ValueRange { get; private set; }
+    public Interval CurrentInterval { get; private set; }
 
-    public SensorParameterProfile(ParametrName name, string units, double min, double max)
+    private readonly List<ParameterIntervalChangeRecord> _intervalHistory = new();
+
+    public IReadOnlyList<ParameterIntervalChangeRecord> IntervalHistory => _intervalHistory.AsReadOnly();
+
+    public SensorParameterProfile(ParameterName name, string units, double min, double max)
     {
         Name = name;
         Units = units;
-        ValueRange = new Interval(min, max);
+        CurrentInterval = new Interval(min, max);
+        _intervalHistory.Add(new ParameterIntervalChangeRecord(DateTime.UtcNow, CurrentInterval));
     }
 
-    internal void SetMinValue(double newMin) =>
-      ValueRange = new Interval(newMin, ValueRange.Max);
-
-    internal void SetMaxValue(double newMax) =>
-        ValueRange = new Interval(ValueRange.Min, newMax);
-
-    internal void SetInterval(double newMin, double newMax) =>
-        ValueRange = new Interval(newMin, newMax);
+    public void SetInterval(double min, double max)
+    {
+        var newInterval = new Interval(min, max);
+        CurrentInterval = newInterval;
+        _intervalHistory.Add(new ParameterIntervalChangeRecord(DateTime.UtcNow, newInterval));
+    }
 }

@@ -7,4 +7,4 @@ public record SensorSnapshot(
     SensorId SensorId, 
     Name SensorName, 
     DateTime SnapshotDateTime,
-    IReadOnlyList<SensorParametrSnapshot> Parameters);
+    IReadOnlyList<SensorParameterSnapshot> Parameters);

@@ -105,9 +105,9 @@ public class JsonLoader : IConfigurationLoader
 
             try
             {
-                var parametrName = new ParametrName(paramDto.Name);
+                var parameterName = new ParameterName(paramDto.Name);
                 parameters.Add(new SensorParameterProfile(
-                    name: parametrName,
+                    name: parameterName,
                     units: paramDto.Units,
                     min: min,
                     max: max

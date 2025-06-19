@@ -27,16 +27,7 @@ public class DeviceProfile
 
         _sensorsDict.Add(newSensor.Id, newSensor);
     }
-
-    public void RemoveSensor(SensorId sensorId)
-    {
-        if (_sensorsDict.ContainsKey(sensorId))
-            throw new ArgumentException(
-               $"Device with DeviceId={DeviceId} dont contains sensor with {sensorId}",
-                nameof(sensorId));
-
-        _sensorsDict.Remove(sensorId);
-    }
+    
 
     /// <summary>
     /// Время активации изначально не известно и оно устанавливается только один раз  по времени первого полученого пакета
@@ -49,30 +40,42 @@ public class DeviceProfile
         ActivationTime =activationTime;
     }
 
-    public void SetParameterInterval(SensorId sensorId, ParametrName name, double min, double max)
+    #region Parameter Configuration
+    public void SetParameterInterval(SensorId sensorId, ParameterName name, double min, double max)
     {
         var parameter = GetParameter(sensorId, name);
         parameter.SetInterval(min, max);
     }
 
-    public void SetParameterMinValue(SensorId sensorId, ParametrName name, double min)
+    private SensorParameterProfile GetParameter(SensorId sensorId, ParameterName name)
     {
-        var parameter = GetParameter(sensorId, name);
-        parameter.SetMinValue(min);
+        return GetSensor(sensorId).GetParameter(name);
+    }
+    #endregion
+
+    #region Connection Status Management
+    public void MarkSensorConnected(SensorId sensorId, DateTime timestamp)
+    {
+        GetSensor(sensorId).MarkConnected(timestamp);
     }
 
-    public void SetParameterMaxValue(SensorId sensorId, ParametrName name, double max)
+    public void MarkSensorDisconnected(SensorId sensorId, DateTime timestamp)
     {
-        var parameter = GetParameter(sensorId, name);
-        parameter.SetMaxValue(max);
+        GetSensor(sensorId).MarkDisconnected(timestamp);
     }
 
-    private SensorParameterProfile GetParameter(SensorId sensorId, ParametrName name)
+    public bool IsSensorConnectedAt(SensorId sensorId, DateTime timestamp)
+    {
+        return GetSensor(sensorId).IsConnectedAt(timestamp);
+    }
+    #endregion
+
+    private SensorProfile GetSensor(SensorId sensorId)
     {
         if (!_sensorsDict.TryGetValue(sensorId, out var sensor))
-            throw new KeyNotFoundException($"Sensor {sensorId} not found in device {DeviceId}");
+            throw new KeyNotFoundException($"Sensor {sensorId} not found");
 
-        return sensor.GetParameter(name);
+        return sensor;
     }
 }
 

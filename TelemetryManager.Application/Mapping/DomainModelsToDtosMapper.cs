@@ -30,8 +30,8 @@ public static class DomainModelsToDtosMapper
         return new SensorParameterProfileDto(
             ParameterName: domain.Name.Value, 
             Units: domain.Units,
-            MinValue: domain.ValueRange.Min,
-            MaxValue: domain.ValueRange.Max
+            MinValue: domain.CurrentInterval.Min,
+            MaxValue: domain.CurrentInterval.Max
         );
     }
 }
