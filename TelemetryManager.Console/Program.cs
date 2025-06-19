@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Interfaces.Repositories;
+using TelemetryManager.Infrastructure.FileReader;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
 using TelemetryManager.Infrastructure.Parsing;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
@@ -20,7 +22,8 @@ serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>(
 serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
 serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>();
-serviceCollection.AddTransient<TelemtryService>();
+serviceCollection.AddTransient<TelemetryProcessingService>();
+serviceCollection.AddTransient<IFileReaderService,FileReaderService>(); 
 
 
 serviceCollection.AddDbContext<TelemetryContext>(options =>
@@ -36,7 +39,7 @@ using (var scope = serviceProvider.CreateScope())
 }
 
 
-var facade = serviceProvider.GetRequiredService<TelemtryService>();
+var facade = serviceProvider.GetRequiredService<TelemetryProcessingService>();
 
 string workingDirectory = Environment.CurrentDirectory;
 string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;

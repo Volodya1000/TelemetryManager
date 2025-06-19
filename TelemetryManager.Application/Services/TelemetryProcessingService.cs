@@ -1,129 +1,132 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Threading.Tasks;
 using TelemetryManager.Application.Interfaces;
-using TelemetryManager.Application.Logger;
+using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.Profiles;
-using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TelemetryManager.Application.Services;
 
-public class TelemtryService
+public class TelemetryProcessingService
 {
     private readonly IConfigurationLoader _configurationLoader;
     private readonly IConfigurationValidator _configurationValidator;
     private readonly IPacketStreamParser _parser;
     private readonly ITelemetryRepository _telemetryRepository;
+    private readonly DeviceService _deviceService;
+    private readonly IFileReaderService _fileReader;
+
 
     //  private CancellationTokenSource? _cts;
 
-    private List<DeviceProfile> deviceProfiles;
 
     private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
 
-    public TelemtryService(
-         IConfigurationLoader configurationLoader,
-         IConfigurationValidator configurationValidator,
-         IPacketStreamParser parser,
-         ITelemetryRepository telemetryRepository)
+   
+    public TelemetryProcessingService(
+        IConfigurationLoader configurationLoader,
+        IConfigurationValidator configurationValidator,
+        IPacketStreamParser parser,
+        ITelemetryRepository telemetryRepository,
+        DeviceService deviceService,
+        IFileReaderService fileReader) 
     {
         _configurationLoader = configurationLoader;
         _configurationValidator = configurationValidator;
-        _parser= parser;
+        _parser = parser;
         _telemetryRepository = telemetryRepository;
-    }
-    public void LoadConfiguration(string configFilePath)
-    {
-        deviceProfiles = _configurationLoader.Load(configFilePath);
-        _configurationValidator.Validate(deviceProfiles);
+        _deviceService = deviceService;
+        _fileReader = fileReader;
     }
 
-    public void ProcessTelemetryFile(string filePath)
+    //public void LoadConfiguration(string configFilePath)
+    //{
+    //    deviceProfiles = _configurationLoader.Load(configFilePath);
+    //    _configurationValidator.Validate(deviceProfiles);
+    //}
+
+    public async Task ProcessTelemetryFile(string filePath)
     {
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File {filePath} does not exist.", filePath);
 
-        using (var stream = File.OpenRead(filePath))
+        using var stream = File.OpenRead(filePath);
+        var deviceSensorsIdsDictionary = await _deviceService.GetAllDeviceSensorsIdsDictionaryAsync();
+        var parsingResult = _parser.Parse(stream, deviceSensorsIdsDictionary);
+
+      
+
+
+        await SetActivationTimeForDevicesAsync(parsingResult.Packets);
+
+        var packets = parsingResult.Packets.Select(p =>
         {
-            var parsingResult = _parser.Parse(stream, GetAvailableDeviceIdsWithSensorIds());
+            var uptimeDuration = TimeSpan.FromMilliseconds(p.Time);
+            var sendTime = DateTime.UtcNow + uptimeDuration;
+            return new TelemetryPacket(sendTime, p.DevId, p.SensorId, p.Content);
+        });
+   
+        parsingErrors.AddRange(parsingResult.Errors);
 
-            SetActivationTimeForDevices(parsingResult.Packets);
-
-            IEnumerable<TelemetryPacket> packetWithDate = 
-                parsingResult.Packets.Select(p => 
-                {
-                    TimeSpan uptimeDuration = TimeSpan.FromMilliseconds(p.Time);
-                    DateTime sendTime = DateTime.UtcNow + uptimeDuration;
-                    return new TelemetryPacket(sendTime, p.DevId, p.SensorId, p.Content);
-                    });
-            parsingErrors.AddRange(parsingResult.Errors);
-            foreach (var packet in packetWithDate)
-                _telemetryRepository.AddPacketAsync(packet);
-        }
+        foreach (var packet in packets)
+            await _telemetryRepository.AddPacketAsync(packet);
     }
-
-    public ICollection<DeviceProfileDto> GetDevicesProfiles() => deviceProfiles.Select(d=>d.ToDto()).ToList();
-
-    public Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
-    {
-        return _telemetryRepository.GetPacketsAsync(
-           filter.DateFrom, filter.DateTo, filter.DeviceId, 
-           filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
-    }
-
-
-    public List<ParsingError> GetParsingErrors() => parsingErrors;
-
-    private Dictionary<ushort, IReadOnlyCollection<SensorId>> GetAvailableDeviceIdsWithSensorIds()=>
-        deviceProfiles.ToDictionary(d => d.DeviceId, d => d.SensorIds);
-
-
-
 
 
     /// <summary>
     /// Устанавливает время активации для устройств, у которых оно еще не установлено.
     /// Время активации вычисляется на основе самого раннего телеметрического пакета каждого устройства.
     /// </summary>
-    /// <param name="receivedPackets">Коллекция полученных телеметрических пакетов</param>
-    private void SetActivationTimeForDevices(IReadOnlyCollection<TelemetryPacketWithUIntTime> receivedPackets)
+    private async Task SetActivationTimeForDevicesAsync(
+      IReadOnlyCollection<TelemetryPacketWithUIntTime> receivedPackets)
     {
-        if(receivedPackets.Count == 0) return;
+        if (receivedPackets.Count == 0) return;
 
-        var devicesWithoutActivationTime = deviceProfiles
-            .Where(d => !d.ActivationTime.HasValue)
-            .ToList();
+        // Получаем устройства без времени активации через сервис
+        var devicesWithoutActivation = await _deviceService.GetDevicesWithoutActivationTimeAsync();
 
-        if (!devicesWithoutActivationTime.Any())
-            return;
+        if (!devicesWithoutActivation.Any()) return;
 
         var packetsByDevice = receivedPackets
             .GroupBy(p => p.DevId)
             .ToDictionary(
                 g => g.Key,
-                g => g.MinBy(p => p.Time) // Находим пакет с минимальным временем для каждого устройства
+                g => g.MinBy(p => p.Time)
             );
 
-        foreach (var device in devicesWithoutActivationTime)
+        foreach (var deviceId in devicesWithoutActivation)
         {
-            if (!packetsByDevice.TryGetValue(device.DeviceId, out var packet) || packet == null)
+            if (!packetsByDevice.TryGetValue(deviceId, out var packet) || packet == null)
                 continue;
+
             // Преобразуем миллисекунды в TimeSpan
-            TimeSpan uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
-
+            var uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
             // Вычисляем время активации: текущее время минус продолжительность работы
-            DateTime activationTime = DateTime.UtcNow - uptimeDuration;
+            var activationTime = DateTime.UtcNow - uptimeDuration;
 
-            device.SetActivationTime(activationTime);
+            await _deviceService.SetActivationTimeAsync(deviceId, activationTime);
         }
     }
+
+
+    public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketRequestFilter filter)
+    {
+        return  await _telemetryRepository.GetPacketsAsync(
+            filter.DateFrom, filter.DateTo, filter.DeviceId,
+            filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
+    }
+
+
+    public List<ParsingError> GetParsingErrors() => parsingErrors;
+
+
+
+
+
 
 
     //public void StartStream(Stream input)

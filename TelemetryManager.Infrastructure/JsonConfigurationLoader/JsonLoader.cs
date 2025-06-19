@@ -125,36 +125,3 @@ public class JsonLoader : IConfigurationLoader
 }
 
 
-//public class JsonLoader : IConfigurationLoader
-//{
-//    private readonly JsonSerializerOptions _options = new()
-//    {
-//        PropertyNameCaseInsensitive = true,
-//        WriteIndented = true,
-//        Converters = { new JsonStringEnumConverter() }
-//    };
-
-//    public List<DeviceProfile> Load(string configFilePath)
-//    {
-//        if (!File.Exists(configFilePath))
-//            throw new FileNotFoundException("Configuration file not found", configFilePath);
-
-//        var json = File.ReadAllText(configFilePath);
-
-//        List<DeviceProfile>? profile;
-
-//        try
-//        {
-//            profile = JsonSerializer.Deserialize<List<DeviceProfile>>(json, _options);
-//        }
-//        catch (JsonException ex) 
-//        {
-//            throw new InvalidDataException("Invalid JSON format in configuration file", ex);
-//        }
-//        if (profile == null)
-//            throw new InvalidDataException("Invalid or empty configuration");
-
-//        return profile;
-//    }
-
-//}

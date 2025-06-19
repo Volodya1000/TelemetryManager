@@ -105,5 +105,17 @@ public class DeviceService
         return device.ToDto();
     }
 
+    public async Task<Dictionary<ushort, IReadOnlyCollection<SensorId>>> GetAllDeviceSensorsIdsDictionaryAsync()
+    {
+        var devices = await _deviceRepository.GetAllAsync();
+        return devices.ToDictionary(d => d.DeviceId, d => d.SensorIds);
+    }
 
+    public async Task<IEnumerable<ushort>> GetDevicesWithoutActivationTimeAsync()
+    {
+        var devices = await _deviceRepository.GetAllAsync();
+        return devices
+            .Where(d => !d.ActivationTime.HasValue)
+            .Select(d => d.DeviceId);
+    }
 }
