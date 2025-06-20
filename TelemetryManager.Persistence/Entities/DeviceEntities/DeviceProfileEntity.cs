@@ -1,4 +1,6 @@
-﻿namespace TelemetryManager.Persistence.Entities.DeviceEntities;
+﻿using TelemetryManager.Persistence.Entities.ContentEntities;
+
+namespace TelemetryManager.Persistence.Entities.DeviceEntities;
 
 public class DeviceProfileEntity
 {
@@ -10,7 +12,6 @@ public class DeviceProfileEntity
 
 public class SensorProfileEntity
 {
-    public int Id { get; set; } // Синтетический ключ
     public ushort DeviceId { get; set; }
     public byte TypeId { get; set; }
     public byte SourceId { get; set; }
@@ -23,25 +24,33 @@ public class SensorProfileEntity
 
 public class SensorParameterProfileEntity
 {
-    public int Id { get; set; } // Синтетический ключ
-    public int SensorId { get; set; }
-    public string ParameterName { get; set; }
-    public string Quantity { get; set; }
-    public string Unit { get; set; }
-    public string DataTypeName { get; set; }
+    public int Id { get; set; }
     public double CurrentMin { get; set; }
     public double CurrentMax { get; set; }
+
+    // Внешние ключи для сенсора
+    public ushort DeviceId { get; set; }
+    public byte TypeId { get; set; }
+    public byte SourceId { get; set; }
+
+    // Ссылка на определение параметра
+    public int ParameterDefinitionId { get; set; }
+    public ParameterDefinitionEntity ParameterDefinition { get; set; }
+
     public SensorProfileEntity Sensor { get; set; }
     public List<ParameterIntervalChangeRecordEntity> IntervalHistory { get; set; } = new();
 }
 
-// SensorConnectionHistoryRecordEntity.cs
 public class SensorConnectionHistoryRecordEntity
 {
     public int Id { get; set; }
-    public int SensorId { get; set; }
     public DateTime Timestamp { get; set; }
     public bool IsConnected { get; set; }
+
+    public ushort DeviceId { get; set; }
+    public byte TypeId { get; set; }
+    public byte SourceId { get; set; }
+
     public SensorProfileEntity Sensor { get; set; }
 }
 

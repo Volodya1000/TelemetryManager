@@ -10,6 +10,7 @@ public class DeviceProfileConfiguration : IEntityTypeConfiguration<DeviceProfile
     {
         builder.HasKey(d => d.DeviceId);
         builder.Property(d => d.Name).IsRequired().HasMaxLength(30);
+        builder.Property(d => d.ActivationTime).IsRequired(false);
 
         builder.HasMany(d => d.Sensors)
             .WithOne(s => s.Device)
@@ -22,11 +23,22 @@ public class SensorProfileConfiguration : IEntityTypeConfiguration<SensorProfile
 {
     public void Configure(EntityTypeBuilder<SensorProfileEntity> builder)
     {
-        builder.HasKey(s => s.Id);
+        builder.HasKey(s => new { s.DeviceId, s.TypeId, s.SourceId });
         builder.Property(s => s.Name).IsRequired().HasMaxLength(30);
-        builder.HasIndex(s => new { s.DeviceId, s.TypeId, s.SourceId }).IsUnique();
+
+        // Связи с зависимыми сущностями
+        builder.HasMany(s => s.ConnectionHistory)
+            .WithOne(ch => ch.Sensor)
+            .HasForeignKey(ch => new { ch.DeviceId, ch.TypeId, ch.SourceId })
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(s => s.Parameters)
+            .WithOne(p => p.Sensor)
+            .HasForeignKey(p => new { p.DeviceId, p.TypeId, p.SourceId })
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
 
 // SensorParameterProfileConfiguration.cs
 public class SensorParameterProfileConfiguration : IEntityTypeConfiguration<SensorParameterProfileEntity>
@@ -34,10 +46,6 @@ public class SensorParameterProfileConfiguration : IEntityTypeConfiguration<Sens
     public void Configure(EntityTypeBuilder<SensorParameterProfileEntity> builder)
     {
         builder.HasKey(p => p.Id);
-        builder.Property(p => p.ParameterName).IsRequired().HasMaxLength(20);
-
-        // Уникальный индекс для (SensorId, ParameterName)
-        builder.HasIndex(p => new { p.SensorId, p.ParameterName }).IsUnique();
 
         builder.HasMany(p => p.IntervalHistory)
             .WithOne()
@@ -83,25 +91,16 @@ public class SensorConnectionHistoryRecordConfiguration
 {
     public void Configure(EntityTypeBuilder<SensorConnectionHistoryRecordEntity> builder)
     {
-        // Первичный ключ
         builder.HasKey(r => r.Id);
 
-        // Настройка связи с SensorProfileEntity
+        // Составной внешний ключ
         builder.HasOne(r => r.Sensor)
             .WithMany(s => s.ConnectionHistory)
-            .HasForeignKey(r => r.SensorId)
-            .OnDelete(DeleteBehavior.Cascade); // Каскадное удаление при удалении сенсора
+            .HasForeignKey(r => new { r.DeviceId, r.TypeId, r.SourceId })
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Настройка индексов
-        builder.HasIndex(r => r.SensorId);    // Для быстрого поиска по сенсору
-        builder.HasIndex(r => r.Timestamp);  // Для временных запросов
-        builder.HasIndex(r => r.IsConnected); // Для фильтрации по статусу
-
-        // Настройка свойств
-        builder.Property(r => r.Timestamp)
-            .IsRequired();
-
-        builder.Property(r => r.IsConnected)
-            .IsRequired();
+        builder.Property(r => r.Timestamp).IsRequired();
+        builder.Property(r => r.IsConnected).IsRequired();
+        builder.HasIndex(r => r.Timestamp);
     }
 }

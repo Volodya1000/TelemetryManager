@@ -89,53 +89,17 @@ public static class SensorProfileMapper
     }
 }
 
-// SensorParameterProfileMapper.cs
+
 public static class SensorParameterProfileMapper
 {
     public static SensorParameterProfileEntity ToEntity(SensorParameterProfile domain)
     {
-        return new SensorParameterProfileEntity
-        {
-            ParameterName = domain.Definition.Name.Value,
-            Quantity = domain.Definition.Quantity,
-            Unit = domain.Definition.Unit,
-            DataTypeName = domain.Definition.DataType.FullName,
-            CurrentMin = domain.CurrentInterval.Min,
-            CurrentMax = domain.CurrentInterval.Max,
-            IntervalHistory = domain.IntervalHistory
-                .Select(h => new ParameterIntervalChangeRecordEntity
-                {
-                    ChangeTime = h.ChangeTime,
-                    Min = h.Interval.Min,
-                    Max = h.Interval.Max
-                })
-                .ToList()
-        };
+        return null;
     }
 
     public static SensorParameterProfile ToDomain(SensorParameterProfileEntity entity)
     {
-        var definition = new ParameterDefinition(
-            new ParameterName(entity.ParameterName),
-            entity.Quantity,
-            entity.Unit,
-            Type.GetType(entity.DataTypeName)
-        );
-
-        var parameter = new SensorParameterProfile(
-            definition,
-            entity.CurrentMin,
-            entity.CurrentMax
-        );
-
-        // Восстановление истории интервалов
-        foreach (var history in entity.IntervalHistory
-            .OrderBy(h => h.ChangeTime)
-            .Skip(1)) // Первый интервал уже установлен в конструкторе
-        {
-            parameter.SetInterval(history.Min, history.Max);
-        }
-
-        return parameter;
+        
+        return null;
     }
 }
