@@ -31,7 +31,7 @@ public class ContentDefinitionRepository : IContentDefinitionRepository
             .AnyAsync(cd => cd.TypeId == typeId);
     }
 
-    public async Task<ContentDefinition> GetDefinitionAsync(byte typeId)
+    public async Task<ContentDefinition?> GetDefinitionAsync(byte typeId)
     {
         var entity = await _context.ContentDefinitions
             .Include(cd => cd.Parameters)
@@ -39,7 +39,7 @@ public class ContentDefinitionRepository : IContentDefinitionRepository
 
         return entity != null
             ? ContentDefinitionMapper.ToDomain(entity)
-            : throw new KeyNotFoundException($"TypeId {typeId} не найден");
+            :null;
     }
   
 

@@ -8,7 +8,9 @@ using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Application.Validators;
 using TelemetryManager.Core.Data;
+using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Data.TelemetryPackets;
+using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure.FileReader;
 using TelemetryManager.Infrastructure.JsonConfigurationLoader;
@@ -28,8 +30,11 @@ serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>();
 serviceCollection.AddTransient<IDeviceRepository, DeviceRepository>();
 serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
 //service
-serviceCollection.AddTransient<TelemetryProcessingService>();
-serviceCollection.AddTransient<IFileReaderService,FileReaderService>(); 
+serviceCollection.AddScoped<TelemetryProcessingService>();
+serviceCollection.AddScoped<ParameterValidationService>();
+serviceCollection.AddScoped<DeviceService>();
+serviceCollection.AddScoped<IContentDefinitionService, ContentDefinitionService>();
+serviceCollection.AddScoped<IFileReaderService,FileReaderService>(); 
 
 
 serviceCollection.AddDbContext<TelemetryContext>(options =>
@@ -41,8 +46,31 @@ var serviceProvider = serviceCollection.BuildServiceProvider();
 using (var scope = serviceProvider.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TelemetryContext>();
+    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
 }
+
+
+
+var contentDefinitionService = serviceProvider.GetRequiredService<IContentDefinitionService>();
+
+await contentDefinitionService.RegisterAsync(
+    id: 1,
+    contentName: "FarengaitTemperatureSensorContent",
+    parameters: new[]
+    {
+        ("TemperatureInFarengeit", "Temperature", "Farengait", typeof(float))
+    }
+);
+
+var deviceService = serviceProvider.GetRequiredService<DeviceService>();
+await deviceService.AddAsync(1,"MyFirstDevice");
+await deviceService.AddSensorWithParametersAsync(1,1,1,"MyFirstTemperatureSensor");
+
+
+
+
+
 
 
 var facade = serviceProvider.GetRequiredService<TelemetryProcessingService>();

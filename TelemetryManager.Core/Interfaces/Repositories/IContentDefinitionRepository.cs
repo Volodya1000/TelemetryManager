@@ -6,6 +6,6 @@ public interface IContentDefinitionRepository
 {
     Task RegisterAsync(ContentDefinition definition);
     Task<bool> IsRegisteredAsync(byte typeId);
-    Task<ContentDefinition> GetDefinitionAsync(byte typeId);
+    Task<ContentDefinition?> GetDefinitionAsync(byte typeId);
     Task<IEnumerable<ContentDefinition>> GetAllDefinitionsAsync();
 }

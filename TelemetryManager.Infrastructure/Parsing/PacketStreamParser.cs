@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using TelemetryManager.Application.ContentTypeRegistration;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;

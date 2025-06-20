@@ -18,26 +18,13 @@ public class DeviceProfileConfiguration : IEntityTypeConfiguration<DeviceProfile
     }
 }
 
-// SensorProfileConfiguration.cs
 public class SensorProfileConfiguration : IEntityTypeConfiguration<SensorProfileEntity>
 {
     public void Configure(EntityTypeBuilder<SensorProfileEntity> builder)
     {
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Name).IsRequired().HasMaxLength(30);
-
-        // Уникальный индекс для (DeviceId, TypeId, SourceId)
         builder.HasIndex(s => new { s.DeviceId, s.TypeId, s.SourceId }).IsUnique();
-
-        builder.HasMany(s => s.ConnectionHistory)
-            .WithOne()
-            .HasForeignKey(h => h.SensorId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(s => s.Parameters)
-            .WithOne(p => p.Sensor)
-            .HasForeignKey(p => p.SensorId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

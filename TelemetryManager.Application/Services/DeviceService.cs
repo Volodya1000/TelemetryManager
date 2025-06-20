@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Xml.Linq;
 using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data.Profiles;
@@ -13,9 +14,10 @@ public class DeviceService
     private readonly IDeviceRepository _deviceRepository;
     private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
-    public DeviceService(IDeviceRepository deviceRepository)
+    public DeviceService(IDeviceRepository deviceRepository, IContentDefinitionRepository contentDefinitionRepository)
     {
         _deviceRepository= deviceRepository;
+        _contentDefinitionRepository = contentDefinitionRepository;
     }
 
     public async Task AddAsync(ushort deviceId, string name)
@@ -36,8 +38,7 @@ public class DeviceService
       ushort deviceId,
       byte sensorTypeId,
       byte sensorSourceId,
-      string sensorName,
-      params (string name, double min, double max)[] parameters)
+      string sensorName)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
         var sensorId = new SensorId(sensorTypeId, sensorSourceId);
@@ -45,12 +46,12 @@ public class DeviceService
 
         var sensorParameterList = new Collection<SensorParameterProfile>();
 
-        var contentDefenition = await _contentDefinitionRepository.GetDefinitionAsync(sensorTypeId);
-        foreach (var (name, min, max) in parameters)
+        var contentDefenition = await _contentDefinitionRepository.GetDefinitionAsync(sensorTypeId)
+            ?? throw new ArgumentException($"TypeId {sensorTypeId} not exists", nameof(sensorTypeId));
+
+        foreach (var parametrDefenition in contentDefenition.Parameters)
         {
-            var paramName = new ParameterName(name);
-            var parametrDefenition = contentDefenition.Parameters.Where(p => p.Name.Value == name).FirstOrDefault();
-            var parameter = new SensorParameterProfile(parametrDefenition, min, max);
+            var parameter = new SensorParameterProfile(parametrDefenition, double.MinValue, double.MaxValue);
             sensorParameterList.Add(parameter);
         }
 
