@@ -1,6 +1,9 @@
-﻿using TelemetryManager.Core.Data.Profiles;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Data.ValueObjects;
+using TelemetryManager.Core.Data.ValueObjects.HistoryRecords;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Persistence.Entities.ContentEntities;
 using TelemetryManager.Persistence.Entities.DeviceEntities;
@@ -77,20 +80,77 @@ public static class DeviceProfileMapper
 
     public static DeviceProfile ToDomain(DeviceProfileEntity entity)
     {
+        if (entity == null) return null;
+
         var device = new DeviceProfile(
-            (ushort)entity.DeviceId,
-            new Name(entity.Name)
-        );
+                    (ushort)entity.DeviceId,
+                    new Name(entity.Name)
+                );
 
         if (entity.ActivationTime.HasValue)
         {
             device.SetActivationTime(entity.ActivationTime.Value);
         }
 
+        // Маппинг каждого сенсора
         foreach (var sensorEntity in entity.Sensors)
         {
-            var sensor = SensorProfileMapper.ToDomain(sensorEntity);
-            device.AddSensor(sensor);
+            // Маппинг параметров сенсора
+            var parameters = sensorEntity.Parameters.Select(pEntity =>
+            {
+            // Определение параметра
+            var definition = new ParameterDefinition(
+                new ParameterName(pEntity.ParameterName),
+                "a", // временно: использовать текущее значение как Quantity, если нужно
+                "a", // аналогично
+                typeof(string)
+                );
+
+                // Текущее значение интервала
+                var currentInterval = new 
+                Interval(
+                    pEntity.CurrentMin,
+                    pEntity.CurrentMax
+                );
+
+                // Создаём профиль параметра
+                var parameterProfile = new SensorParameterProfile(
+                    definition,
+                    pEntity.CurrentMin,
+                    pEntity.CurrentMax
+                );
+
+                // История интервалов
+                foreach (var hist in pEntity.IntervalHistory.OrderBy(h => h.ChangeTime))
+                {
+                    //parameterProfile.AddIntervalHistory(
+                    //    new ParameterIntervalChangeRecord(
+                    //        hist.ChangeTime,
+                    //        new Interval(hist.Min, hist.Max)
+                    //    )
+                    //);
+                }
+
+                return parameterProfile;
+            }).ToList();
+
+            // Создаём профиль сенсора
+            var sensorDomain = new SensorProfile(
+                new SensorId(sensorEntity.TypeId, sensorEntity.SourceId),
+                new Name(sensorEntity.Name),
+                parameters
+            );
+
+            // История подключений
+            foreach (var conn in sensorEntity.ConnectionHistory.OrderBy(c => c.Timestamp))
+            {
+                if (conn.IsConnected)
+                    sensorDomain.MarkConnected(conn.Timestamp);
+                else
+                    sensorDomain.MarkDisconnected(conn.Timestamp);
+            }
+
+            device.AddSensor(sensorDomain);
         }
 
         return device;

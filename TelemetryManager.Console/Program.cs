@@ -63,6 +63,10 @@ await contentDefinitionService.RegisterAsync(
     }
 );
 
+
+
+
+
 var deviceService = serviceProvider.GetRequiredService<DeviceService>();
 await deviceService.AddAsync(1,"MyFirstDevice");
 await deviceService.AddSensorWithParametersAsync(1,1,1,"MyFirstTemperatureSensor");
@@ -70,7 +74,13 @@ await deviceService.AddSensorWithParametersAsync(1,1,1,"MyFirstTemperatureSensor
 
 
 
+var contentDefinitionRepository = serviceProvider.GetRequiredService<IContentDefinitionRepository>();
+var res = await contentDefinitionRepository.GetAllDefinitionsAsync();
 
+PrintContentDefinitions(res);
+
+
+var deviceService1 = serviceProvider.GetRequiredService<DeviceService>();
 
 
 var facade = serviceProvider.GetRequiredService<TelemetryProcessingService>();
@@ -99,62 +109,35 @@ string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles"
 //generator.Generate(telemetryFilePath);
 
 
-//facade.ProcessTelemetryFile(telemetryFilePath);
+facade.ProcessTelemetryFile(telemetryFilePath);
 
 
 PrintPagedTelemetryPackets(await facade.GetPacketsAsync(new TelemetryPacketFilterRequest()));
 PrintParsingErrors(facade.GetParsingErrors());
 
-
-static void DisplayDevices(ICollection<DeviceProfileDto> devices)
+ static void PrintContentDefinitions(IEnumerable<ContentDefinition> contentDefinitions)
 {
-    if (devices == null || devices.Count == 0)
+    foreach (var contentDef in contentDefinitions)
     {
-        Console.WriteLine("Список устройств пуст.");
-        return;
-    }
+        Console.WriteLine($"ContentDefinition:");
+        Console.WriteLine($"  TypeId: {contentDef.TypeId}");
+        Console.WriteLine($"  Name: {contentDef.Name}");
+        Console.WriteLine($"  TotalSizeBytes: {contentDef.TotalSizeBytes} bytes");
+        Console.WriteLine($"  Parameters:");
 
-    foreach (var device in devices)
-    {
-        Console.WriteLine(new string('-', 60));
-        Console.WriteLine($"Устройство: {device.Name}");
-        Console.WriteLine($"ID устройства: {device.DeviceId}");
-
-        var activationTime = device.ActivationTime.HasValue ? device.ActivationTime.ToString() : "Не известно";
-
-        Console.WriteLine($"Время активации: {activationTime}");
-
-        if (device.Sensors == null || device.Sensors.Count == 0)
+        foreach (var paramDef in contentDef.Parameters)
         {
-            Console.WriteLine("  Нет сенсоров.");
-            continue;
-        }
-
-        foreach (var sensor in device.Sensors)
-        {
-            Console.WriteLine("  ----------------------------------------");
-            Console.Write($"  Сенсор: {sensor.Name}");
-            Console.Write($"  SourceId: {sensor.SourceId},");
-            Console.Write($"  TypeId: {sensor.TypeId}");
+            Console.WriteLine($"    Parameter:");
+            Console.WriteLine($"      Name: {paramDef.Name}");
+            Console.WriteLine($"      Quantity: {paramDef.Quantity}");
+            Console.WriteLine($"      Unit: {paramDef.Unit}");
+            Console.WriteLine($"      DataType: {paramDef.DataType}");
+            Console.WriteLine($"      ByteSize: {paramDef.ByteSize} bytes");
             Console.WriteLine();
-
-            if (sensor.Parameters == null || sensor.Parameters.Count == 0)
-            {
-                Console.WriteLine("    Нет параметров.");
-                continue;
-            }
-
-            foreach (var param in sensor.Parameters)
-            {
-                Console.WriteLine("    ------------------------------");
-                Console.WriteLine($"    Параметр: {param.ParameterName}");
-                Console.WriteLine($"    Единицы измерения: {param.Units}");
-                Console.WriteLine($"    Диапазон: от {param.MinValue} до {param.MaxValue}");
-            }
         }
-    }
 
-    Console.WriteLine(new string('-', 60));
+        Console.WriteLine(new string('-', 40)); // Разделитель между определениями
+    }
 }
 
 
