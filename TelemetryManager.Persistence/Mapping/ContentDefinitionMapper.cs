@@ -26,12 +26,13 @@ public static class ContentDefinitionMapper
     public static ContentDefinitionEntity ToEntity(ContentDefinition domain)
     {
         var parameters = domain.Parameters
-            .Select(p => new ParameterDefinitionEntity(
-                name: p.Name.Value,
-                quantity: p.Quantity,
-                unit: p.Unit,
-                dataTypeName: p.DataType.AssemblyQualifiedName!, // Полное имя типа
-                contentDefinitionTypeId: domain.TypeId))
+            .Select(p => new ParameterDefinitionEntity
+            {
+                Name = p.Name.Value,
+                Quantity = p.Quantity,
+                Unit = p.Unit,
+                DataTypeName = p.DataType.AssemblyQualifiedName!
+            })
             .ToList();
 
         var entity = new ContentDefinitionEntity(

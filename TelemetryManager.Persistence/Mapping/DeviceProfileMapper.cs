@@ -2,21 +2,77 @@
 using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Identifiers;
+using TelemetryManager.Persistence.Entities.ContentEntities;
 using TelemetryManager.Persistence.Entities.DeviceEntities;
 
 namespace TelemetryManager.Persistence.Mapping;
 
 public static class DeviceProfileMapper
 {
-    public static DeviceProfileEntity ToEntity(DeviceProfile domain)
+    public static DeviceProfileEntity ToEntity(DeviceProfile deviceProfile)
     {
-        return new DeviceProfileEntity
+        var entity = new DeviceProfileEntity
         {
-            DeviceId = domain.DeviceId,
-            Name = domain.Name.Value,
-            ActivationTime = domain.ActivationTime,
-            Sensors = domain.Sensors.Select(SensorProfileMapper.ToEntity).ToList()
+            DeviceId = deviceProfile.DeviceId,
+            Name = deviceProfile.Name.Value,
+            ActivationTime = deviceProfile.ActivationTime,
+            Sensors = new List<SensorProfileEntity>()
         };
+
+        foreach (var sensor in deviceProfile.Sensors)
+        {
+            var sensorEntity = new SensorProfileEntity
+            {
+                DeviceId = deviceProfile.DeviceId,
+                TypeId = sensor.Id.TypeId,
+                SourceId = sensor.Id.SourceId,
+                Name = sensor.Name.Value,
+                Parameters = new List<SensorParameterProfileEntity>(),
+                ConnectionHistory = sensor.ConnectionHistory
+                    .Select(h => new SensorConnectionHistoryRecordEntity
+                    {
+                        Timestamp = h.Timestamp,
+                        IsConnected = h.IsConnected,
+                        DeviceId = deviceProfile.DeviceId,
+                        TypeId = sensor.Id.TypeId,
+                        SourceId = sensor.Id.SourceId
+                    }).ToList()
+            };
+
+            foreach (var parameter in sensor.Parameters)
+            {
+                var paramEntity = new SensorParameterProfileEntity
+                {
+                    DeviceId = deviceProfile.DeviceId,
+                    TypeId = sensor.Id.TypeId,
+                    SourceId = sensor.Id.SourceId,
+
+                    // Обязательно проставляем ParameterName
+                    ParameterName = parameter.Definition.Name.Value,
+
+                    CurrentMin = parameter.CurrentInterval.Min,
+                    CurrentMax = parameter.CurrentInterval.Max,
+
+                    IntervalHistory = parameter.IntervalHistory
+                        .Select(h => new ParameterIntervalChangeRecordEntity
+                        {
+                            ChangeTime = h.ChangeTime,
+                            Min = h.Interval.Min,
+                            Max = h.Interval.Max,
+                            DeviceId = deviceProfile.DeviceId,
+                            TypeId = sensor.Id.TypeId,
+                            SourceId = sensor.Id.SourceId,
+                            ParameterName = parameter.Definition.Name.Value
+                        }).ToList()
+                };
+
+                sensorEntity.Parameters.Add(paramEntity);
+            }
+
+            entity.Sensors.Add(sensorEntity);
+        }
+
+        return entity;
     }
 
     public static DeviceProfile ToDomain(DeviceProfileEntity entity)

@@ -24,21 +24,21 @@ public class SensorProfileEntity
 
 public class SensorParameterProfileEntity
 {
-    public int Id { get; set; }
-    public double CurrentMin { get; set; }
-    public double CurrentMax { get; set; }
-
-    // Внешние ключи для сенсора
+    // PK: Device + Sensor + ParameterName
     public ushort DeviceId { get; set; }
     public byte TypeId { get; set; }
     public byte SourceId { get; set; }
 
-    // Ссылка на определение параметра
-    public int ParameterDefinitionId { get; set; }
-    public ParameterDefinitionEntity ParameterDefinition { get; set; }
+    // теперь обязательный ключ
+    public string ParameterName { get; set; }
+
+    public double CurrentMin { get; set; }
+    public double CurrentMax { get; set; }
 
     public SensorProfileEntity Sensor { get; set; }
-    public List<ParameterIntervalChangeRecordEntity> IntervalHistory { get; set; } = new();
+    public ParameterDefinitionEntity ParameterDefinition { get; set; }
+    public List<ParameterIntervalChangeRecordEntity> IntervalHistory { get; set; }
+        = new();
 }
 
 public class SensorConnectionHistoryRecordEntity
@@ -54,13 +54,18 @@ public class SensorConnectionHistoryRecordEntity
     public SensorProfileEntity Sensor { get; set; }
 }
 
-// ParameterIntervalChangeRecordEntity.cs
 public class ParameterIntervalChangeRecordEntity
 {
     public int Id { get; set; }
-    public int ParameterId { get; set; }
+
+    public ushort DeviceId { get; set; }
+    public byte TypeId { get; set; }
+    public byte SourceId { get; set; }
+    public string ParameterName { get; set; }
+
     public DateTime ChangeTime { get; set; }
     public double Min { get; set; }
     public double Max { get; set; }
+
     public SensorParameterProfileEntity Parameter { get; set; }
 }

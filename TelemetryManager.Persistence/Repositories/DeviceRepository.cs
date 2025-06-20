@@ -72,11 +72,8 @@ public class DeviceRepository : IDeviceRepository
         }
 
         // Обновление корневых свойств
-        _context.Entry(existing).CurrentValues.SetValues(new
-        {
-            entity.Name,
-            entity.ActivationTime
-        });
+        existing.Name = entity.Name;
+        existing.ActivationTime = entity.ActivationTime;
 
         // Синхронизация сенсоров
         UpdateSensorProfiles(existing, entity);
@@ -85,7 +82,7 @@ public class DeviceRepository : IDeviceRepository
 
     private void UpdateSensorProfiles(DeviceProfileEntity existing, DeviceProfileEntity updated)
     {
-        // Удаление отсутствующих сенсоров
+        // Удаление отсутствующих сенсоров (по составному ключу)
         var sensorsToDelete = existing.Sensors
             .Where(es => !updated.Sensors.Any(us =>
                 us.DeviceId == es.DeviceId &&
@@ -109,81 +106,73 @@ public class DeviceRepository : IDeviceRepository
 
             if (existingSensor == null)
             {
-                // Добавляем новый сенсор с полной цепочкой
+                // при добавлении новых сразу все ключи заполнены
                 _context.SensorProfiles.Add(updatedSensor);
                 existing.Sensors.Add(updatedSensor);
             }
             else
             {
-                // Обновление свойств сенсора
-                _context.Entry(existingSensor).CurrentValues.SetValues(new
-                {
-                    updatedSensor.Name
-                });
-
-                // Синхронизация параметров
+                existingSensor.Name = updatedSensor.Name;
                 UpdateSensorParameters(existingSensor, updatedSensor);
-
-                // Синхронизация истории подключений
                 UpdateConnectionHistory(existingSensor, updatedSensor);
             }
         }
     }
 
     private void UpdateSensorParameters(
-        SensorProfileEntity existingSensor,
-        SensorProfileEntity updatedSensor)
+     SensorProfileEntity existingSensor,
+     SensorProfileEntity updatedSensor)
     {
-        // Удаление отсутствующих параметров
-        var paramsToDelete = existingSensor.Parameters
-            .Where(ep => !updatedSensor.Parameters.Any(up => up.Id == ep.Id))
+        // Удаляем
+        var toRemove = existingSensor.Parameters
+            .Where(ep => !updatedSensor.Parameters.Any(up =>
+                up.ParameterName == ep.ParameterName &&
+                up.DeviceId == ep.DeviceId &&
+                up.TypeId == ep.TypeId &&
+                up.SourceId == ep.SourceId))
             .ToList();
 
-        foreach (var param in paramsToDelete)
+        foreach (var p in toRemove)
         {
-            existingSensor.Parameters.Remove(param);
-            _context.SensorParameters.Remove(param);
+            existingSensor.Parameters.Remove(p);
+            _context.SensorParameters.Remove(p);
         }
 
-        foreach (var updatedParam in updatedSensor.Parameters)
+        // Добавляем/обновляем
+        foreach (var up in updatedSensor.Parameters)
         {
-            var existingParam = existingSensor.Parameters
-                .FirstOrDefault(p => p.Id == updatedParam.Id);
+            var exists = existingSensor.Parameters.FirstOrDefault(ep =>
+                ep.ParameterName == up.ParameterName);
 
-            if (existingParam == null)
+            if (exists == null)
             {
-                existingSensor.Parameters.Add(updatedParam);
+                existingSensor.Parameters.Add(up);
             }
             else
             {
-                // Обновление значений параметра
-                _context.Entry(existingParam).CurrentValues.SetValues(new
-                {
-                    updatedParam.CurrentMin,
-                    updatedParam.CurrentMax
-                });
-
-                // Синхронизация истории интервалов
-                UpdateIntervalHistory(existingParam, updatedParam);
+                exists.CurrentMin = up.CurrentMin;
+                exists.CurrentMax = up.CurrentMax;
+                UpdateIntervalHistory(exists, up);
             }
         }
     }
 
     private void UpdateIntervalHistory(
-     SensorParameterProfileEntity existingParam,
-     SensorParameterProfileEntity updatedParam)
+        SensorParameterProfileEntity existingParam,
+        SensorParameterProfileEntity updatedParam)
     {
         _context.IntervalHistory.RemoveRange(existingParam.IntervalHistory);
         existingParam.IntervalHistory.Clear();
 
-        foreach (var history in updatedParam.IntervalHistory)
+        foreach (var hist in updatedParam.IntervalHistory)
         {
-            // Устанавливаем связь с параметром
-            history.Parameter = existingParam;
-            history.ParameterId = existingParam.Id;
-            existingParam.IntervalHistory.Add(history);
+            // все четыре поля ключа уже заполнены в mapper-е
+            hist.Parameter = existingParam;
+            existingParam.IntervalHistory.Add(hist);
         }
     }
+
+
 
     private void UpdateConnectionHistory(
      SensorProfileEntity existingSensor,

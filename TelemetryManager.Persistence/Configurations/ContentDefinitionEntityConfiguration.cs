@@ -13,7 +13,6 @@ public class ContentDefinitionEntityConfiguration : IEntityTypeConfiguration<Con
 
         builder.HasMany(cd => cd.Parameters)
                .WithOne(pd => pd.ContentDefinition)
-               .HasForeignKey(pd => pd.ContentDefinitionTypeId)
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

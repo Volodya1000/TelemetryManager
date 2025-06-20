@@ -39,68 +39,75 @@ public class SensorProfileConfiguration : IEntityTypeConfiguration<SensorProfile
     }
 }
 
-
-// SensorParameterProfileConfiguration.cs
-public class SensorParameterProfileConfiguration : IEntityTypeConfiguration<SensorParameterProfileEntity>
+public class SensorParameterProfileConfiguration
+      : IEntityTypeConfiguration<SensorParameterProfileEntity>
 {
     public void Configure(EntityTypeBuilder<SensorParameterProfileEntity> builder)
     {
-        builder.HasKey(p => p.Id);
+        builder.HasKey(p => new { p.DeviceId, p.TypeId, p.SourceId, p.ParameterName });
 
-        builder.HasMany(p => p.IntervalHistory)
-            .WithOne()
-            .HasForeignKey(h => h.ParameterId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(p => p.ParameterName)
+               .IsRequired()
+               .HasMaxLength(50);
+
+        builder.HasOne(p => p.Sensor)
+               .WithMany(s => s.Parameters)
+               .HasForeignKey(p => new { p.DeviceId, p.TypeId, p.SourceId })
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.ParameterDefinition)
+               .WithMany(d => d.SensorParameters)
+               .HasForeignKey(p => new { p.TypeId, p.ParameterName })
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
 public class ParameterIntervalChangeRecordConfiguration
-    : IEntityTypeConfiguration<ParameterIntervalChangeRecordEntity>
+      : IEntityTypeConfiguration<ParameterIntervalChangeRecordEntity>
 {
     public void Configure(EntityTypeBuilder<ParameterIntervalChangeRecordEntity> builder)
     {
-        // Первичный ключ
         builder.HasKey(r => r.Id);
 
-        // Настройка связи с SensorParameterProfileEntity
+        builder.Property(r => r.ParameterName)
+               .IsRequired()
+               .HasMaxLength(50);
+
         builder.HasOne(r => r.Parameter)
-            .WithMany(p => p.IntervalHistory)
-            .HasForeignKey(r => r.ParameterId)
-            .OnDelete(DeleteBehavior.Cascade); // Каскадное удаление при удалении параметра
+               .WithMany(p => p.IntervalHistory)
+               .HasForeignKey(r => new
+               {
+                   r.DeviceId,
+                   r.TypeId,
+                   r.SourceId,
+                   r.ParameterName
+               })
+               .OnDelete(DeleteBehavior.Cascade);
 
-        // Настройка индексов
-        builder.HasIndex(r => r.ParameterId); // Для быстрого поиска по параметру
-        builder.HasIndex(r => r.ChangeTime);  // Для временных запросов
+        builder.Property(r => r.ChangeTime).IsRequired();
+        builder.Property(r => r.Min).IsRequired();
+        builder.Property(r => r.Max).IsRequired();
 
-        // Настройка свойств
-        builder.Property(r => r.ChangeTime)
-            .IsRequired();
-
-        builder.Property(r => r.Min)
-            .IsRequired()
-            .HasColumnType("double precision");
-
-        builder.Property(r => r.Max)
-            .IsRequired()
-            .HasColumnType("double precision");
+        builder.HasIndex(r => r.ChangeTime);
     }
-}
 
-public class SensorConnectionHistoryRecordConfiguration
+
+    public class SensorConnectionHistoryRecordConfiguration
     : IEntityTypeConfiguration<SensorConnectionHistoryRecordEntity>
-{
-    public void Configure(EntityTypeBuilder<SensorConnectionHistoryRecordEntity> builder)
     {
-        builder.HasKey(r => r.Id);
+        public void Configure(EntityTypeBuilder<SensorConnectionHistoryRecordEntity> builder)
+        {
+            builder.HasKey(r => r.Id);
 
-        // Составной внешний ключ
-        builder.HasOne(r => r.Sensor)
-            .WithMany(s => s.ConnectionHistory)
-            .HasForeignKey(r => new { r.DeviceId, r.TypeId, r.SourceId })
-            .OnDelete(DeleteBehavior.Cascade);
+            // Составной внешний ключ
+            builder.HasOne(r => r.Sensor)
+                .WithMany(s => s.ConnectionHistory)
+                .HasForeignKey(r => new { r.DeviceId, r.TypeId, r.SourceId })
+                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(r => r.Timestamp).IsRequired();
-        builder.Property(r => r.IsConnected).IsRequired();
-        builder.HasIndex(r => r.Timestamp);
+            builder.Property(r => r.Timestamp).IsRequired();
+            builder.Property(r => r.IsConnected).IsRequired();
+            builder.HasIndex(r => r.Timestamp);
+        }
     }
 }
