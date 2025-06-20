@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Core.Identifiers;
+﻿namespace TelemetryManager.Core.Identifiers;
 
 //TypeId нужен внутри SensorId так как по заданию  идентификатор датчика должен быть уникальным для каждого TypeId
 

@@ -1,15 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
-using TelemetryManager.Persistence.Entities;
+using TelemetryManager.Persistence.Entities.ContentEntities;
+using TelemetryManager.Persistence.Entities.DeviceEntities;
+using TelemetryManager.Persistence.Entities.PacketEntities;
 
 namespace TelemetryManager.Persistence;
 
 public class TelemetryContext : DbContext
 {
-    public DbSet<TelemetryPacketEntity> TelemetryPackets => Set<TelemetryPacketEntity>();
-    public DbSet<ContentItemEntity> ContentItems => Set<ContentItemEntity>();
+    public DbSet<TelemetryPacketEntity> TelemetryPackets { get; set; }
+    public DbSet<ContentItemEntity> ContentItems { get; set; }
+    public DbSet<ContentDefinitionEntity> ContentDefinitions { get; set; }
+    public DbSet<ParameterDefinitionEntity> ParameterDefinitions { get; set; }
+    public DbSet<DeviceProfileEntity> DeviceProfiles { get; set; }
 
     public  TelemetryContext(DbContextOptions<TelemetryContext> options)
           : base(options){ }

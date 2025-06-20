@@ -1,6 +1,4 @@
-﻿
-
-namespace TelemetryManager.Persistence.Entities;
+﻿namespace TelemetryManager.Persistence.Entities.PacketEntities;
 
 public class TelemetryPacketEntity
 {

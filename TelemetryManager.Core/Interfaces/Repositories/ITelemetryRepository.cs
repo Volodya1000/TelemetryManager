@@ -1,6 +1,5 @@
 ﻿using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
-using TelemetryManager.Core.Enums;
 
 namespace TelemetryManager.Core.Interfaces.Repositories;
 

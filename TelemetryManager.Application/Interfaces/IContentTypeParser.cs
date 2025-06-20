@@ -2,7 +2,6 @@
 
 public interface IContentTypeParser
 {
-    IReadOnlyDictionary<string, object> ParseRaw(byte typeId, byte[] data);
-
-    IReadOnlyDictionary<string, double> Parse(byte typeId, byte[] data);
+    Task<IReadOnlyDictionary<string, object>> ParseRawAsync(byte typeId, byte[] data);
+    Task<IReadOnlyDictionary<string, double>> ParseAsync(byte typeId, byte[] data);
 }

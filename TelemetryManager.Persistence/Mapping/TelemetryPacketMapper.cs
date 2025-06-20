@@ -1,6 +1,6 @@
 ﻿using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.Identifiers;
-using TelemetryManager.Persistence.Entities;
+using TelemetryManager.Persistence.Entities.PacketEntities;
 
 namespace TelemetryManager.Persistence.Mapping;
 

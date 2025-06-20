@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using TelemetryManager.Application.ContentTypeProcessing;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.OutputDtos;
@@ -18,9 +19,15 @@ using TelemetryManager.Persistence.Repositories;
 
 var serviceCollection = new ServiceCollection();
 
-serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
+//serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
+serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
-serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>();
+serviceCollection.AddTransient<IContentTypeParser,ContentTypeParser>();
+//repository
+serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>(); 
+serviceCollection.AddTransient<IDeviceRepository, DeviceRepository>();
+serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
+//service
 serviceCollection.AddTransient<TelemetryProcessingService>();
 serviceCollection.AddTransient<IFileReaderService,FileReaderService>(); 
 

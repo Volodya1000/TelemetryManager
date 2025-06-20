@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Core.Utils;
+﻿namespace TelemetryManager.Core.Utils;
 
 public static class PacketHelper
 {

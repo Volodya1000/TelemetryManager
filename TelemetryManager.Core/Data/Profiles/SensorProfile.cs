@@ -1,6 +1,5 @@
 ﻿using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Data.ValueObjects.HistoryRecords;
-using TelemetryManager.Core.Enums;
 using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Core.Data.Profiles;
@@ -23,7 +22,7 @@ public class SensorProfile
         Id = id;
         Name = name;
 
-        _parametersDict = parameters.ToDictionary(p => p.Name);
+        _parametersDict = parameters.ToDictionary(p => p.Definition.Name);
         if (_parametersDict.Count != parameters.Count)
             throw new ArgumentException("Duplicate parameter names found");
     }

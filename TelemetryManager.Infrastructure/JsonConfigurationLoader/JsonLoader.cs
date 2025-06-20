@@ -106,12 +106,12 @@ public class JsonLoader : IConfigurationLoader
             try
             {
                 var parameterName = new ParameterName(paramDto.Name);
-                parameters.Add(new SensorParameterProfile(
-                    name: parameterName,
-                    units: paramDto.Units,
-                    min: min,
-                    max: max
-                ));
+                //parameters.Add(new SensorParameterProfile(
+                //    name: parameterName.Value,
+                //    units: paramDto.Units,
+                //    min: min,
+                //    max: max
+                //));
             }
             catch (ArgumentException ex)
             {

@@ -1,22 +1,17 @@
-﻿using System.Threading.Tasks;
-using TelemetryManager.Application.Interfaces;
+﻿using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
-using TelemetryManager.Application.Mapping;
-using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Core.Data;
-using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.EventsArgs;
-using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
 namespace TelemetryManager.Application.Services;
 
 public class TelemetryProcessingService
 {
-    private readonly IConfigurationLoader _configurationLoader;
-    private readonly IConfigurationValidator _configurationValidator;
+    //private readonly IConfigurationLoader _configurationLoader;
+    //private readonly IConfigurationValidator _configurationValidator;
     private readonly IPacketStreamParser _parser;
     private readonly ITelemetryRepository _telemetryRepository;
     private readonly DeviceService _deviceService;
@@ -30,16 +25,16 @@ public class TelemetryProcessingService
 
 
     public TelemetryProcessingService(
-        IConfigurationLoader configurationLoader,
-        IConfigurationValidator configurationValidator,
+        //IConfigurationLoader configurationLoader,
+        //IConfigurationValidator configurationValidator,
         IPacketStreamParser parser,
         ITelemetryRepository telemetryRepository,
         DeviceService deviceService,
         IFileReaderService fileReader,
         ParameterValidationService parameterValidationService) 
     {
-        _configurationLoader = configurationLoader;
-        _configurationValidator = configurationValidator;
+    //    _configurationLoader = configurationLoader;
+    //    _configurationValidator = configurationValidator;
         _parser = parser;
         _telemetryRepository = telemetryRepository;
         _deviceService = deviceService;

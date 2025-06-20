@@ -2,6 +2,7 @@
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
+using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Core.Utils;
 using TelemetryManager.Infrastructure.Parsing.Data;
 
@@ -17,9 +18,9 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
         private double _noiseRatio;
         private readonly List<SensorConfig> _sensors = new List<SensorConfig>();
         private readonly Random _random = new Random();
-        IContentTypeProvider _contentTypeProvider;
+        IContentDefinitionRepository _сontentDefinitionRepository;
 
-        public TelemetryGenerator(IContentTypeProvider сontentTypeProvider,ushort devId, int totalPackets, double noiseRatio)
+        public TelemetryGenerator(IContentDefinitionRepository contentDefinitionRepository,ushort devId, int totalPackets, double noiseRatio)
         {
             if (totalPackets < 1)
                 throw new ArgumentException("Total packets must be at least 1", nameof(totalPackets));
@@ -30,7 +31,7 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
             _totalPackets = totalPackets;
             _timeGenerator = DefaultTimeGenerator;
             _noiseRatio = noiseRatio;
-            _contentTypeProvider= сontentTypeProvider;
+            _сontentDefinitionRepository= contentDefinitionRepository;
         }
 
         private uint DefaultTimeGenerator()
@@ -48,7 +49,7 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator
         public TelemetryGenerator AddSensor(byte type, byte sourceId, Func<byte[]> contentGenerator)
         {
             // Валидация длины при добавлении сенсора
-            int expectedLength = _contentTypeProvider.GetDefinition(type).TotalSizeBytes;
+            int expectedLength = _сontentDefinitionRepository.GetDefinitionAsync(type).Result.TotalSizeBytes;//Исправить
 
             _sensors.Add(new SensorConfig
             {

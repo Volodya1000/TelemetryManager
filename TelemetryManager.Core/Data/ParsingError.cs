@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
-
-namespace TelemetryManager.Core.Data;
+﻿namespace TelemetryManager.Core.Data;
 
 public enum ParsingErrorType
 {

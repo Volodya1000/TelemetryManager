@@ -5,6 +5,7 @@ using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
 using TelemetryManager.Core.Identifiers;
+using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Core.Utils;
 using TelemetryManager.Infrastructure.Parsing.Data;
 
@@ -17,13 +18,13 @@ public class PacketStreamParser : IPacketStreamParser
     private Stream _stream;
     private readonly byte[] _syncMarkerBytes = PacketConstants.SyncMarkerBytes;
     private readonly IContentTypeParser _contentTypeParser;
-    private readonly IContentTypeProvider _contentTypeProvider;
+    private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
 
-    public PacketStreamParser(IContentTypeParser contentTypeParser, IContentTypeProvider contentTypeProvider)
+    public PacketStreamParser(IContentTypeParser contentTypeParser, IContentDefinitionRepository contentDefinitionRepository)
     {
         _contentTypeParser = contentTypeParser;
-        _contentTypeProvider = contentTypeProvider;
+        _contentDefinitionRepository = contentDefinitionRepository;
     }
 
     public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
@@ -102,7 +103,7 @@ public class PacketStreamParser : IPacketStreamParser
             {
                 if (size == 0 || size > MaxPacketSize)
                     throw new PacketParsingException($"Unsupported size: {size}");
-                int expected = _contentTypeProvider.GetDefinition(typeId).TotalSizeBytes;
+                int expected = _contentDefinitionRepository.GetDefinitionAsync(typeId).Result.TotalSizeBytes;///Испрвить !!!!
                 if (size != expected)
                     throw new PacketParsingException($"Size mismatch for {typeId}. Expected: {expected}, Actual: {size}");
             }
@@ -196,7 +197,7 @@ public class PacketStreamParser : IPacketStreamParser
             // Create telemetry packet
             try
             {
-                var values = _contentTypeParser.Parse(typeId, content);
+                var values = _contentTypeParser.ParseAsync(typeId, content).Result; //!!!исправить на асинхронную работу
                 var packet = new TelemetryPacketWithUIntTime(time, devId, currentsSensorId, values);
                 packets.Add(packet);
             }

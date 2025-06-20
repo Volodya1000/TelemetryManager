@@ -2,15 +2,13 @@
 
 namespace TelemetryManager.Application.Interfaces;
 
-public interface IContentTypeProvider
-{
-    void Register(ContentDefinition definition);
+//public interface IContentTypeProvider
+//{
+//    void Register(ContentDefinition definition);
 
-    bool IsRegistered(byte typeId);
+//    bool IsRegistered(byte typeId);
 
-    ContentDefinition GetDefinition(byte typeId);
+//    ContentDefinition GetDefinition(byte typeId);
 
-    string GetName(byte typeId);
-
-    IEnumerable<ContentDefinition> AllDefinitions { get; }
-}
+//    IEnumerable<ContentDefinition> AllDefinitions { get; }
+//}

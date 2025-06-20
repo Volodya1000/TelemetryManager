@@ -1,43 +1,47 @@
-﻿using TelemetryManager.Application.ContentTypeRegistration;
-using TelemetryManager.Application.Interfaces;
+﻿using TelemetryManager.Application.Interfaces;
+using TelemetryManager.Core.Interfaces.Repositories;
+using TelemetryManager.Core.Data.SensorParameter;
 
 namespace TelemetryManager.Application.ContentTypeProcessing;
 
-
-public class ContentTypeParser
+public class ContentTypeParser : IContentTypeParser
 {
-    private readonly IContentTypeProvider _registry;
+    private readonly IContentDefinitionRepository _repository;
 
-    public ContentTypeParser(IContentTypeProvider registry) => _registry = registry;
-
-    public IReadOnlyDictionary<string, object> ParseRaw(byte typeId, byte[] data)
+    public ContentTypeParser(IContentDefinitionRepository repository)
     {
-        var def = _registry.GetDefinition(typeId);
+        _repository = repository;
+    }
+
+    public async Task<IReadOnlyDictionary<string, object>> ParseRawAsync(byte typeId, byte[] data)
+    {
+        var def = await _repository.GetDefinitionAsync(typeId);
+
         if (data.Length < def.TotalSizeBytes)
             throw new ArgumentException($"Требуется {def.TotalSizeBytes} байт, получено {data.Length}");
 
-        var res = new Dictionary<string, object>(def.Parameters.Count);
+        var result = new Dictionary<string, object>(def.Parameters.Count);
         int offset = 0;
 
-        foreach (var p in def.Parameters)
+        foreach (var parameter in def.Parameters)
         {
-            var span = new ReadOnlySpan<byte>(data, offset, p.ByteSize);
-            offset += p.ByteSize;
-            res[p.Name] = p.Handler.ParseValue(span);
+            var span = new ReadOnlySpan<byte>(data, offset, parameter.ByteSize);
+            offset += parameter.ByteSize;
+            result[parameter.Name.Value] = parameter.Handler.ParseValue(span);
         }
 
-        return res;
+        return result;
     }
 
-    public IReadOnlyDictionary<string, double> Parse(byte typeId, byte[] data)
+    public async Task<IReadOnlyDictionary<string, double>> ParseAsync(byte typeId, byte[] data)
     {
-        var rawValues = ParseRaw(typeId, data);
-        var def = _registry.GetDefinition(typeId);
+        var rawValues = await ParseRawAsync(typeId, data);
+        var def = await _repository.GetDefinitionAsync(typeId);
 
         return def.Parameters
             .ToDictionary(
-                p => p.Name,
-                p => p.Handler.ConvertToDouble(rawValues[p.Name])
+                parameter => parameter.Name.Value,
+                parameter => parameter.Handler.ConvertToDouble(rawValues[parameter.Name.Value])
             );
     }
 }

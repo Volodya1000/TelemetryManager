@@ -28,8 +28,8 @@ public static class DomainModelsToDtosMapper
     public static SensorParameterProfileDto ToDto(this SensorParameterProfile domain)
     {
         return new SensorParameterProfileDto(
-            ParameterName: domain.Name.Value, 
-            Units: domain.Units,
+            ParameterName: domain.Definition.Name.Value, 
+            Units: domain.Definition.Unit,
             MinValue: domain.CurrentInterval.Min,
             MaxValue: domain.CurrentInterval.Max
         );

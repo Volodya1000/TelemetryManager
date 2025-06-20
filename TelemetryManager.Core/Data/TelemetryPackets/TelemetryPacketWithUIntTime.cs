@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Enums;
-using TelemetryManager.Core.Identifiers;
-using TelemetryManager.Core.Interfaces;
+﻿using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Core.Data.TelemetryPackets;
 

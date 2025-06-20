@@ -11,6 +11,7 @@ namespace TelemetryManager.Application.Services;
 public class DeviceService
 {
     private readonly IDeviceRepository _deviceRepository;
+    private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
     public DeviceService(IDeviceRepository deviceRepository)
     {
@@ -36,17 +37,20 @@ public class DeviceService
       byte sensorTypeId,
       byte sensorSourceId,
       string sensorName,
-      params (string name, string unit, double min, double max)[] parameters)
+      params (string name, double min, double max)[] parameters)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
         var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         var sensorNameVO = new Name(sensorName);
 
         var sensorParameterList = new Collection<SensorParameterProfile>();
-        foreach (var (name,unit, min, max) in parameters)
+
+        var contentDefenition = await _contentDefinitionRepository.GetDefinitionAsync(sensorTypeId);
+        foreach (var (name, min, max) in parameters)
         {
             var paramName = new ParameterName(name);
-            var parameter = new SensorParameterProfile(paramName, unit, min, max);
+            var parametrDefenition = contentDefenition.Parameters.Where(p => p.Name.Value == name).FirstOrDefault();
+            var parameter = new SensorParameterProfile(parametrDefenition, min, max);
             sensorParameterList.Add(parameter);
         }
 

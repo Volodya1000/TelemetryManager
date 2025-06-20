@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TelemetryManager.Persistence.Entities;
+using TelemetryManager.Persistence.Entities.PacketEntities;
 
 namespace TelemetryManager.Persistence.Configurations;
 public class TelemetryPacketEntityConfiguration : IEntityTypeConfiguration<TelemetryPacketEntity>
