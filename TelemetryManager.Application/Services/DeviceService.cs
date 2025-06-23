@@ -51,7 +51,7 @@ public class DeviceService
 
         foreach (var parametrDefenition in contentDefenition.Parameters)
         {
-            var parameter = new SensorParameterProfile(parametrDefenition, double.MinValue, double.MaxValue);
+            var parameter = new SensorParameterProfile(parametrDefenition.Name, new Interval(double.MinValue, double.MaxValue));
             sensorParameterList.Add(parameter);
         }
 
@@ -108,15 +108,15 @@ public class DeviceService
         var device = await _deviceRepository.GetByIdAsync(deviceId);
         var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         var name = new ParameterName(parameterName);
-        device.SetParameterInterval(sensorId, name, min, max);
+        device.SetParameterInterval(sensorId, name, new Interval(min, max), DateTime.Now);
         await _deviceRepository.UpdateAsync(device);
     }
 
-    public async Task<DeviceProfileDto> GetDeviceDataAsync(ushort deviceId)
+    public async Task<DeviceProfile> GetDeviceDataAsync(ushort deviceId)
     {
          var device = await _deviceRepository.GetByIdAsync(deviceId);
 
-        return device.ToDto();
+        return device;//.ToDto();
     }
 
     public async Task<Dictionary<ushort, IReadOnlyCollection<SensorId>>> GetAllDeviceSensorsIdsDictionaryAsync()

@@ -1,7 +1,7 @@
 ﻿using TelemetryManager.Persistence.Entities.ContentEntities;
 
 namespace TelemetryManager.Persistence.Entities.DeviceEntities;
-
+/*
 internal sealed class  DeviceProfileEntity : DbEntity<ushort>
 {
     public required string Name { get; set; }
@@ -64,3 +64,4 @@ public class ParameterIntervalChangeRecordEntity
 
     public SensorParameterProfileEntity Parameter { get; set; }
 }
+*/

@@ -5,7 +5,7 @@ using TelemetryManager.Persistence.Entities.DeviceEntities;
 using TelemetryManager.Persistence.Entities.PacketEntities;
 
 namespace TelemetryManager.Persistence;
-
+/*
 public class TelemetryContext : DbContext
 {
     public DbSet<TelemetryPacketEntity> TelemetryPackets { get; set; }
@@ -30,3 +30,4 @@ public class TelemetryContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
+*/

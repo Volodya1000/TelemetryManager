@@ -10,6 +10,7 @@ using TelemetryManager.Persistence.Entities.DeviceEntities;
 
 namespace TelemetryManager.Persistence.Mapping;
 
+/*
 public static class DeviceProfileMapper
 {
     public static DeviceProfileEntity ToEntity(DeviceProfile deviceProfile)
@@ -219,3 +220,4 @@ public static class SensorParameterProfileMapper
         return null;
     }
 }
+*/

@@ -22,11 +22,10 @@ using TelemetryManager.Persistence.Repositories;
 var serviceCollection = new ServiceCollection();
 
 //serviceCollection.AddTransient<IConfigurationLoader, JsonLoader>();
-serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
 serviceCollection.AddTransient<IContentTypeParser,ContentTypeParser>();
 
-serviceCollection.AddPersistance();
+//serviceCollection.AddPersistance();
 //service
 serviceCollection.AddScoped<TelemetryProcessingService>();
 serviceCollection.AddScoped<ParameterValidationService>();
@@ -37,12 +36,12 @@ serviceCollection.AddScoped<IFileReaderService,FileReaderService>();
 var serviceProvider = serviceCollection.BuildServiceProvider();
 
 
-using (var scope = serviceProvider.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<TelemetryContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
-}
+//using (var scope = serviceProvider.CreateScope())
+//{
+//    var context = scope.ServiceProvider.GetRequiredService<TelemetryContext>();
+//    context.Database.EnsureDeleted();
+//    context.Database.EnsureCreated();
+//}
 
 
 

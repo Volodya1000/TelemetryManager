@@ -6,6 +6,7 @@ using TelemetryManager.Persistence.Mapping;
 
 namespace TelemetryManager.Persistence.Repositories;
 
+/*
 public class DeviceRepository : IDeviceRepository
 {
     private readonly TelemetryContext _context;
@@ -192,3 +193,4 @@ public class DeviceRepository : IDeviceRepository
         }
     }
 }
+*/

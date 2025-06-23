@@ -8,6 +8,7 @@ using TelemetryManager.Persistence.Mapping;
 
 namespace TelemetryManager.Persistence.Repositories;
 
+/*
 public class TelemetryRepository : ITelemetryRepository
 {
     private readonly TelemetryContext _context;
@@ -79,3 +80,4 @@ public class TelemetryRepository : ITelemetryRepository
         );
     }
 }
+*/

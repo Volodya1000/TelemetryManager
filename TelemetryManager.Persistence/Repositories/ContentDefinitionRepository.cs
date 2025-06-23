@@ -6,6 +6,7 @@ using TelemetryManager.Persistence.Mapping;
 
 namespace TelemetryManager.Persistence.Repositories;
 
+/*
 public class ContentDefinitionRepository : IContentDefinitionRepository
 {
     private readonly TelemetryContext _context;
@@ -52,3 +53,4 @@ public class ContentDefinitionRepository : IContentDefinitionRepository
         return entities.Select(ContentDefinitionMapper.ToDomain);
     }
 }
+*/

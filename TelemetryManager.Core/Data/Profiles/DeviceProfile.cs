@@ -1,4 +1,5 @@
-﻿using TelemetryManager.Core.Data.ValueObjects;
+﻿using System.Data;
+using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.Core.Data.Profiles;
@@ -43,10 +44,10 @@ public class DeviceProfile
 
     #region Parameter Configuration
 
-    public void SetParameterInterval(SensorId sensorId, ParameterName name, double min, double max)
+    public void SetParameterInterval(SensorId sensorId, ParameterName name, Interval interval, DateTime timestamp)
     {
         var parameter = GetParameter(sensorId, name);
-        parameter.SetInterval(min, max);
+        parameter.SetInterval(interval, timestamp);
     }
 
     private SensorParameterProfile GetParameter(SensorId sensorId, ParameterName name)
