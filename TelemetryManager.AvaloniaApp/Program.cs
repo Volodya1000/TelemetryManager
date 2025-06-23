@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using TelemetryManager.Application;
 using TelemetryManager.AvaloniaApp.Extensions;
+using TelemetryManager.AvaloniaApp.ViewModels;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Infrastructure;
 using TelemetryManager.Persistence;
@@ -20,6 +21,7 @@ internal sealed class Program
         var services = new ServiceCollection();
         services.AddAllServices();
         services.AddTransient<MainWindow>();
+        services.AddSingleton<MainWindowViewModel>();
         ServiceProvider = services.BuildServiceProvider();
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

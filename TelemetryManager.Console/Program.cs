@@ -60,7 +60,7 @@ var telemetryProcessingService = serviceProvider.GetRequiredService<TelemetryPro
 
 var generator= serviceProvider.GetRequiredService<TelemetryGenerator>();
 
-await generator.Generate(telemetryFilePath,1,0);
+//await generator.Generate(telemetryFilePath,1,0);
 
 await telemetryProcessingService.ProcessTelemetryFile(telemetryFilePath);
 
