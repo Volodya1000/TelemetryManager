@@ -25,10 +25,8 @@ var serviceCollection = new ServiceCollection();
 serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
 serviceCollection.AddTransient<IContentTypeParser,ContentTypeParser>();
-//repository
-serviceCollection.AddTransient<ITelemetryRepository, TelemetryRepository>(); 
-serviceCollection.AddTransient<IDeviceRepository, DeviceRepository>();
-serviceCollection.AddTransient<IContentDefinitionRepository, ContentDefinitionRepository>();
+
+serviceCollection.AddPersistance();
 //service
 serviceCollection.AddScoped<TelemetryProcessingService>();
 serviceCollection.AddScoped<ParameterValidationService>();
