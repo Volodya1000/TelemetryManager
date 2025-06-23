@@ -28,7 +28,7 @@ public static class DependencyInjection
 
         serviceCollection.AddScoped<FileReaderService>();
 
-        serviceCollection.AddScoped<TelemetryGenerator1>();
+        serviceCollection.AddScoped<TelemetryGenerator>();
         serviceCollection.AddScoped<ContentGenerator>();
 
         return serviceCollection;

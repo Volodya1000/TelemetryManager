@@ -52,7 +52,6 @@ public class TelemetryProcessingService
             .ToHashSet();
 
         var baseTime = DateTime.UtcNow;
-        var parsingErrors = new List<ParsingError>();
 
         await foreach (var packet in _parser.Parse(stream, deviceSensorsIdsDictionary,
             error => parsingErrors.Add(error)))

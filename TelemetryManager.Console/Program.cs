@@ -41,7 +41,7 @@ await contentDefinitionService.RegisterAsync(
 var deviceService = serviceProvider.GetRequiredService<DeviceService>();
 await deviceService.AddAsync(1,"MyFirstDevice");
 await deviceService.AddSensorWithParametersAsync(1,1,1,"MyFirstTemperatureSensor");
-
+await deviceService.SetParameterIntervalAsync(1, 1, 1, "TemperatureInFarengeit", -30, 30);
 
 var contentDefinitionRepository = serviceProvider.GetRequiredService<IContentDefinitionRepository>();
 var res = await contentDefinitionRepository.GetAllDefinitionsAsync();
@@ -56,9 +56,10 @@ var telemetryProcessingService = serviceProvider.GetRequiredService<TelemetryPro
 
 
 
-var generator= serviceProvider.GetRequiredService<TelemetryGenerator1>();
 
-//await generator.Generate(telemetryFilePath,1);
+var generator= serviceProvider.GetRequiredService<TelemetryGenerator>();
+
+await generator.Generate(telemetryFilePath,1,0);
 
 await telemetryProcessingService.ProcessTelemetryFile(telemetryFilePath);
 
