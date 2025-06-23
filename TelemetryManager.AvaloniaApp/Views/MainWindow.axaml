@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="TelemetryManager.AvaloniaApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="TelemetryManager.AvaloniaApp">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+  <StackPanel Spacing="10" Margin="20">
+    <!-- Форма добавления -->
+    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="10">
+      <StackPanel Spacing="10">
+        <TextBlock Text="Добавить новое устройство" FontSize="16" FontWeight="Bold"/>
+
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="5">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="ID устройства:" VerticalAlignment="Center"/>
+          <NumericUpDown Grid.Row="0" Grid.Column="1"
+                       Value="{Binding NewDeviceId}"
+                       Minimum="1"
+                       Watermark="Введите числовой ID"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
+          <TextBox Grid.Row="1" Grid.Column="1"
+                 Text="{Binding NewDeviceName}"
+                 Watermark="Введите имя устройства"/>
+        </Grid>
+
+        <Button Content="Добавить устройство"
+                Command="{Binding AddDeviceCommand}"
+                HorizontalAlignment="Right"
+                Padding="10 5"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Список устройств -->
+    <TextBlock Text="Список устройств" FontSize="16" FontWeight="Bold"/>
+
+    <Button Content="Обновить список"
+            Command="{Binding LoadDevicesCommand}"
+            HorizontalAlignment="Right"/>
+
+    <DataGrid ItemsSource="{Binding Devices}" IsReadOnly="True" AutoGenerateColumns="False">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="ID" Binding="{Binding DeviceId}" Width="Auto"/>
+        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+        <DataGridTextColumn Header="Активация"
+                          Binding="{Binding ActivationTime}"
+                          Width="200"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </StackPanel>
+</Window>

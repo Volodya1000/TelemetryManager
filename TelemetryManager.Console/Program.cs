@@ -43,6 +43,7 @@ await deviceService.AddAsync(1,"MyFirstDevice");
 await deviceService.AddSensorWithParametersAsync(1,1,1,"MyFirstTemperatureSensor");
 await deviceService.SetParameterIntervalAsync(1, 1, 1, "TemperatureInFarengeit", -30, 30);
 
+
 var contentDefinitionRepository = serviceProvider.GetRequiredService<IContentDefinitionRepository>();
 var res = await contentDefinitionRepository.GetAllDefinitionsAsync();
 

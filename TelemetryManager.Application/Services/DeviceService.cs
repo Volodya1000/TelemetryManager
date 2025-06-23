@@ -27,6 +27,14 @@ public class DeviceService
         await _deviceRepository.AddAsync(device);
     }
 
+     public async Task<IEnumerable<DeviceProfile>> GetAllAsync()
+     {
+        return await _deviceRepository.GetAllAsync();
+     }
+
+
+     
+
     internal async Task SetActivationTimeAsync(ushort deviceId, DateTime activationTime)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);

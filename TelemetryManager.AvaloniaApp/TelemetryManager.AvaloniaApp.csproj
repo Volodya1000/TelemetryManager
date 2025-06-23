@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
@@ -24,12 +23,11 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TelemetryManager.Application\TelemetryManager.Application.csproj" />
-    <ProjectReference Include="..\TelemetryManager.Core\TelemetryManager.Core.csproj" />
+    <ProjectReference Include="..\TelemetryManager.Console\TelemetryManager.Console.csproj" />
     <ProjectReference Include="..\TelemetryManager.Infrastructure\TelemetryManager.Infrastructure.csproj" />
     <ProjectReference Include="..\TelemetryManager.Persistence\TelemetryManager.Persistence.csproj" />
   </ItemGroup>
