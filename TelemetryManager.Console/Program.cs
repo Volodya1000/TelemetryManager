@@ -34,10 +34,6 @@ serviceCollection.AddScoped<DeviceService>();
 serviceCollection.AddScoped<IContentDefinitionService, ContentDefinitionService>();
 serviceCollection.AddScoped<IFileReaderService,FileReaderService>(); 
 
-
-serviceCollection.AddDbContext<TelemetryContext>(options =>
-    options.UseSqlite("Data Source=TelemetryManagerSqliteDataBase.db;"));
-
 var serviceProvider = serviceCollection.BuildServiceProvider();
 
 

@@ -8,9 +8,10 @@ public class DeviceProfile
     public ushort DeviceId { get; init; }
     public Name Name { get; init; }
     public DateTime? ActivationTime { get; private set; }
-    private readonly Dictionary<SensorId,SensorProfile> _sensorsDict = new();
-    public IReadOnlyCollection<SensorProfile> Sensors => _sensorsDict.Values;
-    public IReadOnlyCollection<SensorId> SensorIds => _sensorsDict.Keys;
+
+    private readonly List<SensorProfile> _sensors = new();
+    public IReadOnlyCollection<SensorProfile> Sensors => _sensors.AsReadOnly();
+    public IReadOnlyCollection<SensorId> SensorIds => _sensors.Select(s => s.Id).ToList().AsReadOnly();
 
     public DeviceProfile(ushort deviceId, Name name)
     {
@@ -20,27 +21,28 @@ public class DeviceProfile
 
     public void AddSensor(SensorProfile newSensor)
     {
-        if (_sensorsDict.ContainsKey(newSensor.Id))
+        if (_sensors.Any(s => s.Id == newSensor.Id))
             throw new ArgumentException(
-                $"Sensor with {newSensor.Id} already exists",
+                $"Sensor with ID {newSensor.Id} already exists",
                 nameof(newSensor));
 
-        _sensorsDict.Add(newSensor.Id, newSensor);
+        _sensors.Add(newSensor);
     }
-    
 
     /// <summary>
-    /// Время активации изначально не известно и оно устанавливается только один раз  по времени первого полученого пакета
+    /// Время активации изначально не известно и оно устанавливается только один раз по времени первого полученного пакета
     /// </summary>
     public void SetActivationTime(DateTime activationTime)
     {
         if (ActivationTime.HasValue)
             throw new InvalidOperationException(
                 "Activation time has already been set and cannot be modified");
-        ActivationTime =activationTime;
+
+        ActivationTime = activationTime;
     }
 
     #region Parameter Configuration
+
     public void SetParameterInterval(SensorId sensorId, ParameterName name, double min, double max)
     {
         var parameter = GetParameter(sensorId, name);
@@ -51,9 +53,11 @@ public class DeviceProfile
     {
         return GetSensor(sensorId).GetParameter(name);
     }
+
     #endregion
 
     #region Connection Status Management
+
     public void MarkSensorConnected(SensorId sensorId, DateTime timestamp)
     {
         GetSensor(sensorId).MarkConnected(timestamp);
@@ -68,11 +72,14 @@ public class DeviceProfile
     {
         return GetSensor(sensorId).IsConnectedAt(timestamp);
     }
+
     #endregion
 
     private SensorProfile GetSensor(SensorId sensorId)
     {
-        if (!_sensorsDict.TryGetValue(sensorId, out var sensor))
+        var sensor = _sensors.FirstOrDefault(s => s.Id == sensorId);
+
+        if (sensor is null)
             throw new KeyNotFoundException($"Sensor {sensorId} not found");
 
         return sensor;
@@ -97,4 +104,3 @@ public class DeviceProfile
         return (true, 0, interval);
     }
 }
-

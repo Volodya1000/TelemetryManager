@@ -11,8 +11,8 @@ public class SensorProfile
     public byte SourceId => Id.SourceId;
     public Name Name { get; init; }
 
-    private readonly Dictionary<ParameterName, SensorParameterProfile> _parametersDict;
-    public IReadOnlyList<SensorParameterProfile> Parameters => _parametersDict.Values.ToList();
+    private readonly List<SensorParameterProfile> _parameters;
+    public IReadOnlyList<SensorParameterProfile> Parameters => _parameters.AsReadOnly();
 
     private readonly List<SensorConnectionHistoryRecord> _connectionHistory = new();
     public IReadOnlyList<SensorConnectionHistoryRecord> ConnectionHistory => _connectionHistory.AsReadOnly();
@@ -21,20 +21,17 @@ public class SensorProfile
     {
         Id = id;
         Name = name;
-
-        _parametersDict = parameters.ToDictionary(p => p.Definition.Name);
-        if (_parametersDict.Count != parameters.Count)
-            throw new ArgumentException("Duplicate parameter names found");
+        _parameters = parameters.ToList();
     }
 
     public SensorParameterProfile GetParameter(ParameterName name)
     {
-        if (_parametersDict.TryGetValue(name, out var parameter))
+        var parameter = _parameters.FirstOrDefault(p => p.Name == name);
+        if (parameter is not null)
             return parameter;
 
         throw new KeyNotFoundException($"Parameter '{name}' not found in sensor {Id}");
     }
-
 
     public void MarkConnected(DateTime timestamp)
     {

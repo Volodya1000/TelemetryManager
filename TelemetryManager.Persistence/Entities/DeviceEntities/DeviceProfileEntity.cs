@@ -2,38 +2,33 @@
 
 namespace TelemetryManager.Persistence.Entities.DeviceEntities;
 
-public class DeviceProfileEntity
+internal sealed class  DeviceProfileEntity : DbEntity<ushort>
 {
-    public ushort DeviceId { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public DateTime? ActivationTime { get; set; }
-    public List<SensorProfileEntity> Sensors { get; set; } = new();
+    public required ICollection<SensorProfileEntity> Sensors { get; set; }
 }
 
-public class SensorProfileEntity
+internal sealed class SensorProfileEntity
 {
     public ushort DeviceId { get; set; }
     public byte TypeId { get; set; }
     public byte SourceId { get; set; }
-    public string Name { get; set; }
-    public DeviceProfileEntity Device { get; set; }
-    public List<SensorConnectionHistoryRecordEntity> ConnectionHistory { get; set; } = new();
-    public List<SensorParameterProfileEntity> Parameters { get; set; } = new();
+
+    public required string Name { get; set; }
+    public required DeviceProfileEntity Device { get; set; }
+    public required ICollection<SensorConnectionHistoryRecordEntity> ConnectionHistory { get; set; } 
+    public required ICollection<SensorParameterProfileEntity> Parameters { get; set; } 
 }
 
 
 public class SensorParameterProfileEntity
 {
-    // PK: Device + Sensor + ParameterName
     public ushort DeviceId { get; set; }
     public byte TypeId { get; set; }
     public byte SourceId { get; set; }
 
-    // теперь обязательный ключ
-    public string ParameterName { get; set; }
-
-    public double CurrentMin { get; set; }
-    public double CurrentMax { get; set; }
+    public required string ParameterName { get; set; }
 
     public SensorProfileEntity Sensor { get; set; }
     public ParameterDefinitionEntity ParameterDefinition { get; set; }

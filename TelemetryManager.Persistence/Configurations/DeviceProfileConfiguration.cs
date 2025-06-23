@@ -1,9 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TelemetryManager.Persistence.Entities.DeviceEntities;
+using TelemetryManager.Core.Data.Profiles;
+using TelemetryManager.Core.Data.ValueObjects;
 
 namespace TelemetryManager.Persistence.Configurations;
 
+
+
+/*
 public class DeviceProfileConfiguration : IEntityTypeConfiguration<DeviceProfileEntity>
 {
     public void Configure(EntityTypeBuilder<DeviceProfileEntity> builder)
@@ -111,3 +115,78 @@ public class ParameterIntervalChangeRecordConfiguration
         }
     }
 }
+*/
+
+/*
+public class DeviceProfileConfiguration : IEntityTypeConfiguration<DeviceProfile>
+{
+    public void Configure(EntityTypeBuilder<DeviceProfile> builder)
+    {
+        ConfigureDeviceTable(builder);
+        ConfigureSensorTable(builder);
+    }
+
+
+    private void ConfigureDeviceTable(EntityTypeBuilder<DeviceProfile> builder)
+    {
+        builder.ToTable("Devices");
+
+        builder.HasKey(d => d.DeviceId);
+
+        builder.Property(d => d.DeviceId)
+            .ValueGeneratedNever();
+
+        builder.Property(d => d.Name)
+            .HasMaxLength(Name.MAX_LENGTH);
+
+        builder.Property(d => d.ActivationTime)
+            .IsRequired(false);
+    }
+
+    private void ConfigureSensorTable(EntityTypeBuilder<DeviceProfile> builder)
+    {
+        builder.OwnsMany(d => d.Sensors, sensorBuider =>
+        {
+            sensorBuider.ToTable("Sensors");
+
+            sensorBuider.WithOwner().HasForeignKey(nameof(DeviceProfile.DeviceId));
+
+            sensorBuider.HasKey(nameof(SensorProfile.Id.TypeId),
+                                nameof(SensorProfile.Id.SourceId),
+                                nameof(SensorProfile.Id));
+
+            sensorBuider.Property(s => s.Id)
+                .HasColumnName("SensorId")
+                .ValueGeneratedNever();
+
+            sensorBuider.Property(s => s.Name)
+                .HasMaxLength(Name.MAX_LENGTH);
+
+            sensorBuider.OwnsMany(s => s.Parameters, sensorParameterBuilder =>
+            {
+                sensorParameterBuilder.ToTable("SensorParameters");
+
+
+                sensorParameterBuilder.HasKey(nameof(SensorParameterProfile.Name),
+                                             nameof(SensorProfile.Id.TypeId),
+                                             nameof(SensorProfile.Id.SourceId),
+                                             nameof(SensorProfile.Id));
+
+                sensorParameterBuilder.WithOwner().HasForeignKey("DeviceId", "SensorId");
+
+            });
+
+            sensorBuider.Navigation(s => s.Parameters).Metadata.SetField("_parameters");
+            sensorBuider.Navigation(s => s.Parameters).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            sensorBuider.OwnsMany(s => s.ConnectionHistory, connectionHistoryBuilder =>
+            {
+                connectionHistoryBuilder.ToTable("ConnectionHistories").
+            });
+        });
+
+        builder.Metadata.FindNavigation(nameof(DeviceProfile.Sensors))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+    }
+}
+*/
