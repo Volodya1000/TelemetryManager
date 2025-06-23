@@ -56,6 +56,7 @@ public class DeviceService
         }
 
         var sensor = new SensorProfile(sensorId, sensorNameVO, sensorParameterList);
+        sensor.MarkConnected(DateTime.Now);
 
         device.AddSensor(sensor);
         await _deviceRepository.UpdateAsync(device);

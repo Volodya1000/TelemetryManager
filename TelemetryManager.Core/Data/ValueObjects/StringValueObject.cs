@@ -30,4 +30,5 @@ public abstract record StringValueObject(int MinLength, int MaxLength)
     protected static Regex CreateDefaultRegex(int minLength, int maxLength) => new(
         $@"^[\p{{L}}\p{{M}}\p{{N}}]{{{minLength},{maxLength}}}$",
         RegexOptions.Singleline | RegexOptions.Compiled);
+
 }

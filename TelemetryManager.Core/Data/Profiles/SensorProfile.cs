@@ -26,7 +26,7 @@ public class SensorProfile
 
     public SensorParameterProfile GetParameter(ParameterName name)
     {
-        var parameter = _parameters.FirstOrDefault(p => p.Name == name);
+        var parameter = _parameters.FirstOrDefault(p => p.Name.Value==name.Value);
         if (parameter is not null)
             return parameter;
 
