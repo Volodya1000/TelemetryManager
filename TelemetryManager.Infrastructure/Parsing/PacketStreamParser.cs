@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Core;
 using TelemetryManager.Core.Data;
@@ -26,15 +27,19 @@ public class PacketStreamParser : IPacketStreamParser
         _contentDefinitionRepository = contentDefinitionRepository;
     }
 
-    public PacketParsingResult Parse(Stream stream, Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices)
+    public async IAsyncEnumerable<TelemetryPacketWithUIntTime> Parse(
+       Stream stream,
+       Dictionary<ushort, IReadOnlyCollection<SensorId>> availableSensorsInDevices,
+       Action<ParsingError> errorCallback = null,
+       [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         _stream = stream;
-        var packets = new List<TelemetryPacketWithUIntTime>();
-        var errors = new List<ParsingError>();
 
         while (true)
         {
-            long packetStart = FindSyncMarker();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            long packetStart =  FindSyncMarker();
             if (packetStart < 0)
                 break;
 
@@ -44,11 +49,11 @@ public class PacketStreamParser : IPacketStreamParser
             byte[] headerBytes;
             try
             {
-                headerBytes = ReadHeader();
+                headerBytes =  ReadHeader();
             }
             catch (PacketParsingException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.IncompleteHeader,
                     ex.Message));
@@ -58,7 +63,7 @@ public class PacketStreamParser : IPacketStreamParser
             // Parse header
             if (!TryParseHeader(headerBytes, out uint time, out ushort devId, out byte typeId, out byte sourceId, out ushort size))
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.InvalidHeaderFormat,
                     "Неверный формат заголовка",
@@ -68,9 +73,9 @@ public class PacketStreamParser : IPacketStreamParser
                 continue;
             }
 
-            if(!availableSensorsInDevices.TryGetValue(devId,out var availableSensors))
+            if (!availableSensorsInDevices.TryGetValue(devId, out var availableSensors))
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                    packetStart,
                    ParsingErrorType.UnknownDeviceId,
                    $"Device with Id {devId} not exists",
@@ -82,13 +87,13 @@ public class PacketStreamParser : IPacketStreamParser
                 continue;
             }
 
-            var currentsSensorId = (new SensorId(typeId, sourceId));
-            if (availableSensors.Contains(currentsSensorId))
+            var currentSensorId = new SensorId(typeId, sourceId);
+            if (!availableSensors.Contains(currentSensorId))
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                    packetStart,
                    ParsingErrorType.DeviceDontContainsSensorWithSuchSourceId,
-                   $"Device with Id {devId} don t contains sensor with {currentsSensorId}",
+                   $"Device with Id {devId} doesn't contain sensor with {currentSensorId}",
                    Time: time,
                    DeviceId: devId,
                    SensorType: typeId,
@@ -102,13 +107,16 @@ public class PacketStreamParser : IPacketStreamParser
             {
                 if (size == 0 || size > MaxPacketSize)
                     throw new PacketParsingException($"Unsupported size: {size}");
-                int expected = _contentDefinitionRepository.GetDefinitionAsync(typeId).Result.TotalSizeBytes;///Испрвить !!!!
+
+                var definition = await _contentDefinitionRepository.GetDefinitionAsync(typeId);
+                int expected = definition.TotalSizeBytes;
+
                 if (size != expected)
                     throw new PacketParsingException($"Size mismatch for {typeId}. Expected: {expected}, Actual: {size}");
             }
             catch (ArgumentOutOfRangeException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.UnknownSensorType,
                     ex.Message,
@@ -119,7 +127,7 @@ public class PacketStreamParser : IPacketStreamParser
             }
             catch (PacketParsingException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.SizeMismatch,
                     ex.Message,
@@ -135,11 +143,11 @@ public class PacketStreamParser : IPacketStreamParser
             byte[] content;
             try
             {
-                content = ReadContent(size);
+                content =  ReadContent(size);
             }
             catch (PacketParsingException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.ContentReadFailed,
                     ex.Message,
@@ -152,15 +160,16 @@ public class PacketStreamParser : IPacketStreamParser
                 continue;
             }
 
+            TelemetryPacketWithUIntTime packet = null;
             // Skip padding
             int padding;
             try
             {
-                padding = SkipPadding(size);
+                padding =  SkipPadding(size);
             }
             catch (PacketParsingException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.PaddingReadFailed,
                     ex.Message,
@@ -169,7 +178,7 @@ public class PacketStreamParser : IPacketStreamParser
                     SensorType: typeId,
                     SourceId: sourceId,
                     Size: size));
-                SkipInvalidPacket(size);
+                 SkipInvalidPacket(size);
                 continue;
             }
 
@@ -180,7 +189,7 @@ public class PacketStreamParser : IPacketStreamParser
             }
             catch (PacketParsingException ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.ChecksumMismatch,
                     ex.Message,
@@ -189,20 +198,19 @@ public class PacketStreamParser : IPacketStreamParser
                     SensorType: typeId,
                     SourceId: sourceId,
                     Size: size));
-                SkipInvalidPacket(size);
+                 SkipInvalidPacket(size);
                 continue;
             }
 
             // Create telemetry packet
             try
             {
-                var values = _contentTypeParser.ParseAsync(typeId, content).Result; //!!!исправить на асинхронную работу
-                var packet = new TelemetryPacketWithUIntTime(time, devId, currentsSensorId, values);
-                packets.Add(packet);
+                var values = await _contentTypeParser.ParseAsync(typeId, content);
+                 packet = new TelemetryPacketWithUIntTime(time, devId, currentSensorId, values);
             }
             catch (Exception ex)
             {
-                errors.Add(new ParsingError(
+                ReportError(errorCallback, new ParsingError(
                     packetStart,
                     ParsingErrorType.DataValidationFailed,
                     ex.Message,
@@ -211,12 +219,18 @@ public class PacketStreamParser : IPacketStreamParser
                     SensorType: typeId,
                     SourceId: sourceId,
                     Size: size));
-                SkipInvalidPacket(size);
-                continue;
+                 SkipInvalidPacket(size);
+            }
+            if (packet != null)
+            {
+                yield return packet;
             }
         }
+    }
 
-        return new PacketParsingResult(packets, errors);
+    private void ReportError(Action<ParsingError> errorCallback, ParsingError error)
+    {
+        errorCallback?.Invoke(error);
     }
 
     private long FindSyncMarker()

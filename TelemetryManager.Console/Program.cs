@@ -17,7 +17,7 @@ using TelemetryManager.Infrastructure.JsonConfigurationLoader;
 using TelemetryManager.Infrastructure.Parsing;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.Persistence;
-using TelemetryManager.Persistence.Repositories;
+
 
 var serviceCollection = new ServiceCollection();
 
@@ -25,8 +25,7 @@ var serviceCollection = new ServiceCollection();
 serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
 serviceCollection.AddTransient<IContentTypeParser,ContentTypeParser>();
 
-//serviceCollection.AddPersistance();
-//service
+serviceCollection.AddPersistance();
 serviceCollection.AddScoped<TelemetryProcessingService>();
 serviceCollection.AddScoped<ParameterValidationService>();
 serviceCollection.AddScoped<DeviceService>();

@@ -48,70 +48,50 @@ public class TelemetryProcessingService
     public async Task ProcessTelemetryStream(Stream stream)
     {
         var deviceSensorsIdsDictionary = await _deviceService.GetAllDeviceSensorsIdsDictionaryAsync();
-        var parsingResult = _parser.Parse(stream, deviceSensorsIdsDictionary);
-
-        var baseTime = DateTime.UtcNow;
-
-        // Получаем устройства без активации
-        var devicesWithoutActivation = (await _deviceService.GetDevicesWithoutActivationTimeAsync())
+        var devicesNeedingActivation = (await _deviceService.GetDevicesWithoutActivationTimeAsync())
             .ToHashSet();
 
-        // Создаем финальные пакеты и находим минимальное время для активации
-        var telemetryPackets = new List<TelemetryPacket>();
-        var minUptimes = new Dictionary<ushort, long>();
+        var baseTime = DateTime.UtcNow;
+        var parsingErrors = new List<ParsingError>();
 
-        foreach (var packet in parsingResult.Packets)
+        await foreach (var packet in _parser.Parse(stream, deviceSensorsIdsDictionary,
+            error => parsingErrors.Add(error)))
         {
-            // Вычисляем время отправки
-            var uptimeDuration = TimeSpan.FromMilliseconds(packet.Time);
-            var sendTime = baseTime + uptimeDuration;
-            telemetryPackets.Add(new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content));
+            var sendTime = baseTime + TimeSpan.FromMilliseconds(packet.Time);
 
             bool isCurrentlyConnected = await _deviceService.IsSensorCurrentlyConnectedAsync(
-           packet.DevId,
-           (byte)packet.SensorId.TypeId,
-           packet.SensorId.SourceId);
+                packet.DevId,
+                packet.SensorId.TypeId,
+                packet.SensorId.SourceId);
 
-            // Обрабатываем только пакеты от подключенных сенсоров
             if (isCurrentlyConnected)
             {
-                telemetryPackets.Add(new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content));
-
-                if (devicesWithoutActivation.Contains(packet.DevId))
+                // Обработка активации (только для первого пакета устройства)
+                if (devicesNeedingActivation.Contains(packet.DevId))
                 {
-                    if (!minUptimes.TryGetValue(packet.DevId, out var currentMin) || packet.Time < currentMin)
-                    {
-                        minUptimes[packet.DevId] = packet.Time;
-                    }
+                    var activationTime = sendTime - TimeSpan.FromMilliseconds(packet.Time);
+                    await _deviceService.SetActivationTimeAsync(packet.DevId, activationTime);
+                    devicesNeedingActivation.Remove(packet.DevId); // Удаляем из множества нуждающихся
                 }
+
+                // Валидация и сохранение пакета
+                var telemetryPacket = new TelemetryPacket(sendTime, packet.DevId, packet.SensorId, packet.Content);
+                foreach (var parameter in packet.Content)
+                {
+                    await _parameterValidationService.ValidateAsync(
+                        packet.DevId,
+                        packet.SensorId,
+                        parameter.Key,
+                        parameter.Value);
+                }
+                await _telemetryRepository.AddPacketAsync(telemetryPacket);
             }
         }
 
-        // Устанавливаем время активации
-        foreach (var (deviceId, minUptime) in minUptimes)
-        {
-            var activationTime = baseTime - TimeSpan.FromMilliseconds(minUptime);
-            await _deviceService.SetActivationTimeAsync(deviceId, activationTime);
-        }
-
-        // Обрабатываем ошибки
-        parsingErrors.AddRange(parsingResult.Errors);
-
-        // Сохраняем пакеты
-        foreach (var packet in telemetryPackets)
-        {
-            foreach (var parameter in packet.Content)
-            {
-                await _parameterValidationService.ValidateAsync(
-                    packet.DevId,
-                    packet.SensorId,
-                    parameter.Key,
-                    parameter.Value
-                );
-            }
-
-            await _telemetryRepository.AddPacketAsync(packet);
-        }
+        //if (parsingErrors.Count > 0)
+        //{
+        //    await _errorRepository.SaveErrorsAsync(parsingErrors);
+        //}
     }
 
     public async Task ProcessTelemetryFile(string filePath)
