@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data.Profiles;
+using System.Reactive.Linq; // Добавлено для ThrownExceptions
 
 namespace TelemetryManager.AvaloniaApp.ViewModels;
 
@@ -20,8 +21,10 @@ public class MainWindowViewModel : ReactiveObject
     private readonly DeviceService _deviceService;
     private string _newDeviceName = "";
     private ushort _newDeviceId;
+    private string _errorMessage; // Новое свойство для ошибки
 
     public ObservableCollection<DeviceDisplayItem> Devices { get; } = new();
+
     public string NewDeviceName
     {
         get => _newDeviceName;
@@ -34,6 +37,13 @@ public class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _newDeviceId, value);
     }
 
+    // Свойство для сообщения об ошибке
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+    }
+
     public ReactiveCommand<Unit, Unit> LoadDevicesCommand { get; }
     public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
 
@@ -43,6 +53,10 @@ public class MainWindowViewModel : ReactiveObject
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
 
+        // Обработка ошибок загрузки
+        LoadDevicesCommand.ThrownExceptions.Subscribe(ex =>
+            ErrorMessage = $"Ошибка загрузки: {ex.Message}");
+
         var canAddDevice = this.WhenAnyValue(
             x => x.NewDeviceName,
             x => x.NewDeviceId,
@@ -51,11 +65,16 @@ public class MainWindowViewModel : ReactiveObject
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(AddDeviceAsync, canAddDevice);
 
+        // Обработка ошибок добавления
+        AddDeviceCommand.ThrownExceptions.Subscribe(ex =>
+            ErrorMessage = $"Ошибка добавления: {ex.Message}");
+
         LoadDevicesCommand.Execute().Subscribe();
     }
 
     private async Task LoadDevicesAsync()
     {
+        ErrorMessage = ""; // Сброс ошибки при загрузке
         Devices.Clear();
         var devices = await _deviceService.GetAllAsync();
         foreach (var device in devices)
@@ -71,6 +90,7 @@ public class MainWindowViewModel : ReactiveObject
 
     private async Task AddDeviceAsync()
     {
+        ErrorMessage = ""; // Сброс ошибки перед операцией
         await _deviceService.AddAsync(NewDeviceId, NewDeviceName);
         NewDeviceName = "";
         NewDeviceId = 0;

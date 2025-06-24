@@ -29,6 +29,14 @@
                  Text="{Binding NewDeviceName}"
                  Watermark="Введите имя устройства"/>
         </Grid>
+
+        <!-- Блок для отображения ошибок -->
+        <TextBlock Text="{Binding ErrorMessage}"
+                   Foreground="Red"
+                   TextWrapping="Wrap"
+                   MaxWidth="300"
+                   HorizontalAlignment="Stretch"/>
+
         <Button Content="Добавить устройство"
                 Command="{Binding AddDeviceCommand}"
                 HorizontalAlignment="Right"
@@ -36,16 +44,13 @@
       </StackPanel>
     </Border>
 
-    <!-- Список устройств -->
+    <!-- Остальной код без изменений -->
     <TextBlock Text="Список устройств" FontSize="16" FontWeight="Bold"/>
-
-    <!-- Шапка таблицы -->
     <Grid ColumnDefinitions="Auto,*,200" Margin="0 5">
       <TextBlock Grid.Column="0" Text="Id" FontWeight="Bold"/>
       <TextBlock Grid.Column="1" Text="Имя" FontWeight="Bold" Margin="10 0"/>
       <TextBlock Grid.Column="2" Text="Статус активации" FontWeight="Bold"/>
     </Grid>
-
     <ListBox ItemsSource="{Binding Devices}" ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemTemplate>
         <DataTemplate>
