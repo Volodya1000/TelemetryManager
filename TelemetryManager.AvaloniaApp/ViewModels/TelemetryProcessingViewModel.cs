@@ -18,14 +18,24 @@ public class TelemetryProcessingViewModel : ViewModelBase
     private PagedResponse<TelemetryPacket>? _currentPage;
     private string _statusMessage = string.Empty;
     private readonly TopLevel? _topLevel;
+    private int _currentPageNumber = 1;
+    private int _totalPages = 1;
 
     public TelemetryPacketFilterRequest Filter { get; } = new TelemetryPacketFilterRequest();
 
-    // Убедитесь, что свойство называется Items в PagedResponse
     public List<TelemetryPacket> Packets => _currentPage?.Data ?? new List<TelemetryPacket>();
 
-    public int CurrentPage => Filter.PageNumber;
-    public int TotalPages => _currentPage?.TotalPages ?? 1;
+    public int CurrentPage
+    {
+        get => _currentPageNumber;
+        private set => this.RaiseAndSetIfChanged(ref _currentPageNumber, value);
+    }
+
+    public int TotalPages
+    {
+        get => _totalPages;
+        private set => this.RaiseAndSetIfChanged(ref _totalPages, value);
+    }
 
     public string StatusMessage
     {
@@ -41,7 +51,7 @@ public class TelemetryProcessingViewModel : ViewModelBase
             if (value != Filter.PageSize)
             {
                 Filter.PageSize = value;
-                Filter.PageNumber = 1; // Сбрасываем на первую страницу
+                CurrentPage = 1;
                 this.RaisePropertyChanged(nameof(PageSize));
                 LoadPackets().ConfigureAwait(false);
             }
@@ -113,11 +123,27 @@ public class TelemetryProcessingViewModel : ViewModelBase
     {
         try
         {
+            // Обновляем номер страницы в фильтре
+            Filter.PageNumber = CurrentPage;
+
             _currentPage = await _service.GetPacketsAsync(Filter);
+
+           
+
+            // Обновляем свойства после получения данных
+            TotalPages = _currentPage.PageNumber;
+
+            // Корректируем текущую страницу, если она превышает общее количество
+            if (CurrentPage > TotalPages && TotalPages > 0)
+            {
+                CurrentPage = TotalPages;
+                await LoadPackets(); // Перезагружаем с корректной страницей
+                return;
+            }
+
             this.RaisePropertyChanged(nameof(Packets));
             this.RaisePropertyChanged(nameof(CurrentPage));
             this.RaisePropertyChanged(nameof(TotalPages));
-            this.RaisePropertyChanged(nameof(PageSize));
         }
         catch (Exception ex)
         {
@@ -127,18 +153,18 @@ public class TelemetryProcessingViewModel : ViewModelBase
 
     private void PreviousPage()
     {
-        if (Filter.PageNumber > 1)
+        if (CurrentPage > 1)
         {
-            Filter.PageNumber--;
+            CurrentPage--;
             LoadPackets().ConfigureAwait(false);
         }
     }
 
     private void NextPage()
     {
-        if (Filter.PageNumber < TotalPages)
+        if (CurrentPage < TotalPages)
         {
-            Filter.PageNumber++;
+            CurrentPage++;
             LoadPackets().ConfigureAwait(false);
         }
     }
