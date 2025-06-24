@@ -2,16 +2,19 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
-using TelemetryManager.AvaloniaApp.Models;
 using TelemetryManager.Core.Data.SensorParameter;
+using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
 namespace TelemetryManager.AvaloniaApp.ViewModels;
 
-public class DeviceSensorsViewModel : ReactiveObject
+public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 {
+    private readonly CompositeDisposable _disposables = new();
+
     private readonly DeviceService _deviceService;
     private readonly IContentDefinitionRepository _contentRepo;
     private ushort _deviceId;
@@ -56,34 +59,13 @@ public class DeviceSensorsViewModel : ReactiveObject
         LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
         AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
 
-        LoadSensorsCommand.Execute().Subscribe();
+        LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
+        AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
+
+        LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
         LoadAvailableSensorTypes();
     }
-
-    private async Task LoadSensorsAsync()
-    {
-        try
-        {
-            ErrorMessage = "";
-            Sensors.Clear();
-            var device = await _deviceService.GetDeviceDataAsync(_deviceId);
-
-            foreach (var sensor in device.Sensors)
-            {
-                Sensors.Add(new SensorItemViewModel
-                {
-                    TypeId = sensor.TypeId,
-                    SourceId = sensor.SourceId,
-                    Name = sensor.Name.Value,
-                    ParametersCount = sensor.Parameters.Count
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Ошибка загрузки сенсоров: {ex.Message}";
-        }
-    }
+   
 
     private async void LoadAvailableSensorTypes()
     {
@@ -129,5 +111,68 @@ public class DeviceSensorsViewModel : ReactiveObject
             ErrorMessage = $"Ошибка добавления сенсора: {ex.Message}";
         }
     }
+
+    private async Task LoadSensorsAsync()
+    {
+        try
+        {
+            ErrorMessage = "";
+            Sensors.Clear();
+            var device = await _deviceService.GetDeviceDataAsync(_deviceId);
+
+            foreach (var sensor in device.Sensors)
+            {
+                var isConnected =  device.IsSensorConnectedAt(
+                    new SensorId(sensor.TypeId, sensor.SourceId),
+                    DateTime.Now
+                );
+
+                var sensorVM = new SensorItemViewModel(
+                    _deviceId,
+                    UpdateSensorConnection,
+                    sensor.TypeId,
+                    sensor.SourceId,
+                    sensor.Name.Value,
+                    sensor.Parameters.Count,
+                    isConnected
+                );
+
+                Sensors.Add(sensorVM);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Ошибка загрузки сенсоров: {ex.Message}";
+        }
+    }
+
+    private async Task UpdateSensorConnection(
+        ushort deviceId,
+        byte typeId,
+        byte sourceId,
+        bool connect)
+    {
+        try
+        {
+            var timestamp = DateTime.Now;
+            if (connect)
+            {
+                await _deviceService.MarkSensorConnectedAsync( // Исправлено!
+                      deviceId, typeId, sourceId, timestamp);
+            }
+            else
+            {
+                await _deviceService.MarkSensorDisconnectedAsync( // Исправлено!
+                 deviceId, typeId, sourceId, timestamp);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Ошибка изменения состояния: {ex.Message}";
+            throw; // Для обработки в ToggleConnectionCommand
+        }
+    }
+
+    public void Dispose() => _disposables.Dispose();
 }
 

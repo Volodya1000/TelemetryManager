@@ -7,7 +7,9 @@
         x:Class="TelemetryManager.AvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="TelemetryManager.AvaloniaApp">
+        Title="TelemetryManager.AvaloniaApp"
+        WindowState="Maximized"
+        CanResize="False">
 
   <Design.DataContext>
     <vm:MainWindowViewModel/>

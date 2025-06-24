@@ -10,8 +10,6 @@ namespace TelemetryManager.Application.Services;
 
 public class TelemetryProcessingService
 {
-    //private readonly IConfigurationLoader _configurationLoader;
-    //private readonly IConfigurationValidator _configurationValidator;
     private readonly IPacketStreamParser _parser;
     private readonly ITelemetryRepository _telemetryRepository;
     private readonly DeviceService _deviceService;

@@ -48,28 +48,35 @@
               Padding="10 5"/>
     </Grid>
 
-    <!-- ListBox с шапкой -->
     <Border BorderBrush="#DDD" BorderThickness="1">
       <!-- Шапка таблицы -->
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+        <!-- Добавлен 5-й столбец -->
         <TextBlock Grid.Column="0" Text="TypeID" FontWeight="Bold" Margin="5"/>
         <TextBlock Grid.Column="1" Text="SourceID" FontWeight="Bold" Margin="5"/>
         <TextBlock Grid.Column="2" Text="Название" FontWeight="Bold" Margin="5"/>
         <TextBlock Grid.Column="3" Text="Количество параметров" FontWeight="Bold" Margin="5"/>
+        <TextBlock Grid.Column="4" Text="Включён" FontWeight="Bold" Margin="5"/>
       </Grid>
     </Border>
 
     <!-- Список датчиков -->
     <ListBox ItemsSource="{Binding Sensors}"
-             BorderThickness="0"
-             Padding="0">
+          BorderThickness="0"
+          Padding="0">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+            <!-- Добавлен 5-й столбец -->
             <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
             <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
             <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
             <TextBlock Grid.Column="3" Text="{Binding ParametersCount}" Margin="5"/>
+            <CheckBox Grid.Column="4"
+                      IsChecked="{Binding IsConnected, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"
+                      Margin="5"/>
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>
