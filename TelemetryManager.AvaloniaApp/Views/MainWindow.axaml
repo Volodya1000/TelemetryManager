@@ -3,10 +3,7 @@
         xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
-        mc:Ignorable="d"
-        d:DesignWidth="800"
-        d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TelemetryManager.AvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
@@ -20,63 +17,45 @@
     <!-- Форма добавления -->
     <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="10">
       <StackPanel Spacing="10">
-        <TextBlock Text="Добавить новое устройство"
-                   FontSize="16"
-                   FontWeight="Bold"/>
-
-        <Grid ColumnDefinitions="Auto,*"
-              RowDefinitions="Auto,Auto"
-              RowSpacing="5">
-          <TextBlock Grid.Row="0"
-                     Grid.Column="0"
-                     Text="ID устройства:"
-                     VerticalAlignment="Center"/>
-          <NumericUpDown Grid.Row="0"
-                         Grid.Column="1"
-                         Value="{Binding NewDeviceId}"
-                         Minimum="1"
-                         Watermark="Введите числовой ID"/>
-
-          <TextBlock Grid.Row="1"
-                     Grid.Column="0"
-                     Text="Название:"
-                     VerticalAlignment="Center"/>
-          <TextBox Grid.Row="1"
-                   Grid.Column="1"
-                   Text="{Binding NewDeviceName}"
-                   Watermark="Введите имя устройства"/>
+        <TextBlock Text="Добавить новое устройство" FontSize="16" FontWeight="Bold"/>
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="5">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="ID устройства:" VerticalAlignment="Center"/>
+          <NumericUpDown Grid.Row="0" Grid.Column="1"
+                       Value="{Binding NewDeviceId}"
+                       Minimum="1"
+                       Watermark="Введите числовой ID"/>
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
+          <TextBox Grid.Row="1" Grid.Column="1"
+                 Text="{Binding NewDeviceName}"
+                 Watermark="Введите имя устройства"/>
         </Grid>
-
         <Button Content="Добавить устройство"
                 Command="{Binding AddDeviceCommand}"
                 HorizontalAlignment="Right"
-                Padding="10,5"/>
+                Padding="10 5"/>
       </StackPanel>
     </Border>
 
     <!-- Список устройств -->
-    <TextBlock Text="Список устройств"
-               FontSize="16"
-               FontWeight="Bold"/>
+    <TextBlock Text="Список устройств" FontSize="16" FontWeight="Bold"/>
 
-    <Button Content="Обновить список"
-            Command="{Binding LoadDevicesCommand}"
-            HorizontalAlignment="Right"/>
+    <!-- Шапка таблицы -->
+    <Grid ColumnDefinitions="Auto,*,200" Margin="0 5">
+      <TextBlock Grid.Column="0" Text="Id" FontWeight="Bold"/>
+      <TextBlock Grid.Column="1" Text="Имя" FontWeight="Bold" Margin="10 0"/>
+      <TextBlock Grid.Column="2" Text="Статус активации" FontWeight="Bold"/>
+    </Grid>
 
-    <dg:DataGrid ItemsSource="{Binding Devices}"
-                 IsReadOnly="True"
-                 AutoGenerateColumns="False">
-      <dg:DataGrid.Columns>
-        <dg:DataGridTextColumn Header="ID"
-                               Binding="{Binding DeviceId}"
-                               Width="Auto"/>
-        <dg:DataGridTextColumn Header="Название"
-                               Binding="{Binding Name}"
-                               Width="*"/>
-        <dg:DataGridTextColumn Header="Активация"
-                               Binding="{Binding ActivationTime}"
-                               Width="200"/>
-      </dg:DataGrid.Columns>
-    </dg:DataGrid>
+    <ListBox ItemsSource="{Binding Devices}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Grid ColumnDefinitions="Auto,*,200" Margin="0 5">
+            <TextBlock Grid.Column="0" Text="{Binding DeviceId}" Width="60"/>
+            <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10 0" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Grid.Column="2" Text="{Binding ActivationTime}"/>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
   </StackPanel>
 </Window>
