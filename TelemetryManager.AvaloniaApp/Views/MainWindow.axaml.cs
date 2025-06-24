@@ -11,6 +11,11 @@ namespace TelemetryManager.AvaloniaApp.Views
             InitializeComponent();
             DataContext = Program.ServiceProvider
                         .GetRequiredService<MainWindowViewModel>();
+
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.OwnerWindow = this;
+            }
         }
     }
 }

@@ -1,27 +1,27 @@
-﻿using ReactiveUI;
+﻿using Avalonia;
+using Avalonia.Controls;
+using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
-using TelemetryManager.Core.Data.Profiles;
-using System.Reactive.Linq; // Добавлено для ThrownExceptions
+using TelemetryManager.AvaloniaApp.Models;
+using TelemetryManager.AvaloniaApp.Views;
+using TelemetryManager.Core.Interfaces.Repositories;
 
 namespace TelemetryManager.AvaloniaApp.ViewModels;
-
-public class DeviceDisplayItem
-{
-    public ushort DeviceId { get; set; }
-    public string Name { get; set; }
-    public string ActivationTime { get; set; }
-}
 
 public class MainWindowViewModel : ReactiveObject
 {
     private readonly DeviceService _deviceService;
+    private readonly IContentDefinitionRepository _contentDefinitionRepository;
     private string _newDeviceName = "";
     private ushort _newDeviceId;
     private string _errorMessage; // Новое свойство для ошибки
+
+    public Window? OwnerWindow { get; set; }
 
     public ObservableCollection<DeviceDisplayItem> Devices { get; } = new();
 
@@ -47,9 +47,23 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> LoadDevicesCommand { get; }
     public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
 
-    public MainWindowViewModel(DeviceService deviceService)
+
+
+    private DeviceDisplayItem _selectedDevice;
+    public DeviceDisplayItem SelectedDevice
+    {
+        get => _selectedDevice;
+        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+    }
+
+    public ReactiveCommand<Unit, Unit> ManageSensorsCommand { get; }
+
+
+
+    public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository  contentDefinitionRepository)
     {
         _deviceService = deviceService;
+        _contentDefinitionRepository=contentDefinitionRepository;
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
 
@@ -64,6 +78,9 @@ public class MainWindowViewModel : ReactiveObject
         );
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(AddDeviceAsync, canAddDevice);
+
+        ManageSensorsCommand = ReactiveCommand.CreateFromTask(ManageSensorsAsync,
+      this.WhenAnyValue(x => x.SelectedDevice).Select(device => device != null));
 
         // Обработка ошибок добавления
         AddDeviceCommand.ThrownExceptions.Subscribe(ex =>
@@ -95,5 +112,22 @@ public class MainWindowViewModel : ReactiveObject
         NewDeviceName = "";
         NewDeviceId = 0;
         await LoadDevicesAsync();
+    }
+
+    private async Task ManageSensorsAsync()
+    {
+        if (SelectedDevice == null) return;
+
+        var vm = new DeviceSensorsViewModel(
+            SelectedDevice.DeviceId,
+            _deviceService,
+            _contentDefinitionRepository
+        );
+
+        var window = new DeviceSensorsWindow { DataContext = vm };
+
+        // Получаем ссылку на главное окно через TopLevel
+        var mainWindow = (Window)TopLevel.GetTopLevel((Visual)this.OwnerWindow);
+        await window.ShowDialog(mainWindow);
     }
 }
