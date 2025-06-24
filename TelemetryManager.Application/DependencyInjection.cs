@@ -16,6 +16,7 @@ public static class DependencyInjection
         serviceCollection.AddScoped<ParameterValidationService>();
         serviceCollection.AddScoped<DeviceService>();
         serviceCollection.AddScoped<IContentDefinitionService, ContentDefinitionService>();
+        serviceCollection.AddScoped<SensorContentRegistrar>();
 
         return serviceCollection;
     }

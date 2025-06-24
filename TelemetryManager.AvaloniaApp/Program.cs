@@ -1,9 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using System;
 using TelemetryManager.Application;
 using TelemetryManager.Application.Interfaces.Services;
+using TelemetryManager.Application.Services;
 using TelemetryManager.AvaloniaApp.Extensions;
 using TelemetryManager.AvaloniaApp.ViewModels;
 using TelemetryManager.AvaloniaApp.Views;
@@ -28,14 +30,15 @@ internal sealed class Program
 
         var contentDefinitionService = ServiceProvider.GetRequiredService<IContentDefinitionService>();
 
-         contentDefinitionService.RegisterAsync(
-            id: 1,
-            contentName: "FarengaitTemperatureSensorContent",
-            parameters: new[]
-            {
-        ("TemperatureInFarengeit", "Temperature", "Farengait", typeof(float))
-            }
-        ).Wait();
+        var registrar = ServiceProvider.GetRequiredService<SensorContentRegistrar>();
+        registrar.RegisterAllSensorTypesAsync().Wait();
+
+        var deviceService = ServiceProvider.GetRequiredService<DeviceService>();
+         deviceService.AddAsync(1, "MyFirstDevice").Wait();
+         deviceService.AddSensorWithParametersAsync(1, 1, 1, "MyFirstTemperatureSensor").Wait();
+         deviceService.SetParameterIntervalAsync(1, 1, 1, "TemperatureInFahrenheit", -30, 30).Wait();
+
+
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

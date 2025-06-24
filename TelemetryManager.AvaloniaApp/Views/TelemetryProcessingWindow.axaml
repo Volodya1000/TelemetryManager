@@ -36,7 +36,6 @@
       <Button Content="Обновить" Command="{Binding LoadPacketsCommand}" Grid.Row="1" Grid.Column="5"/>
     </Grid>
 
-    <!-- ListBox вместо DataGrid -->
     <ListBox ItemsSource="{Binding Packets}" Height="300">
       <ListBox.ItemTemplate>
         <DataTemplate>
