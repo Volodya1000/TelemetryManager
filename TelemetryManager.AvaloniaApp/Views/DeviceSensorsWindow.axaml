@@ -62,22 +62,40 @@
 
     <!-- Список датчиков -->
     <ListBox ItemsSource="{Binding Sensors}"
-          BorderThickness="0"
-          Padding="0">
+         BorderThickness="0"
+         Padding="0">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-            <!-- Добавлен 5-й столбец -->
-            <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
-            <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
-            <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
-            <TextBlock Grid.Column="3" Text="{Binding ParametersCount}" Margin="5"/>
-            <CheckBox Grid.Column="4"
-                      IsChecked="{Binding IsConnected, Mode=TwoWay}"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center"
-                      Margin="5"/>
-          </Grid>
+          <Expander>
+            <Expander.Header>
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
+                <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
+                <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
+                <TextBlock Grid.Column="3" Text="{Binding Parameters.Count}" Margin="5"/>
+                <CheckBox Grid.Column="4"
+                          IsChecked="{Binding IsConnected, Mode=TwoWay}"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"
+                          Margin="5"/>
+              </Grid>
+            </Expander.Header>
+
+            <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,*" Margin="0,2">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Name}"
+                               FontWeight="Bold"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding IntervalDisplay}"
+                               Margin="10,0,0,0"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Expander>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>

@@ -1,8 +1,11 @@
 ﻿using ReactiveUI;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using TelemetryManager.Core.Data.Profiles;
 
 namespace TelemetryManager.AvaloniaApp.ViewModels;
 
@@ -11,7 +14,6 @@ public class SensorItemViewModel : ReactiveObject
     public byte TypeId { get; set; }
     public byte SourceId { get; set; }
     public string Name { get; set; }
-    public int ParametersCount { get; set; }
 
     private bool _isConnected;
     public bool IsConnected
@@ -22,20 +24,26 @@ public class SensorItemViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> ToggleConnectionCommand { get; }
 
+    public ObservableCollection<SensorParameterItemViewModel> Parameters { get; } = new();
+
     public SensorItemViewModel(
      ushort deviceId,
      Func<ushort, byte, byte, bool, Task> updateConnection,
      byte typeId,
      byte sourceId,
      string name,
-     int parametersCount,
-     bool isConnected)
+     bool isConnected,
+     IEnumerable<SensorParameterProfile> parameters)
     {
         TypeId = typeId;
         SourceId = sourceId;
         Name = name;
-        ParametersCount = parametersCount;
         _isConnected = isConnected;
+
+        foreach (var param in parameters)
+        {
+            Parameters.Add(new SensorParameterItemViewModel(param));
+        }
 
         this.WhenAnyValue(x => x.IsConnected)
         .Skip(1) // Пропустить начальное значение

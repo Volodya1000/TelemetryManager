@@ -23,6 +23,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
     public ObservableCollection<SensorItemViewModel> Sensors { get; } = new();
     public ObservableCollection<ContentDefinition> AvailableSensorTypes { get; } = new();
 
+
     private ContentDefinition _selectedSensorType;
     public ContentDefinition SelectedSensorType
     {
@@ -128,7 +129,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 
             foreach (var sensor in device.Sensors)
             {
-                var isConnected =  device.IsSensorConnectedAt(
+                var isConnected = device.IsSensorConnectedAt(
                     new SensorId(sensor.TypeId, sensor.SourceId),
                     DateTime.Now
                 );
@@ -139,8 +140,8 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
                     sensor.TypeId,
                     sensor.SourceId,
                     sensor.Name.Value,
-                    sensor.Parameters.Count,
-                    isConnected
+                    isConnected,
+                    sensor.Parameters // Передаем параметры
                 );
 
                 Sensors.Add(sensorVM);
