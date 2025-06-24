@@ -3,6 +3,7 @@ using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using System;
+using System.IO;
 using TelemetryManager.Application;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.Services;
@@ -10,6 +11,7 @@ using TelemetryManager.AvaloniaApp.Extensions;
 using TelemetryManager.AvaloniaApp.ViewModels;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Infrastructure;
+using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.Persistence;
 
 namespace TelemetryManager.AvaloniaApp;
@@ -39,6 +41,17 @@ internal sealed class Program
          deviceService.SetParameterIntervalAsync(1, 1, 1, "TemperatureInFahrenheit", -30, 30).Wait();
 
 
+
+
+
+
+        string workingDirectory = Environment.CurrentDirectory;
+        string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
+
+        string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
+        var generator = ServiceProvider.GetRequiredService<TelemetryGenerator>();
+
+        generator.Generate(telemetryFilePath, 50, 0).Wait();
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

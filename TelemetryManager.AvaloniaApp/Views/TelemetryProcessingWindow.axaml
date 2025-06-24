@@ -39,13 +39,41 @@
     <ListBox ItemsSource="{Binding Packets}" Height="300">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="{Binding DateTimeOfSending}" Width="150"/>
-            <TextBlock Text="{Binding DevId}" Width="100"/>
-            <TextBlock Text="{Binding SensorId.TypeId}" Width="100"/>
-            <TextBlock Text="{Binding SensorId.SourceId}" Width="100"/>
-            <TextBlock Text="{Binding Content.Count}" Width="50"/>
-          </StackPanel>
+          <Expander HorizontalContentAlignment="Stretch">
+            <!-- Заголовок с основной информацией -->
+            <Expander.Header>
+              <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="{Binding DateTimeOfSending}" Width="150"/>
+                  <TextBlock Text="{Binding DevId}" Width="100"/>
+                  <TextBlock Text="{Binding SensorId.TypeId}" Width="100"/>
+                  <TextBlock Text="{Binding SensorId.SourceId}" Width="100"/>
+                  <TextBlock Text="{Binding Content.Count, StringFormat='{}Параметров: {0}'}" Width="100"/>
+                </StackPanel>
+              </Grid>
+            </Expander.Header>
+
+            <!-- Детализированное содержимое Content -->
+            <Expander.Content>
+              <ScrollViewer MaxHeight="200">
+                <ItemsControl ItemsSource="{Binding Content}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="5,2" ColumnDefinitions="200, *">
+                        <TextBlock
+                            Text="{Binding Key}"
+                            FontWeight="Bold"
+                            Grid.Column="0"/>
+                        <TextBlock
+                            Text="{Binding Value, StringFormat='{}: {0:F2}'}"
+                            Grid.Column="1"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Expander.Content>
+          </Expander>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
