@@ -33,7 +33,23 @@ public class TelemetryProcessingViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
     }
 
-    // Команды
+    public int PageSize
+    {
+        get => Filter.PageSize;
+        set
+        {
+            if (value != Filter.PageSize)
+            {
+                Filter.PageSize = value;
+                Filter.PageNumber = 1; // Сбрасываем на первую страницу
+                this.RaisePropertyChanged(nameof(PageSize));
+                LoadPackets().ConfigureAwait(false);
+            }
+        }
+    }
+
+    public List<int> PageSizeOptions { get; } = new List<int> { 5, 10, 20, 50, 100 };
+
     public ReactiveCommand<Unit, Unit> SelectFileCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadPacketsCommand { get; }
     public ReactiveCommand<Unit, Unit> PreviousPageCommand { get; }
@@ -101,6 +117,7 @@ public class TelemetryProcessingViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(Packets));
             this.RaisePropertyChanged(nameof(CurrentPage));
             this.RaisePropertyChanged(nameof(TotalPages));
+            this.RaisePropertyChanged(nameof(PageSize));
         }
         catch (Exception ex)
         {

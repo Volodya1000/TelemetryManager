@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
+        xmlns:conv="clr-namespace:TelemetryManager.AvaloniaApp.Converters;assembly=TelemetryManager.AvaloniaApp"
         xmlns:packets="using:TelemetryManager.Core.Data.TelemetryPackets"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,34 +12,63 @@
         Height="600"
         x:DataType="vm:TelemetryProcessingViewModel">
 
-  <StackPanel Margin="10">
+
+  <StackPanel Margin="10" x:DataType="vm:TelemetryProcessingViewModel">
     <!-- Кнопка выбора файла -->
-    <Button Content="Выбрать файл (.bin)" Command="{Binding SelectFileCommand}" Margin="0,0,0,10"/>
-    <TextBlock Text="{Binding StatusMessage}" Foreground="Red" Margin="0,0,0,10"/>
+    <Button Content="Выбрать файл (.bin)"
+            Command="{Binding SelectFileCommand}"
+            Margin="0,0,0,10"/>
+
+    <TextBlock Text="{Binding StatusMessage}"
+               Foreground="Red"
+               Margin="0,0,0,10"/>
 
     <!-- Фильтры -->
-    <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="Auto,Auto" Margin="0,0,0,10">
-      <TextBlock Text="Дата с:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-      <DatePicker SelectedDate="{Binding Filter.DateFrom}" Grid.Row="1" Grid.Column="0"/>
+    <Grid ColumnDefinitions="*,*,*,*,*,*"
+          RowDefinitions="Auto,Auto"
+          Margin="0,0,0,10"
+          x:DataType="vm:TelemetryProcessingViewModel">
 
-      <TextBlock Text="Дата по:" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"/>
-      <DatePicker SelectedDate="{Binding Filter.DateTo}" Grid.Row="1" Grid.Column="1"/>
+      <TextBlock Text="Дата с:"
+                 Grid.Row="0" Grid.Column="0"
+                 VerticalAlignment="Center"/>
+      <DatePicker SelectedDate="{Binding Filter.DateFrom}"
+                  Grid.Row="1" Grid.Column="0"/>
 
-      <TextBlock Text="Device ID:" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.DeviceId}" Grid.Row="1" Grid.Column="2"/>
+      <TextBlock Text="Дата по:"
+                 Grid.Row="0" Grid.Column="1"
+                 VerticalAlignment="Center"/>
+      <DatePicker SelectedDate="{Binding Filter.DateTo}"
+                  Grid.Row="1" Grid.Column="1"/>
 
-      <TextBlock Text="Sensor Type:" Grid.Row="0" Grid.Column="3" VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.SensorType}" Grid.Row="1" Grid.Column="3"/>
+      <TextBlock Text="Device ID:"
+                 Grid.Row="0" Grid.Column="2"
+                 VerticalAlignment="Center"/>
+      <TextBox Text="{Binding Filter.DeviceId}"
+               Grid.Row="1" Grid.Column="2"/>
 
-      <TextBlock Text="Sensor ID:" Grid.Row="0" Grid.Column="4" VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.SensorId}" Grid.Row="1" Grid.Column="4"/>
+      <TextBlock Text="Sensor Type:"
+                 Grid.Row="0" Grid.Column="3"
+                 VerticalAlignment="Center"/>
+      <TextBox Text="{Binding Filter.SensorType}"
+               Grid.Row="1" Grid.Column="3"/>
 
-      <Button Content="Обновить" Command="{Binding LoadPacketsCommand}" Grid.Row="1" Grid.Column="5"/>
+      <TextBlock Text="Sensor ID:"
+                 Grid.Row="0" Grid.Column="4"
+                 VerticalAlignment="Center"/>
+      <TextBox Text="{Binding Filter.SensorId}"
+               Grid.Row="1" Grid.Column="4"/>
+
+      <Button Content="Обновить"
+              Command="{Binding LoadPacketsCommand}"
+              Grid.Row="1" Grid.Column="5"/>
     </Grid>
 
-    <ListBox ItemsSource="{Binding Packets}" Height="300">
+    <ListBox ItemsSource="{Binding Packets}"
+             Height="300"
+             x:DataType="vm:TelemetryProcessingViewModel">
       <ListBox.ItemTemplate>
-        <DataTemplate>
+        <DataTemplate x:DataType="packets:TelemetryPacket">
           <Expander HorizontalContentAlignment="Stretch">
             <!-- Заголовок с основной информацией -->
             <Expander.Header>
@@ -60,13 +90,11 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <Grid Margin="5,2" ColumnDefinitions="200, *">
-                        <TextBlock
-                            Text="{Binding Key}"
-                            FontWeight="Bold"
-                            Grid.Column="0"/>
-                        <TextBlock
-                            Text="{Binding Value, StringFormat='{}: {0:F2}'}"
-                            Grid.Column="1"/>
+                        <TextBlock Text="{Binding Key}"
+                                   FontWeight="Bold"
+                                   Grid.Column="0"/>
+                        <TextBlock Text="{Binding Value, StringFormat='{}: {0:F2}'}"
+                                   Grid.Column="1"/>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -78,13 +106,44 @@
       </ListBox.ItemTemplate>
     </ListBox>
 
-    <!-- Пагинация -->
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-      <Button Content="Предыдущая" Command="{Binding PreviousPageCommand}" Margin="0,0,5,0"/>
-      <TextBlock Text="{Binding CurrentPage}" VerticalAlignment="Center"/>
-      <TextBlock Text="/" Margin="5,0" VerticalAlignment="Center"/>
-      <TextBlock Text="{Binding TotalPages}" Margin="0,0,5,0" VerticalAlignment="Center"/>
-      <Button Content="Следующая" Command="{Binding NextPageCommand}"/>
-    </StackPanel>
+    <Grid Margin="0,10">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Левая часть - выбор размера страницы -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+        <TextBlock Text="Записей на странице:" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding PageSizeOptions}"
+                 SelectedItem="{Binding PageSize}"
+                 Width="80"
+                 Margin="10,0,0,0"/>
+      </StackPanel>
+
+      <!-- Центр - навигация по страницам -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1">
+        <Button Content="Предыдущая"
+                Command="{Binding PreviousPageCommand}"
+                IsEnabled="{Binding CurrentPage, Converter={x:Static conv:IsNotFirstPageConverter.Instance}}"
+                Margin="0,0,5,0"/>
+
+        <TextBlock Text="{Binding CurrentPage}" VerticalAlignment="Center"/>
+        <TextBlock Text="/" Margin="5,0" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding TotalPages}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+
+        <Button Content="Следующая"
+                Command="{Binding NextPageCommand}"
+                Margin="0,0,5,0">
+          <Button.IsEnabled>
+            <MultiBinding Converter="{x:Static conv:LessThanMultiConverter.Instance}">
+              <Binding Path="CurrentPage"/>
+              <Binding Path="TotalPages"/>
+            </MultiBinding>
+          </Button.IsEnabled>
+        </Button>
+      </StackPanel>
+    </Grid>
   </StackPanel>
 </Window>
