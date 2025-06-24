@@ -1,103 +1,82 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
+        xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        xmlns:vm="clr-namespace:TelemetryManager.AvaloniaApp.ViewModels"
         x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorsWindow"
         x:DataType="vm:DeviceSensorsViewModel"
         Title="{Binding DeviceHeader}">
 
-  <StackPanel Margin="20" Spacing="10">
-    <TextBlock Text="{Binding DeviceHeader}" FontSize="16"/>
+  <dialogHost:DialogHost Identifier="MainDialogHost" Background="Transparent">
+    <dialogHost:DialogHost.DialogContentTemplate>
+      <DataTemplate>
+        <Border Background="White" Padding="20" CornerRadius="5">
+          <StackPanel Spacing="10" MinWidth="300">
+            <TextBlock Text="{Binding ParameterName}" FontSize="16"/>
 
-    <!-- Блок ошибок -->
-    <TextBlock Text="{Binding ErrorMessage}"
-               Foreground="Red"
-               TextWrapping="Wrap"
-               MaxWidth="400"/>
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,10">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="Min:" VerticalAlignment="Center"/>
+              <NumericUpDown Grid.Row="0" Grid.Column="1"
+                            Value="{Binding NewMin}"
+                            Minimum="0" Maximum="1000000"/>
 
-    <!-- Форма добавления сенсора -->
-    <Grid ColumnDefinitions="*,2*" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
-      <!-- Тип сенсора -->
-      <TextBlock Grid.Row="0" Grid.Column="0"
-                 Text="Тип сенсора:"
-                 VerticalAlignment="Center"/>
-      <ComboBox Grid.Row="0" Grid.Column="1"
-                ItemsSource="{Binding AvailableSensorTypes}"
-                SelectedItem="{Binding SelectedSensorType}">
-        <ComboBox.ItemTemplate>
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Max:" VerticalAlignment="Center"/>
+              <NumericUpDown Grid.Row="1" Grid.Column="1"
+                            Value="{Binding NewMax}"
+                            Minimum="0" Maximum="1000000"/>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+              <Button Content="Применить"
+                      Command="{x:Static dialogHost:DialogHost.CloseDialogCommand}"
+                      CommandParameter="{Binding}"/>
+
+              <Button Content="Отмена"
+                      Command="{x:Static dialogHost:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                  <x:Null/>
+                </Button.CommandParameter>
+              </Button>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </DataTemplate>
+    </dialogHost:DialogHost.DialogContentTemplate>
+
+    <!-- Существующий контент -->
+    <StackPanel Margin="20" Spacing="10">
+      <!-- ... существующий XAML ... -->
+
+      <ListBox ItemsSource="{Binding Sensors}" BorderThickness="0" Padding="0">
+        <ListBox.ItemTemplate>
           <DataTemplate>
-            <TextBlock Text="{Binding Name.Value}"/>
+            <Expander>
+              <Expander.Header>
+                <!-- ... заголовок сенсора ... -->
+              </Expander.Header>
+
+              <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,2">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding Name}"
+                                 FontWeight="Bold"/>
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding IntervalDisplay}"
+                                 Margin="10,0,10,0"/>
+                      <Button Grid.Column="2"
+                              Content="✏️"
+                              Command="{Binding EditIntervalCommand}"
+                              Background="Transparent"
+                              BorderThickness="0"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Expander>
           </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-
-      <!-- Source ID -->
-      <TextBlock Grid.Row="1" Grid.Column="0"
-                 Text="Source ID:"
-                 VerticalAlignment="Center"/>
-      <NumericUpDown Grid.Row="1" Grid.Column="1"
-                     Value="{Binding SourceId}"
-                     Minimum="0"
-                     Maximum="255"
-                     Watermark="0-255"/>
-
-      <!-- Кнопка добавления -->
-      <Button Grid.Row="2" Grid.Column="1"
-              Content="Добавить сенсор"
-              Command="{Binding AddSensorCommand}"
-              HorizontalAlignment="Right"
-              Padding="10 5"/>
-    </Grid>
-
-    <Border BorderBrush="#DDD" BorderThickness="1">
-      <!-- Шапка таблицы -->
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-        <!-- Добавлен 5-й столбец -->
-        <TextBlock Grid.Column="0" Text="TypeID" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="1" Text="SourceID" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="2" Text="Название" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="3" Text="Количество параметров" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="4" Text="Включён" FontWeight="Bold" Margin="5"/>
-      </Grid>
-    </Border>
-
-    <!-- Список датчиков -->
-    <ListBox ItemsSource="{Binding Sensors}"
-         BorderThickness="0"
-         Padding="0">
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <Expander>
-            <Expander.Header>
-              <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-                <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
-                <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
-                <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
-                <TextBlock Grid.Column="3" Text="{Binding Parameters.Count}" Margin="5"/>
-                <CheckBox Grid.Column="4"
-                          IsChecked="{Binding IsConnected, Mode=TwoWay}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Center"
-                          Margin="5"/>
-              </Grid>
-            </Expander.Header>
-
-            <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid ColumnDefinitions="*,*" Margin="0,2">
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding Name}"
-                               FontWeight="Bold"/>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding IntervalDisplay}"
-                               Margin="10,0,0,0"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Expander>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
-  </StackPanel>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </StackPanel>
+  </dialogHost:DialogHost>
 </Window>

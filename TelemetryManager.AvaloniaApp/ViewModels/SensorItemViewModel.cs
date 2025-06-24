@@ -26,6 +26,8 @@ public class SensorItemViewModel : ReactiveObject
 
     public ObservableCollection<SensorParameterItemViewModel> Parameters { get; } = new();
 
+    public SensorParameterItemViewModel SelectedParameter { get; set; }
+
     public SensorItemViewModel(
      ushort deviceId,
      Func<ushort, byte, byte, bool, Task> updateConnection,
@@ -33,7 +35,8 @@ public class SensorItemViewModel : ReactiveObject
      byte sourceId,
      string name,
      bool isConnected,
-     IEnumerable<SensorParameterProfile> parameters)
+     IEnumerable<SensorParameterProfile> parameters,
+    Func<SensorParameterItemViewModel, Task> editParameterCallback)
     {
         TypeId = typeId;
         SourceId = sourceId;
@@ -42,7 +45,10 @@ public class SensorItemViewModel : ReactiveObject
 
         foreach (var param in parameters)
         {
-            Parameters.Add(new SensorParameterItemViewModel(param));
+            Parameters.Add(new SensorParameterItemViewModel(
+                this,
+                param,
+                editParameterCallback));
         }
 
         this.WhenAnyValue(x => x.IsConnected)
