@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
+using TelemetryManager.AvaloniaApp.Models;
 using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Interfaces.Repositories;
 
@@ -117,7 +118,7 @@ public class DeviceSensorsViewModel : ReactiveObject
             await _deviceService.AddSensorWithParametersAsync(
                 _deviceId,
                 SelectedSensorType.TypeId,
-                SourceId, // Используем введенный пользователем SourceId
+                SourceId,
                 SelectedSensorType.Name.Value
             );
 
@@ -130,10 +131,3 @@ public class DeviceSensorsViewModel : ReactiveObject
     }
 }
 
-public class SensorItemViewModel
-{
-    public byte TypeId { get; set; }
-    public byte SourceId { get; set; }
-    public string Name { get; set; }
-    public int ParametersCount { get; set; }
-}
