@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
@@ -46,6 +47,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
     public string DeviceHeader => $"Управление сенсорами устройства ID: {_deviceId}";
     public ReactiveCommand<Unit, Unit> LoadSensorsCommand { get; }
     public ReactiveCommand<Unit, Unit> AddSensorCommand { get; }
+    public ReactiveCommand<Unit, Unit> LoadAvailableSensorTypesCommand { get; }
 
     public DeviceSensorsViewModel(
         ushort deviceId,
@@ -59,21 +61,24 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
         LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
         AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
 
-        LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
-        AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
-
         LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
-        LoadAvailableSensorTypes();
-    }
-   
 
-    private async void LoadAvailableSensorTypes()
+
+        LoadAvailableSensorTypesCommand = ReactiveCommand.CreateFromTask(LoadAvailableSensorTypesAsync);
+
+        // Запускаем начальную загрузку
+        LoadAvailableSensorTypesCommand.Execute().Subscribe().DisposeWith(_disposables);
+    }
+
+
+    private async Task LoadAvailableSensorTypesAsync()
     {
         try
         {
+            ErrorMessage = "";
             var types = await _contentRepo.GetAllDefinitionsAsync();
-            AvailableSensorTypes.Clear();
 
+            AvailableSensorTypes.Clear();
             foreach (var type in types)
             {
                 AvailableSensorTypes.Add(type);
@@ -82,6 +87,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
         catch (Exception ex)
         {
             ErrorMessage = $"Ошибка загрузки типов сенсоров: {ex.Message}";
+            this.Log().Error(ex, "Failed to load sensor types");
         }
     }
 

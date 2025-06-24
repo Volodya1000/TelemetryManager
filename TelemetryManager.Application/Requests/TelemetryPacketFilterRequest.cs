@@ -1,11 +1,12 @@
 ﻿namespace TelemetryManager.Application.Requests;
 
-public record TelemetryPacketFilterRequest(
-    DateTime? DateFrom = null,
-    DateTime? DateTo = null,
-    ushort? DeviceId = null,
-    byte ? SensorType=null,
-    byte? SensorId = null,
-    int PageNumber = 1,
-    int PageSize = 50
-);
+public class TelemetryPacketFilterRequest
+{
+    public DateTime? DateFrom { get; set; }
+    public DateTime? DateTo { get; set; }
+    public ushort? DeviceId { get; set; }
+    public byte? SensorType { get; set; }
+    public byte? SensorId { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 50;
+}

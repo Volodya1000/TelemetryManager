@@ -37,17 +37,11 @@ public class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _newDeviceId, value);
     }
 
-    // Свойство для сообщения об ошибке
     public string ErrorMessage
     {
         get => _errorMessage;
         set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
     }
-
-    public ReactiveCommand<Unit, Unit> LoadDevicesCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
-
-
 
     private DeviceDisplayItem _selectedDevice;
     public DeviceDisplayItem SelectedDevice
@@ -56,8 +50,10 @@ public class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
     }
 
+    public ReactiveCommand<Unit, Unit> LoadDevicesCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
     public ReactiveCommand<Unit, Unit> ManageSensorsCommand { get; }
-
+    public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
 
 
     public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository  contentDefinitionRepository)
@@ -66,6 +62,8 @@ public class MainWindowViewModel : ReactiveObject
         _contentDefinitionRepository=contentDefinitionRepository;
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
+
+        OpenTelemetryProcessingCommand = ReactiveCommand.CreateFromTask(OpenTelemetryProcessingAsync);
 
         // Обработка ошибок загрузки
         LoadDevicesCommand.ThrownExceptions.Subscribe(ex =>
@@ -127,7 +125,20 @@ public class MainWindowViewModel : ReactiveObject
         var window = new DeviceSensorsWindow { DataContext = vm };
 
         // Получаем ссылку на главное окно через TopLevel
-        var mainWindow = (Window)TopLevel.GetTopLevel((Visual)this.OwnerWindow);
+        var mainWindow = (Window)TopLevel.GetTopLevel(this.OwnerWindow);
         await window.ShowDialog(mainWindow);
+    }
+
+    private async Task OpenTelemetryProcessingAsync()
+    {
+        //var vm = new TelemetryProcessingViewModel(
+        //    _telemetryProcessingService,
+        //    TopLevel.GetTopLevel(OwnerWindow)
+        //);
+
+        //var window = new TelemetryProcessingWindow { DataContext = vm };
+
+        var window = new TelemetryProcessingWindow();
+        await window.ShowDialog(OwnerWindow);
     }
 }

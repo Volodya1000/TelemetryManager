@@ -52,8 +52,12 @@
         Margin="0 10"
         HorizontalAlignment="Stretch"/>
 
+    <Button Content="Обработка телеметрии"
+        Command="{Binding OpenTelemetryProcessingCommand}"
+        Margin="0 10"
+        HorizontalAlignment="Stretch"/>
 
-    <!-- Остальной код без изменений -->
+
     <TextBlock Text="Список устройств" FontSize="16" FontWeight="Bold"/>
     <Grid ColumnDefinitions="Auto,*,200" Margin="0 5">
       <TextBlock Grid.Column="0" Text="Id" FontWeight="Bold"/>
