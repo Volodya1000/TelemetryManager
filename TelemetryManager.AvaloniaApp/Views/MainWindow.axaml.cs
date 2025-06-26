@@ -1,21 +1,19 @@
-using Avalonia.Controls;
-using Microsoft.Extensions.DependencyInjection;
+using Avalonia.ReactiveUI;
 using TelemetryManager.AvaloniaApp.ViewModels;
 
-namespace TelemetryManager.AvaloniaApp.Views
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = Program.ServiceProvider
-                        .GetRequiredService<MainWindowViewModel>();
+namespace TelemetryManager.AvaloniaApp.Views;
 
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.OwnerWindow = this;
-            }
+public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
+{
+    public MainWindow(MainWindowViewModel viewModel)
+    {
+        InitializeComponent();
+
+        ViewModel = viewModel;
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.OwnerWindow = this;
         }
     }
 }
