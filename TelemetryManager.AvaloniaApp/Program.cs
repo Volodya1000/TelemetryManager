@@ -25,8 +25,6 @@ internal sealed class Program
     {
         var services = new ServiceCollection();
         services.AddAllServices();
-        services.AddTransient<MainWindow>();
-        services.AddSingleton<MainWindowViewModel>();
         ServiceProvider = services.BuildServiceProvider();
 
 

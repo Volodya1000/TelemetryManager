@@ -11,9 +11,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         ViewModel = viewModel;
 
-        if (DataContext is MainWindowViewModel vm)
-        {
-            vm.OwnerWindow = this;
-        }
+        //if (DataContext is MainWindowViewModel vm)
+        //{
+        //    vm.OwnerWindow = this;
+        //}
     }
 }
