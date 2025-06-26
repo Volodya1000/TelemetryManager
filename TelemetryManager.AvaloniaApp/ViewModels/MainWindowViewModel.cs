@@ -1,6 +1,7 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using ReactiveUI;
+using ReactiveUI.Fody;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
@@ -17,52 +18,26 @@ public class MainWindowViewModel : ReactiveObject
 {
     private readonly DeviceService _deviceService;
     private readonly IContentDefinitionRepository _contentDefinitionRepository;
-    private string _newDeviceName = "";
-    private ushort _newDeviceId;
-    private string _errorMessage; // Новое свойство для ошибки
 
-    public Window? OwnerWindow { get; set; }
+    [Reactive] public Window? OwnerWindow { get; set; }
+    [Reactive] public string NewDeviceName { get; set; } = "";
+    [Reactive] public ushort NewDeviceId { get; set; }
+    [Reactive] public string ErrorMessage { get; set; }
+    [Reactive] public DeviceDisplayItem SelectedDevice { get; set; }
 
     public ObservableCollection<DeviceDisplayItem> Devices { get; } = new();
-
-    public string NewDeviceName
-    {
-        get => _newDeviceName;
-        set => this.RaiseAndSetIfChanged(ref _newDeviceName, value);
-    }
-
-    public ushort NewDeviceId
-    {
-        get => _newDeviceId;
-        set => this.RaiseAndSetIfChanged(ref _newDeviceId, value);
-    }
-
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-    }
-
-    private DeviceDisplayItem _selectedDevice;
-    public DeviceDisplayItem SelectedDevice
-    {
-        get => _selectedDevice;
-        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
-    }
 
     public ReactiveCommand<Unit, Unit> LoadDevicesCommand { get; }
     public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
     public ReactiveCommand<Unit, Unit> ManageSensorsCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
 
-
-    public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository  contentDefinitionRepository)
+    public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository contentDefinitionRepository)
     {
         _deviceService = deviceService;
-        _contentDefinitionRepository=contentDefinitionRepository;
+        _contentDefinitionRepository = contentDefinitionRepository;
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
-
         OpenTelemetryProcessingCommand = ReactiveCommand.CreateFromTask(OpenTelemetryProcessingAsync);
 
         // Обработка ошибок загрузки
@@ -78,7 +53,7 @@ public class MainWindowViewModel : ReactiveObject
         AddDeviceCommand = ReactiveCommand.CreateFromTask(AddDeviceAsync, canAddDevice);
 
         ManageSensorsCommand = ReactiveCommand.CreateFromTask(ManageSensorsAsync,
-      this.WhenAnyValue(x => x.SelectedDevice).Select(device => device != null));
+            this.WhenAnyValue(x => x.SelectedDevice).Select(device => device != null));
 
         // Обработка ошибок добавления
         AddDeviceCommand.ThrownExceptions.Subscribe(ex =>
@@ -131,13 +106,6 @@ public class MainWindowViewModel : ReactiveObject
 
     private async Task OpenTelemetryProcessingAsync()
     {
-        //var vm = new TelemetryProcessingViewModel(
-        //    _telemetryProcessingService,
-        //    TopLevel.GetTopLevel(OwnerWindow)
-        //);
-
-        //var window = new TelemetryProcessingWindow { DataContext = vm };
-
         var window = new TelemetryProcessingWindow();
         await window.ShowDialog(OwnerWindow);
     }
