@@ -4,16 +4,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
-using DialogHostAvalonia;
-using System.Reactive.Threading.Tasks;
-using TelemetryManager.Core.Data.Profiles;
-using TelemetryManager.Core.Data.ValueObjects;
 
 namespace TelemetryManager.AvaloniaApp.ViewModels;
 
@@ -27,6 +22,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 
     public ObservableCollection<SensorItemViewModel> Sensors { get; } = new();
     public ObservableCollection<ContentDefinition> AvailableSensorTypes { get; } = new();
+
 
     private ContentDefinition _selectedSensorType;
     public ContentDefinition SelectedSensorType
@@ -54,9 +50,6 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
     public ReactiveCommand<Unit, Unit> AddSensorCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadAvailableSensorTypesCommand { get; }
 
-    // Interaction для показа диалога редактирования интервала
-    public Interaction<EditIntervalViewModel, Interval?> ShowEditIntervalDialog { get; } = new();
-
     public DeviceSensorsViewModel(
         ushort deviceId,
         DeviceService deviceService,
@@ -68,75 +61,16 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 
         LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
         AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
+
+        LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
+
+
         LoadAvailableSensorTypesCommand = ReactiveCommand.CreateFromTask(LoadAvailableSensorTypesAsync);
 
-        // Регистрация обработчика для диалога
-        ShowEditIntervalDialog
-      .RegisterHandler(new Action<InteractionContext<EditIntervalViewModel, Interval?>>(async interaction =>
-      {
-          await DoShowEditIntervalDialogAsync(interaction);
-      }))
-      .DisposeWith(_disposables);
-
-        // Запуск начальной загрузки
-        LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
+        // Запускаем начальную загрузку
         LoadAvailableSensorTypesCommand.Execute().Subscribe().DisposeWith(_disposables);
     }
 
-    private async Task DoShowEditIntervalDialogAsync(InteractionContext<EditIntervalViewModel, Interval?> interaction)
-    {
-        try
-        {
-            var dialog = new EditIntervalDialog
-            {
-                DataContext = interaction.Input
-            };
-
-            var result = await DialogHost.Show(dialog, "MainDialogHost");
-            interaction.SetOutput(result as Interval?);
-        }
-        catch (Exception ex)
-        {
-            this.Log().Error(ex, "Error showing interval dialog");
-            interaction.SetOutput(null);
-        }
-    }
-
-    private async Task EditParameterAsync(SensorParameterItemViewModel parameter)
-    {
-        try
-        {
-            ErrorMessage = "";
-
-            var editVm = new EditIntervalViewModel(
-                parameter.Name,
-                parameter.CurrentInterval.Min,
-                parameter.CurrentInterval.Max
-            );
-
-            var newInterval = await ShowEditIntervalDialog.Handle(editVm);
-
-            if (newInterval!=null)
-            {
-                await _deviceService.SetParameterIntervalAsync(
-                    _deviceId,
-                    parameter.ParentSensor.TypeId,
-                    parameter.ParentSensor.SourceId,
-                    parameter.Name,
-                    newInterval.Min,
-                    newInterval.Max
-                );
-
-                // Обновляем данные
-                await LoadSensorsAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Ошибка изменения интервала: {ex.Message}";
-            this.Log().Error(ex, "Failed to edit parameter interval");
-        }
-    }
 
     private async Task LoadAvailableSensorTypesAsync()
     {
@@ -182,7 +116,6 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
         catch (Exception ex)
         {
             ErrorMessage = $"Ошибка добавления сенсора: {ex.Message}";
-            this.Log().Error(ex, "Failed to add sensor");
         }
     }
 
@@ -208,8 +141,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
                     sensor.SourceId,
                     sensor.Name.Value,
                     isConnected,
-                    sensor.Parameters,
-                    EditParameterAsync
+                    sensor.Parameters // Передаем параметры
                 );
 
                 Sensors.Add(sensorVM);
@@ -218,7 +150,6 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
         catch (Exception ex)
         {
             ErrorMessage = $"Ошибка загрузки сенсоров: {ex.Message}";
-            this.Log().Error(ex, "Failed to load sensors");
         }
     }
 
@@ -233,25 +164,21 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
             var timestamp = DateTime.Now;
             if (connect)
             {
-                await _deviceService.MarkSensorConnectedAsync(
-                    deviceId, typeId, sourceId, timestamp);
+                await _deviceService.MarkSensorConnectedAsync( // Исправлено!
+                      deviceId, typeId, sourceId, timestamp);
             }
             else
             {
-                await _deviceService.MarkSensorDisconnectedAsync(
-                    deviceId, typeId, sourceId, timestamp);
+                await _deviceService.MarkSensorDisconnectedAsync( // Исправлено!
+                 deviceId, typeId, sourceId, timestamp);
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Ошибка изменения состояния: {ex.Message}";
-            this.Log().Error(ex, "Failed to update sensor connection");
-            throw;
+            throw; // Для обработки в ToggleConnectionCommand
         }
     }
 
-    public void Dispose()
-    {
-        _disposables.Dispose();
-    }
+    public void Dispose() => _disposables.Dispose();
 }
