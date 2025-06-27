@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryManager.Persistenc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryManager.AvaloniaApp", "TelemetryManager.AvaloniaApp\TelemetryManager.AvaloniaApp.csproj", "{42BFCD4C-8FCB-45A1-9238-899C5AF94F23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryManager.ViewModels", "TelemetryManager.ViewModels\TelemetryManager.ViewModels.csproj", "{0EE192B3-93F1-4569-8126-DBEC5B825A84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{42BFCD4C-8FCB-45A1-9238-899C5AF94F23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42BFCD4C-8FCB-45A1-9238-899C5AF94F23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42BFCD4C-8FCB-45A1-9238-899C5AF94F23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EE192B3-93F1-4569-8126-DBEC5B825A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EE192B3-93F1-4569-8126-DBEC5B825A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EE192B3-93F1-4569-8126-DBEC5B825A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EE192B3-93F1-4569-8126-DBEC5B825A84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -34,5 +34,6 @@
     <ProjectReference Include="..\TelemetryManager.Console\TelemetryManager.Console.csproj" />
     <ProjectReference Include="..\TelemetryManager.Infrastructure\TelemetryManager.Infrastructure.csproj" />
     <ProjectReference Include="..\TelemetryManager.Persistence\TelemetryManager.Persistence.csproj" />
+    <ProjectReference Include="..\TelemetryManager.ViewModels\TelemetryManager.ViewModels.csproj" />
   </ItemGroup>
 </Project>

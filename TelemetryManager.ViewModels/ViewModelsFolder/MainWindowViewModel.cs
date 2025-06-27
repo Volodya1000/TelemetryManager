@@ -1,25 +1,23 @@
-﻿using Avalonia.Controls;
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using TelemetryManager.Application.Services;
-using TelemetryManager.AvaloniaApp.Models;
-using TelemetryManager.AvaloniaApp.ViewModels.DialogInteractionParams;
-using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Core.Interfaces.Repositories;
+using TelemetryManager.ViewModels.DialogInteractionParams;
+using TelemetryManager.ViewModels.ModelsForUI;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
 public class MainWindowViewModel : ReactiveObject
 {
     private readonly DeviceService _deviceService;
     private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
-    [Reactive] public Window? OwnerWindow { get; set; }
     [Reactive] public string NewDeviceName { get; set; } = "";
     [Reactive] public ushort NewDeviceId { get; set; }
     [Reactive] public string ErrorMessage { get; set; }
@@ -31,7 +29,7 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
 
     public ReactiveCommand<Unit, Unit> OpenDeviceSensorsWindowCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; } 
+    public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
         = ReactiveCommand.CreateFromTask(() => Task.CompletedTask);
 
     public Interaction<DeviceSensorsParams, Unit> ShowDeviceSensorsDialogInteraction { get; } = new();
@@ -62,7 +60,7 @@ public class MainWindowViewModel : ReactiveObject
         // Обработка ошибок добавления
         AddDeviceCommand.ThrownExceptions.Subscribe(ex =>
             ErrorMessage = $"Ошибка добавления: {ex.Message}");
-      
+
 
         LoadDevicesCommand.Execute().Subscribe();
     }
@@ -94,11 +92,6 @@ public class MainWindowViewModel : ReactiveObject
 
 
     #region Open dialogs
-    //private async Task OpenTelemetryProcessingAsync()
-    //{
-    //    var window = new TelemetryProcessingWindow();
-    //    await window.ShowDialog(OwnerWindow);
-    //}
 
     private async Task OpenDialogAsync()
     {

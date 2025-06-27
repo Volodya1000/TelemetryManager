@@ -7,12 +7,13 @@ using TelemetryManager.Application;
 using TelemetryManager.Application.Services;
 using TelemetryManager.AvaloniaApp.Services;
 using TelemetryManager.AvaloniaApp.ViewModels;
-using TelemetryManager.AvaloniaApp.ViewModels.DialogInteractionParams;
 using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure;
 using TelemetryManager.Persistence;
+using TelemetryManager.ViewModels.DialogInteractionParams;
+using TelemetryManager.ViewModels.ViewModelsFolder;
 
 namespace TelemetryManager.AvaloniaApp.Extensions;
 

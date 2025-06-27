@@ -4,8 +4,8 @@ using ReactiveUI;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables;
-using TelemetryManager.AvaloniaApp.ViewModels;
-using TelemetryManager.AvaloniaApp.ViewModels.DialogInteractionParams;
+using TelemetryManager.ViewModels.DialogInteractionParams;
+using TelemetryManager.ViewModels.ViewModelsFolder;
 
 namespace TelemetryManager.AvaloniaApp.Views;
 

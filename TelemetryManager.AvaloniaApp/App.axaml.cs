@@ -11,6 +11,7 @@ using TelemetryManager.AvaloniaApp.ViewModels;
 using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
+using TelemetryManager.ViewModels.ViewModelsFolder;
 
 namespace TelemetryManager.AvaloniaApp;
 
@@ -38,7 +39,6 @@ public partial class App : Avalonia.Application
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
             desktop.MainWindow = mainWindow;
 
-            // Добавляем Avalonia-специфичные сервисы
             var storageProvider = TopLevel.GetTopLevel(mainWindow)?.StorageProvider
                 ?? throw new InvalidOperationException("Cannot get StorageProvider");
 
@@ -75,11 +75,5 @@ public partial class App : Avalonia.Application
     {
         services.AddAllServices();
         services.AddTransient<DeviceContentRegistrar>();
-    }
-
-    private void ConfigureAvaloniaServices(IServiceCollection services, IStorageProvider storageProvider)
-    {
-        services.AddSingleton(storageProvider);
-        services.AddSingleton<IFileSelectionService, AvaloniaFileSelectionService>();
     }
 }
