@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
+using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
 
@@ -14,7 +15,9 @@ namespace TelemetryManager.AvaloniaApp.ViewModels;
 
 public class TelemetryProcessingViewModel : ViewModelBase
 {
-    private readonly TelemetryProcessingService _service;
+    private readonly TelemetryProcessingService _telemetryProcessingService;
+    private readonly IFileSelectionService _fileSelectionService;
+
     private PagedResponse<TelemetryPacket>? _currentPage;
     private string _statusMessage = string.Empty;
     private int _currentPageNumber = 1;
@@ -64,9 +67,12 @@ public class TelemetryProcessingViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> PreviousPageCommand { get; }
     public ReactiveCommand<Unit, Unit> NextPageCommand { get; }
 
-    public TelemetryProcessingViewModel(TelemetryProcessingService service)
+    public TelemetryProcessingViewModel(
+           TelemetryProcessingService telemetryProcessingService,
+           IFileSelectionService fileSelectionService)
     {
-        _service = service;
+        _telemetryProcessingService = telemetryProcessingService;
+        _fileSelectionService = fileSelectionService;
 
         // Инициализация команд
         SelectFileCommand = ReactiveCommand.CreateFromTask(SelectFile);
@@ -80,41 +86,24 @@ public class TelemetryProcessingViewModel : ViewModelBase
 
     private async Task SelectFile()
     {
-        //if (_topLevel == null)
-        //{
-        //    StatusMessage = "TopLevel недоступен";
-        //    return;
-        //}
+        try
+        {
+            var filePath = await _fileSelectionService.SelectFileAsync(
+                "Выберите файл .bin",
+                "Binary Files",
+                new[] { "*.bin" });
 
-        //var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        //{
-        //    Title = "Выберите файл .bin",
-        //    FileTypeFilter = new[]
-        //    {
-        //        new FilePickerFileType("Binary Files")
-        //        {
-        //            Patterns = new[] { "*.bin" },
-        //            MimeTypes = new[] { "application/octet-stream" }
-        //        }
-        //    },
-        //    AllowMultiple = false
-        //});
-
-        //if (files.Count > 0 && files[0] is IStorageFile file)
-        //{
-        //    try
-        //    {
-        //        // Получаем путь к файлу
-        //        var filePath = file.Path.AbsolutePath;
-        //        await _service.ProcessTelemetryFile(filePath);
-        //        StatusMessage = "Файл успешно обработан";
-        //        await LoadPackets();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        StatusMessage = $"Ошибка: {ex.Message}";
-        //    }
-        //}
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                await _telemetryProcessingService.ProcessTelemetryFile(filePath);
+                StatusMessage = "Файл успешно обработан";
+                await LoadPackets();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Ошибка: {ex.Message}";
+        }
     }
 
     private async Task LoadPackets()
@@ -124,7 +113,7 @@ public class TelemetryProcessingViewModel : ViewModelBase
             // Обновляем номер страницы в фильтре
             Filter.PageNumber = CurrentPage;
 
-            _currentPage = await _service.GetPacketsAsync(Filter);
+            _currentPage = await _telemetryProcessingService.GetPacketsAsync(Filter);
 
            
 
