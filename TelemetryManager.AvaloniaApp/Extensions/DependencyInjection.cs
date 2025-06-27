@@ -53,14 +53,4 @@ public static class DependencyInjection
 
         return serviceCollection;
     }
-
-    public static IServiceCollection AddAvaloniaServices(
-          this IServiceCollection services,
-          IStorageProvider storageProvider)
-    {
-        services.AddSingleton(storageProvider);
-        services.AddSingleton<IFileSelectionService, AvaloniaFileSelectionService>();
-
-        return services;
-    }
 }

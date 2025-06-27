@@ -27,9 +27,9 @@ public class MainWindowViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> OpenDeviceSensorsWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
-        = ReactiveCommand.CreateFromTask(() => Task.CompletedTask);
 
     public Interaction<DeviceSensorsParams, Unit> ShowDeviceSensorsDialogInteraction { get; } = new();
+    public Interaction<Unit, Unit> ShowTelemetryProcessingInteraction { get; } = new();
 
     public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository contentDefinitionRepository)
     {
@@ -50,8 +50,10 @@ public class MainWindowViewModel : ReactiveObject
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(AddDeviceAsync, canAddDevice);
 
+        OpenTelemetryProcessingCommand = ReactiveCommand.CreateFromTask(OpenTelemetryProcessingAsync);
+
         OpenDeviceSensorsWindowCommand = ReactiveCommand.CreateFromTask(
-            OpenDialogAsync,
+            OpenDeviceSensorsDialogAsync,
             this.WhenAnyValue(x => x.SelectedDevice).Select(device => device != null));
 
         // Обработка ошибок добавления
@@ -90,7 +92,14 @@ public class MainWindowViewModel : ReactiveObject
 
     #region Open dialogs
 
-    private async Task OpenDialogAsync()
+    private async Task OpenTelemetryProcessingAsync()
+    {
+        await ShowTelemetryProcessingInteraction.Handle(Unit.Default);
+
+        await LoadDevicesAsync();
+    }
+
+    private async Task OpenDeviceSensorsDialogAsync()
     {
         var param = new DeviceSensorsParams { DeviceId = SelectedDevice.DeviceId };
         var result = await ShowDeviceSensorsDialogInteraction.Handle(param);

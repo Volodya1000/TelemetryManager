@@ -28,9 +28,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 interaction.SetOutput(res);
             }).DisposeWith(disposables);
 
-            ViewModel.OpenTelemetryProcessingCommand
-                .Subscribe(async _ => await App.ServiceProvider.GetRequiredService<TelemetryProcessingWindow>().ShowDialog<Unit>(this))
-                .DisposeWith(disposables);
+            ViewModel.ShowTelemetryProcessingInteraction
+               .RegisterHandler(async interaction =>
+               {
+                   var window = App.ServiceProvider.GetRequiredService<TelemetryProcessingWindow>();
+                   await window.ShowDialog<Unit>(this);
+                   interaction.SetOutput(Unit.Default);
+               })
+               .DisposeWith(disposables);
         });
 
     }
