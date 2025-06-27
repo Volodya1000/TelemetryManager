@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using TelemetryManager.Application;
+using TelemetryManager.Application.Services;
 using TelemetryManager.AvaloniaApp.ViewModels;
+using TelemetryManager.AvaloniaApp.ViewModels.DialogInteractionParams;
 using TelemetryManager.AvaloniaApp.Views;
+using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Infrastructure;
 using TelemetryManager.Persistence;
 
@@ -24,17 +28,26 @@ public static class DependencyInjection
     public static IServiceCollection AddApplicationWindows(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<MainWindow>();
-        serviceCollection.AddTransient<DeviceSensorsWindow>();
         serviceCollection.AddTransient<TelemetryProcessingWindow>();
 
         return serviceCollection;
     }
 
-    public static IServiceCollection AddApplicationWindows(this IServiceCollection serviceCollection)
+    public static IServiceCollection AddApplicationViewModels(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<MainWindowViewModel>();
-        serviceCollection.AddTransient<DeviceSensorsViewModel>();
         serviceCollection.AddTransient<TelemetryProcessingViewModel>();
+        serviceCollection.AddTransient<Func<DeviceSensorsParams, DeviceSensorsWindow>>(provider =>
+             param =>
+             {
+                 var deviceService = provider.GetRequiredService<DeviceService>();
+                 var contentRepo = provider.GetRequiredService<IContentDefinitionRepository>();
+                 var viewModel = new DeviceSensorsViewModel(
+                     param.DeviceId, 
+                     deviceService,
+                     contentRepo);
+                 return new DeviceSensorsWindow(viewModel);
+             });
 
         return serviceCollection;
     }
