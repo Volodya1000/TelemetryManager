@@ -27,9 +27,9 @@ public class DeviceService
         await _deviceRepository.AddAsync(device);
     }
 
-     public async Task<IEnumerable<DeviceProfile>> GetAllAsync()
+     public async Task<IEnumerable<DeviceDto>> GetAllAsync()
      {
-        return await _deviceRepository.GetAllAsync();
+        return (await _deviceRepository.GetAllAsync()).Select(d=>d.ToDto());
      }
 
 

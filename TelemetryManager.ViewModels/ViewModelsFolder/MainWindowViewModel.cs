@@ -1,8 +1,10 @@
-﻿using ReactiveUI;
+﻿using DynamicData;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.ViewModels.DialogInteractionParams;
@@ -71,12 +73,11 @@ public class MainWindowViewModel : ReactiveObject
         var devices = await _deviceService.GetAllAsync();
         foreach (var device in devices)
         {
-            Devices.Add(new DeviceDisplayItem
-            {
-                DeviceId = device.DeviceId,
-                Name = device.Name.Value,
-                ActivationTime = device.ActivationTime?.ToString("dd.MM.yyyy HH:mm") ?? "Не активирован"
-            });
+            Devices.Add(new DeviceDisplayItem(
+             DeviceId: device.DeviceId,
+             Name: device.Name,
+             ActivationTime: device.ActivationTime?.ToString("dd.MM.yyyy HH:mm") ?? "Не активирован"
+         ));
         }
     }
 

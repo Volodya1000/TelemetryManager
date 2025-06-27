@@ -16,4 +16,8 @@
     <ProjectReference Include="..\TelemetryManager.Core\TelemetryManager.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Новая папка\" />
+  </ItemGroup>
+
 </Project>
