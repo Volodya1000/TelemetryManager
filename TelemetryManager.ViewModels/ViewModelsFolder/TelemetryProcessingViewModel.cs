@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System.Reactive;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
@@ -14,48 +15,29 @@ public class TelemetryProcessingViewModel : ReactiveObject
     private readonly IFileSelectionService _fileSelectionService;
 
     private PagedResponse<TelemetryPacket>? _currentPage;
-    private string _statusMessage = string.Empty;
-    private int _currentPageNumber = 1;
-    private int _totalPages = 1;
 
-    public TelemetryPacketFilterRequest Filter { get; } = new TelemetryPacketFilterRequest();
+    public TelemetryPacketFilterRequest Filter { get; } = new();
 
     public List<TelemetryPacket> Packets => _currentPage?.Data ?? new List<TelemetryPacket>();
 
-    public int CurrentPage
-    {
-        get => _currentPageNumber;
-        private set => this.RaiseAndSetIfChanged(ref _currentPageNumber, value);
-    }
-
-    public int TotalPages
-    {
-        get => _totalPages;
-        private set => this.RaiseAndSetIfChanged(ref _totalPages, value);
-    }
-
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
-    }
+    [Reactive] public int CurrentPage { get; private set; } = 1;
+    [Reactive] public int TotalPages { get; private set; } = 1;
+    [Reactive] public string StatusMessage { get; set; } = string.Empty;
 
     public int PageSize
     {
         get => Filter.PageSize;
         set
         {
-            if (value != Filter.PageSize)
-            {
-                Filter.PageSize = value;
-                CurrentPage = 1;
-                this.RaisePropertyChanged(nameof(PageSize));
-                LoadPackets().ConfigureAwait(false);
-            }
+            if (value == Filter.PageSize) return;
+
+            Filter.PageSize = value;
+            CurrentPage = 1;
+            LoadPackets().ConfigureAwait(false);
         }
     }
 
-    public List<int> PageSizeOptions { get; } = new List<int> { 5, 10, 20, 50, 100 };
+    public List<int> PageSizeOptions { get; } = new() { 5, 10, 20, 50, 100 };
 
     public ReactiveCommand<Unit, Unit> SelectFileCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadPacketsCommand { get; }
@@ -63,8 +45,8 @@ public class TelemetryProcessingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> NextPageCommand { get; }
 
     public TelemetryProcessingViewModel(
-           TelemetryProcessingService telemetryProcessingService,
-           IFileSelectionService fileSelectionService)
+        TelemetryProcessingService telemetryProcessingService,
+        IFileSelectionService fileSelectionService)
     {
         _telemetryProcessingService = telemetryProcessingService;
         _fileSelectionService = fileSelectionService;
@@ -105,17 +87,11 @@ public class TelemetryProcessingViewModel : ReactiveObject
     {
         try
         {
-            // Обновляем номер страницы в фильтре
             Filter.PageNumber = CurrentPage;
-
             _currentPage = await _telemetryProcessingService.GetPacketsAsync(Filter);
 
-           
-
-            // Обновляем свойства после получения данных
             TotalPages = _currentPage.PageNumber;
 
-            // Корректируем текущую страницу, если она превышает общее количество
             if (CurrentPage > TotalPages && TotalPages > 0)
             {
                 CurrentPage = TotalPages;
@@ -124,8 +100,6 @@ public class TelemetryProcessingViewModel : ReactiveObject
             }
 
             this.RaisePropertyChanged(nameof(Packets));
-            this.RaisePropertyChanged(nameof(CurrentPage));
-            this.RaisePropertyChanged(nameof(TotalPages));
         }
         catch (Exception ex)
         {
