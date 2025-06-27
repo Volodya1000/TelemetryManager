@@ -153,4 +153,29 @@ public class DeviceService
         var parameterNameVO = new ParameterName(parameterName);
         return device.CheckParameterValue(sensorId, parameterNameVO, parameterValue);
     }
+
+    public async ValueTask<(double currentMin, double currentMax)>
+        GetParameterInterval(ushort deviceId,
+                            SensorId sensorId,
+                            string parameterName)
+    {
+        var device = await _deviceRepository.GetByIdAsync(deviceId);
+        var interval = device.Sensors.First(s => s.Id == sensorId)
+            .Parameters.First(p => p.Name == new Name(parameterName))
+            .CurrentInterval;
+        return (interval.Min,interval.Max);
+    }
+
+    public async Task SetParameterIntervalAsync(
+    ushort deviceId,
+    SensorId sensorId,
+    string parameterName,
+    double min,
+    double max)
+    {
+        var device = await _deviceRepository.GetByIdAsync(deviceId);
+        var name = new ParameterName(parameterName);
+        device.SetParameterInterval(sensorId, name, new Interval(min, max), DateTime.Now);
+        await _deviceRepository.UpdateAsync(device);
+    }
 }
