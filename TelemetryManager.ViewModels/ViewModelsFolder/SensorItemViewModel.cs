@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using TelemetryManager.Core.Data.Profiles;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
 public class SensorItemViewModel : ReactiveObject
 {

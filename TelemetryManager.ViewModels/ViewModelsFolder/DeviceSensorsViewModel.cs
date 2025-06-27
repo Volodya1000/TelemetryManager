@@ -10,7 +10,7 @@ using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
 public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 {

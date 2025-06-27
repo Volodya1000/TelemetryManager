@@ -1,7 +1,7 @@
 ﻿using ReactiveUI;
 using TelemetryManager.Core.Data.Profiles;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
 public class SensorParameterItemViewModel : ReactiveObject
 {

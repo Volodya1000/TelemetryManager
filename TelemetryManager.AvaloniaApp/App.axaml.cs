@@ -5,6 +5,7 @@ using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using TelemetryManager.Application.Services;
 using TelemetryManager.AvaloniaApp.Extensions;
 using TelemetryManager.AvaloniaApp.Services;
 using TelemetryManager.AvaloniaApp.ViewModels;
@@ -30,21 +31,21 @@ public partial class App : Avalonia.Application
         {
             // Создаем и конфигурируем сервисы
             var services = new ServiceCollection();
-            ConfigureCoreServices(services);
+            services.AddAllServices();
 
-            // Строим провайдер сервисов ДО создания окон
-            ServiceProvider = services.BuildServiceProvider();
+            // Создаем главное окно для получения StorageProvider
+            var tempProvider = services.BuildServiceProvider();
+            var mainWindow = tempProvider.GetRequiredService<MainWindow>();
 
-            // Создаем главное окно через DI
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-            desktop.MainWindow = mainWindow;
-
+            // Получаем StorageProvider
             var storageProvider = TopLevel.GetTopLevel(mainWindow)?.StorageProvider
                 ?? throw new InvalidOperationException("Cannot get StorageProvider");
 
-            // Перестраиваем ServiceProvider с новыми сервисами
+            // Добавляем сервисы, требующие StorageProvider
             services.AddSingleton(storageProvider);
             services.AddSingleton<IFileSelectionService, AvaloniaFileSelectionService>();
+
+            // Строим финальный провайдер сервисов
             ServiceProvider = services.BuildServiceProvider();
 
             // Регистрируем устройства и сенсоры
@@ -54,8 +55,8 @@ public partial class App : Avalonia.Application
             // Генерируем телеметрию
             GenerateTelemetryData();
 
-            // Устанавливаем DataContext
-            mainWindow.DataContext = ServiceProvider.GetRequiredService<MainWindowViewModel>();
+            // Устанавливаем главное окно и DataContext
+            desktop.MainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -69,11 +70,5 @@ public partial class App : Avalonia.Application
 
         var generator = ServiceProvider.GetRequiredService<TelemetryGenerator>();
         generator.Generate(telemetryFilePath, 50, 0).Wait();
-    }
-
-    private void ConfigureCoreServices(IServiceCollection services)
-    {
-        services.AddAllServices();
-        services.AddTransient<DeviceContentRegistrar>();
     }
 }

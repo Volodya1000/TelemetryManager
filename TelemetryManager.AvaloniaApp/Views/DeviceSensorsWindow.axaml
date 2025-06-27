@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
+        xmlns:vm="using:TelemetryManager.ViewModels.ViewModelsFolder"
         x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorsWindow"
         x:DataType="vm:DeviceSensorsViewModel"
         Title="{Binding DeviceHeader}">
