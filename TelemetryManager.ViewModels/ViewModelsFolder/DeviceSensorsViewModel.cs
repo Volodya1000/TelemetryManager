@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Splat;
 using System;
 using System.Collections.ObjectModel;
@@ -15,35 +16,16 @@ namespace TelemetryManager.ViewModels.ViewModelsFolder;
 public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 {
     private readonly CompositeDisposable _disposables = new();
-
     private readonly DeviceService _deviceService;
     private readonly IContentDefinitionRepository _contentRepo;
-    private ushort _deviceId;
+    private readonly ushort _deviceId;
 
     public ObservableCollection<SensorItemViewModel> Sensors { get; } = new();
     public ObservableCollection<ContentDefinition> AvailableSensorTypes { get; } = new();
 
-
-    private ContentDefinition _selectedSensorType;
-    public ContentDefinition SelectedSensorType
-    {
-        get => _selectedSensorType;
-        set => this.RaiseAndSetIfChanged(ref _selectedSensorType, value);
-    }
-
-    private byte _sourceId;
-    public byte SourceId
-    {
-        get => _sourceId;
-        set => this.RaiseAndSetIfChanged(ref _sourceId, value);
-    }
-
-    private string _errorMessage;
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
-    }
+    [Reactive] public ContentDefinition SelectedSensorType { get; set; }
+    [Reactive] public byte SourceId { get; set; }
+    [Reactive] public string ErrorMessage { get; set; }
 
     public string DeviceHeader => $"Управление сенсорами устройства ID: {_deviceId}";
     public ReactiveCommand<Unit, Unit> LoadSensorsCommand { get; }
@@ -61,16 +43,11 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
 
         LoadSensorsCommand = ReactiveCommand.CreateFromTask(LoadSensorsAsync);
         AddSensorCommand = ReactiveCommand.CreateFromTask(AddSensorAsync);
-
-        LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
-
-
         LoadAvailableSensorTypesCommand = ReactiveCommand.CreateFromTask(LoadAvailableSensorTypesAsync);
 
-        // Запускаем начальную загрузку
+        LoadSensorsCommand.Execute().Subscribe().DisposeWith(_disposables);
         LoadAvailableSensorTypesCommand.Execute().Subscribe().DisposeWith(_disposables);
     }
-
 
     private async Task LoadAvailableSensorTypesAsync()
     {
@@ -141,7 +118,7 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
                     sensor.SourceId,
                     sensor.Name.Value,
                     isConnected,
-                    sensor.Parameters // Передаем параметры
+                    sensor.Parameters
                 );
 
                 Sensors.Add(sensorVM);
@@ -164,19 +141,19 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
             var timestamp = DateTime.Now;
             if (connect)
             {
-                await _deviceService.MarkSensorConnectedAsync( // Исправлено!
+                await _deviceService.MarkSensorConnectedAsync(
                       deviceId, typeId, sourceId, timestamp);
             }
             else
             {
-                await _deviceService.MarkSensorDisconnectedAsync( // Исправлено!
+                await _deviceService.MarkSensorDisconnectedAsync(
                  deviceId, typeId, sourceId, timestamp);
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Ошибка изменения состояния: {ex.Message}";
-            throw; // Для обработки в ToggleConnectionCommand
+            throw;
         }
     }
 
