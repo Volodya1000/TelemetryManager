@@ -1,24 +1,14 @@
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using Microsoft.Extensions.DependencyInjection;
-using TelemetryManager.Application.Services;
+
+using Avalonia.ReactiveUI;
 using TelemetryManager.AvaloniaApp.ViewModels;
 namespace TelemetryManager.AvaloniaApp.Views;
 
-public partial class TelemetryProcessingWindow : Window
+public partial class TelemetryProcessingWindow : ReactiveWindow<TelemetryProcessingViewModel>
 {
-    public TelemetryProcessingWindow()
+    public TelemetryProcessingWindow(TelemetryProcessingViewModel viewModel)
     {
         InitializeComponent();
 
-        DataContext = new TelemetryProcessingViewModel(Program.ServiceProvider
-                        .GetRequiredService<TelemetryProcessingService>(), TopLevel.GetTopLevel(this));
-        InitializeComponent();
+        ViewModel = viewModel;
     }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
 }

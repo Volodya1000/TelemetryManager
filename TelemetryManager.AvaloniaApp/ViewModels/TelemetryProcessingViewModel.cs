@@ -17,7 +17,6 @@ public class TelemetryProcessingViewModel : ViewModelBase
     private readonly TelemetryProcessingService _service;
     private PagedResponse<TelemetryPacket>? _currentPage;
     private string _statusMessage = string.Empty;
-    private readonly TopLevel? _topLevel;
     private int _currentPageNumber = 1;
     private int _totalPages = 1;
 
@@ -65,10 +64,9 @@ public class TelemetryProcessingViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> PreviousPageCommand { get; }
     public ReactiveCommand<Unit, Unit> NextPageCommand { get; }
 
-    public TelemetryProcessingViewModel(TelemetryProcessingService service, TopLevel? topLevel = null)
+    public TelemetryProcessingViewModel(TelemetryProcessingService service)
     {
         _service = service;
-        _topLevel = topLevel;
 
         // Инициализация команд
         SelectFileCommand = ReactiveCommand.CreateFromTask(SelectFile);
@@ -82,41 +80,41 @@ public class TelemetryProcessingViewModel : ViewModelBase
 
     private async Task SelectFile()
     {
-        if (_topLevel == null)
-        {
-            StatusMessage = "TopLevel недоступен";
-            return;
-        }
+        //if (_topLevel == null)
+        //{
+        //    StatusMessage = "TopLevel недоступен";
+        //    return;
+        //}
 
-        var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Выберите файл .bin",
-            FileTypeFilter = new[]
-            {
-                new FilePickerFileType("Binary Files")
-                {
-                    Patterns = new[] { "*.bin" },
-                    MimeTypes = new[] { "application/octet-stream" }
-                }
-            },
-            AllowMultiple = false
-        });
+        //var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        //{
+        //    Title = "Выберите файл .bin",
+        //    FileTypeFilter = new[]
+        //    {
+        //        new FilePickerFileType("Binary Files")
+        //        {
+        //            Patterns = new[] { "*.bin" },
+        //            MimeTypes = new[] { "application/octet-stream" }
+        //        }
+        //    },
+        //    AllowMultiple = false
+        //});
 
-        if (files.Count > 0 && files[0] is IStorageFile file)
-        {
-            try
-            {
-                // Получаем путь к файлу
-                var filePath = file.Path.AbsolutePath;
-                await _service.ProcessTelemetryFile(filePath);
-                StatusMessage = "Файл успешно обработан";
-                await LoadPackets();
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Ошибка: {ex.Message}";
-            }
-        }
+        //if (files.Count > 0 && files[0] is IStorageFile file)
+        //{
+        //    try
+        //    {
+        //        // Получаем путь к файлу
+        //        var filePath = file.Path.AbsolutePath;
+        //        await _service.ProcessTelemetryFile(filePath);
+        //        StatusMessage = "Файл успешно обработан";
+        //        await LoadPackets();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        StatusMessage = $"Ошибка: {ex.Message}";
+        //    }
+        //}
     }
 
     private async Task LoadPackets()

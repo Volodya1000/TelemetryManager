@@ -31,7 +31,8 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddDeviceCommand { get; }
 
     public ReactiveCommand<Unit, Unit> OpenDeviceSensorsWindowCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; } 
+        = ReactiveCommand.CreateFromTask(() => Task.CompletedTask);
 
     public Interaction<DeviceSensorsParams, Unit> ShowDeviceSensorsDialogInteraction { get; } = new();
 
@@ -41,7 +42,6 @@ public class MainWindowViewModel : ReactiveObject
         _contentDefinitionRepository = contentDefinitionRepository;
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
-        OpenTelemetryProcessingCommand = ReactiveCommand.CreateFromTask(OpenTelemetryProcessingAsync);
 
         // Обработка ошибок загрузки
         LoadDevicesCommand.ThrownExceptions.Subscribe(ex =>
@@ -66,14 +66,6 @@ public class MainWindowViewModel : ReactiveObject
 
         LoadDevicesCommand.Execute().Subscribe();
     }
-
-
-    private async Task OpenDialogAsync()
-    {
-        var param = new DeviceSensorsParams { DeviceId= SelectedDevice.DeviceId};
-        var result = await ShowDeviceSensorsDialogInteraction.Handle(param);
-    }
-
 
     private async Task LoadDevicesAsync()
     {
@@ -100,9 +92,18 @@ public class MainWindowViewModel : ReactiveObject
         await LoadDevicesAsync();
     }
 
-    private async Task OpenTelemetryProcessingAsync()
+
+    #region Open dialogs
+    //private async Task OpenTelemetryProcessingAsync()
+    //{
+    //    var window = new TelemetryProcessingWindow();
+    //    await window.ShowDialog(OwnerWindow);
+    //}
+
+    private async Task OpenDialogAsync()
     {
-        var window = new TelemetryProcessingWindow();
-        await window.ShowDialog(OwnerWindow);
+        var param = new DeviceSensorsParams { DeviceId = SelectedDevice.DeviceId };
+        var result = await ShowDeviceSensorsDialogInteraction.Handle(param);
     }
+    #endregion
 }

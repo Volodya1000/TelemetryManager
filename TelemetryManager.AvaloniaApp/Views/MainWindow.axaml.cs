@@ -1,4 +1,5 @@
 using Avalonia.ReactiveUI;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using System;
 using System.Reactive;
@@ -27,9 +28,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 interaction.SetOutput(res);
             }).DisposeWith(disposables);
 
-            //ViewModel.OpenDeviceSensorsWindowCommand
-            //    .Subscribe(async _ => await dialogFactory().ShowDialog(this))
-            //    .DisposeWith(disposables);
+            ViewModel.OpenTelemetryProcessingCommand
+                .Subscribe(async _ => await Program.ServiceProvider.GetRequiredService<TelemetryProcessingWindow>().ShowDialog<Unit>(this))
+                .DisposeWith(disposables);
         });
 
     }
