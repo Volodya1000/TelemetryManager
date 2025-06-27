@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
 public class EditIntervalViewModel : ReactiveObject
 {

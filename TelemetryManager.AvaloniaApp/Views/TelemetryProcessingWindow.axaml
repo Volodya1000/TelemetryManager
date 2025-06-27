@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TelemetryManager.AvaloniaApp.ViewModels"
+        xmlns:vm="using:TelemetryManager.ViewModels.ViewModelsFolder"
         xmlns:conv="clr-namespace:TelemetryManager.AvaloniaApp.Converters;assembly=TelemetryManager.AvaloniaApp"
         xmlns:packets="using:TelemetryManager.Core.Data.TelemetryPackets"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"

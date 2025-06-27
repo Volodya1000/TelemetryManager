@@ -1,6 +1,6 @@
 ﻿using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
-using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
+using TelemetryManager.ViewModels.ViewModelsServicesInterfaces;
 
 namespace TelemetryManager.AvaloniaApp.Services;
 

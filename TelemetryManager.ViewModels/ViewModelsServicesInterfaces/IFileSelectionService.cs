@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
+﻿namespace TelemetryManager.ViewModels.ViewModelsServicesInterfaces;
 
 public interface IFileSelectionService
 {

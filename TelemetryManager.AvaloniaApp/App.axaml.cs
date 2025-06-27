@@ -9,10 +9,10 @@ using TelemetryManager.Application.Services;
 using TelemetryManager.AvaloniaApp.Extensions;
 using TelemetryManager.AvaloniaApp.Services;
 using TelemetryManager.AvaloniaApp.ViewModels;
-using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 using TelemetryManager.ViewModels.ViewModelsFolder;
+using TelemetryManager.ViewModels.ViewModelsServicesInterfaces;
 
 namespace TelemetryManager.AvaloniaApp;
 

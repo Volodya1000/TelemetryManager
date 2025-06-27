@@ -1,6 +1,5 @@
-
 using Avalonia.ReactiveUI;
-using TelemetryManager.AvaloniaApp.ViewModels;
+using TelemetryManager.ViewModels.ViewModelsFolder;
 namespace TelemetryManager.AvaloniaApp.Views;
 
 public partial class TelemetryProcessingWindow : ReactiveWindow<TelemetryProcessingViewModel>

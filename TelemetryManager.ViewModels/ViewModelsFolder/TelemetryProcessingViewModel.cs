@@ -1,19 +1,14 @@
-﻿using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using ReactiveUI;
-using System;
-using System.Collections.Generic;
+﻿using ReactiveUI;
 using System.Reactive;
-using System.Threading.Tasks;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
-using TelemetryManager.AvaloniaApp.ViewModels.ViewModelsServicesInterfaces;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
+using TelemetryManager.ViewModels.ViewModelsServicesInterfaces;
 
-namespace TelemetryManager.AvaloniaApp.ViewModels;
+namespace TelemetryManager.ViewModels.ViewModelsFolder;
 
-public class TelemetryProcessingViewModel : ViewModelBase
+public class TelemetryProcessingViewModel : ReactiveObject
 {
     private readonly TelemetryProcessingService _telemetryProcessingService;
     private readonly IFileSelectionService _fileSelectionService;
