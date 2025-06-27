@@ -62,7 +62,7 @@ var generator= serviceProvider.GetRequiredService<TelemetryGenerator>();
 
 await generator.Generate(telemetryFilePath,1,0);
 
-await telemetryProcessingService.ProcessTelemetryFile(telemetryFilePath);
+//await telemetryProcessingService.ProcessTelemetryFile(telemetryFilePath);
 
 ConsoleDisplayFunctions.PrintPagedTelemetryPackets(await telemetryProcessingService.GetPacketsAsync(new TelemetryPacketFilterRequest()));
 

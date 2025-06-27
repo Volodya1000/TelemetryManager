@@ -14,7 +14,6 @@ public class TelemetryProcessingService
     private readonly ITelemetryRepository _telemetryRepository;
     private readonly DeviceService _deviceService;
     private readonly ParameterValidationService _parameterValidationService;
-    private readonly IFileReaderService _fileReader;
 
 
     private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
@@ -23,20 +22,14 @@ public class TelemetryProcessingService
 
 
     public TelemetryProcessingService(
-        //IConfigurationLoader configurationLoader,
-        //IConfigurationValidator configurationValidator,
         IPacketStreamParser parser,
         ITelemetryRepository telemetryRepository,
         DeviceService deviceService,
-        IFileReaderService fileReader,
         ParameterValidationService parameterValidationService) 
     {
-    //    _configurationLoader = configurationLoader;
-    //    _configurationValidator = configurationValidator;
         _parser = parser;
         _telemetryRepository = telemetryRepository;
         _deviceService = deviceService;
-        _fileReader = fileReader;
         _parameterValidationService = parameterValidationService;
 
         _parameterValidationService.ParameterOutOfRange += (sender, args) =>
@@ -91,13 +84,6 @@ public class TelemetryProcessingService
         //}
     }
 
-    public async Task ProcessTelemetryFile(string filePath)
-    {
-        await using var stream = _fileReader.OpenRead(filePath);
-
-        await ProcessTelemetryStream(stream);
-    }
- 
 
     public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketFilterRequest filter)
     {

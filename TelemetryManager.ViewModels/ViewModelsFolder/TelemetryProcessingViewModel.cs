@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive;
+using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data;
@@ -13,6 +14,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
 {
     private readonly TelemetryProcessingService _telemetryProcessingService;
     private readonly IFileSelectionService _fileSelectionService;
+    private readonly IFileReaderService _fileReaderService;
 
     private PagedResponse<TelemetryPacket>? _currentPage;
 
@@ -46,10 +48,12 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
     public TelemetryProcessingViewModel(
         TelemetryProcessingService telemetryProcessingService,
-        IFileSelectionService fileSelectionService)
+        IFileSelectionService fileSelectionService,
+        IFileReaderService fileReaderService)
     {
         _telemetryProcessingService = telemetryProcessingService;
         _fileSelectionService = fileSelectionService;
+        _fileReaderService = fileReaderService;
 
         // Инициализация команд
         SelectFileCommand = ReactiveCommand.CreateFromTask(SelectFile);
@@ -72,7 +76,9 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
             if (!string.IsNullOrEmpty(filePath))
             {
-                await _telemetryProcessingService.ProcessTelemetryFile(filePath);
+                await using var stream = _fileReaderService.OpenRead(filePath);
+                await _telemetryProcessingService.ProcessTelemetryStream(stream);
+
                 StatusMessage = "Файл успешно обработан";
                 await LoadPackets();
             }
