@@ -25,6 +25,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
     [Reactive] public int CurrentPage { get; private set; } = 1;
     [Reactive] public int TotalPages { get; private set; } = 1;
     [Reactive] public string StatusMessage { get; set; } = string.Empty;
+    [Reactive] public bool HasData { get; private set; }
 
     public int PageSize
     {
@@ -35,7 +36,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
             Filter.PageSize = value;
             CurrentPage = 1;
-            LoadPackets().ConfigureAwait(false);
+            _ = LoadPackets();
         }
     }
 
@@ -55,14 +56,13 @@ public class TelemetryProcessingViewModel : ReactiveObject
         _fileSelectionService = fileSelectionService;
         _fileReaderService = fileReaderService;
 
-        // Инициализация команд
         SelectFileCommand = ReactiveCommand.CreateFromTask(SelectFile);
         LoadPacketsCommand = ReactiveCommand.CreateFromTask(LoadPackets);
-        PreviousPageCommand = ReactiveCommand.Create(PreviousPage);
-        NextPageCommand = ReactiveCommand.Create(NextPage);
+        PreviousPageCommand = ReactiveCommand.Create(PreviousPage, this.WhenAnyValue(vm => vm.CurrentPage, page => page > 1));
+        NextPageCommand = ReactiveCommand.Create(NextPage, this.WhenAnyValue(vm => vm.CurrentPage, vm => vm.TotalPages, (page, total) => page < total));
 
-        // Загрузка первой страницы
-        LoadPackets().ConfigureAwait(false);
+        // Initial load
+        _ = LoadPackets();
     }
 
     private async Task SelectFile()
@@ -93,23 +93,27 @@ public class TelemetryProcessingViewModel : ReactiveObject
     {
         try
         {
+            if (CurrentPage < 1) CurrentPage = 1;
+
             Filter.PageNumber = CurrentPage;
             _currentPage = await _telemetryProcessingService.GetPacketsAsync(Filter);
 
-            TotalPages = _currentPage.PageNumber;
+            TotalPages = _currentPage.TotalPages;
 
             if (CurrentPage > TotalPages && TotalPages > 0)
             {
                 CurrentPage = TotalPages;
-                await LoadPackets(); // Перезагружаем с корректной страницей
+                await LoadPackets();
                 return;
             }
 
             this.RaisePropertyChanged(nameof(Packets));
+            HasData = _currentPage.Data?.Count > 0;
         }
         catch (Exception ex)
         {
             StatusMessage = $"Ошибка загрузки данных: {ex.Message}";
+            HasData = false;
         }
     }
 
@@ -118,7 +122,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
         if (CurrentPage > 1)
         {
             CurrentPage--;
-            LoadPackets().ConfigureAwait(false);
+            _ = LoadPackets();
         }
     }
 
@@ -127,7 +131,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
         if (CurrentPage < TotalPages)
         {
             CurrentPage++;
-            LoadPackets().ConfigureAwait(false);
+            _ = LoadPackets();
         }
     }
 }

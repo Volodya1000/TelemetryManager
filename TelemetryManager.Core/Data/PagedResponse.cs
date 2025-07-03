@@ -8,12 +8,12 @@ public class PagedResponse<T>
     public int TotalPages { get; init; }
     public List<T> Data { get; init; }
 
-    public PagedResponse(List<T> data, int pageNumber, int pageSize, int totalRecords)
+    public PagedResponse(List<T> data, int totalRecords, int pageNumber, int pageSize)
     {
         Data = data;
+        TotalRecords = totalRecords;
         PageNumber = pageNumber;
         PageSize = pageSize;
-        TotalRecords = totalRecords;
-        TotalPages = (int)Math.Ceiling((decimal)totalRecords / (decimal)pageSize);
+        TotalPages = (int)Math.Ceiling((decimal)totalRecords / pageSize);
     }
 }
