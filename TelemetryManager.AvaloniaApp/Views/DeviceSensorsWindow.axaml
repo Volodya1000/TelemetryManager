@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:TelemetryManager.AvaloniaApp.Views.DeviceSensorViews"
         xmlns:vm="using:TelemetryManager.ViewModels.ViewModelsFolder"
         x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorsWindow"
         x:DataType="vm:DeviceSensorsViewModel"
@@ -62,8 +63,8 @@
 
     <!-- Список датчиков -->
     <ListBox ItemsSource="{Binding Sensors}"
-         BorderThickness="0"
-         Padding="0">
+                BorderThickness="0"
+                Padding="0">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Expander>
@@ -84,14 +85,7 @@
             <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="*,*" Margin="0,2">
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding Name}"
-                               FontWeight="Bold"/>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding IntervalDisplay}"
-                               Margin="10,0,0,0"/>
-                  </Grid>
+                  <views:SensorParameterItemUserControl/>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

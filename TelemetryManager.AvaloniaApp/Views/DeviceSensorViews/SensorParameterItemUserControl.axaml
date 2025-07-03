@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorViews.SensorParameterItemUserControl"
+             xmlns:vm="using:TelemetryManager.ViewModels.ViewModelsFolder"
+             x:DataType="vm:SensorParameterItemViewModel">
+  
+  <Grid ColumnDefinitions="*,*" Margin="0,2">
+    <TextBlock Grid.Column="0"
+               Text="{Binding Name}"
+               FontWeight="Bold"/>
+    <TextBlock Grid.Column="1"
+               Text="{Binding IntervalDisplay}"
+               Margin="10,0,0,0"/>
+  </Grid>
+
+</UserControl>
