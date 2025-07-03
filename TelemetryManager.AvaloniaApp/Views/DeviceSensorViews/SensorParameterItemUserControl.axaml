@@ -2,17 +2,71 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorViews.SensorParameterItemUserControl"
              xmlns:vm="using:TelemetryManager.ViewModels.ViewModelsFolder"
-             x:DataType="vm:SensorParameterItemViewModel">
-  
-  <Grid ColumnDefinitions="*,*" Margin="0,2">
-    <TextBlock Grid.Column="0"
-               Text="{Binding Name}"
-               FontWeight="Bold"/>
-    <TextBlock Grid.Column="1"
-               Text="{Binding IntervalDisplay}"
-               Margin="10,0,0,0"/>
-  </Grid>
+             x:Class="TelemetryManager.AvaloniaApp.Views.DeviceSensorViews.SensorParameterItemUserControl"
+             x:DataType="vm:SensorParameterItemViewModel"
+             mc:Ignorable="d">
 
+  <Border BorderBrush="#DDDDDD" BorderThickness="1" Margin="0,2" Padding="5"
+          CornerRadius="3" Background="#FAFAFA">
+    <Grid ColumnDefinitions="*,*" VerticalAlignment="Center">
+      <!-- Название параметра -->
+      <TextBlock Grid.Column="0"
+                 Text="{Binding Name}"
+                 FontWeight="Bold"
+                 VerticalAlignment="Center"
+                 Margin="5,0"/>
+
+      <!-- Контейнер для интервала -->
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+
+        <!-- Режим просмотра -->
+        <StackPanel Orientation="Horizontal" Spacing="5"
+                    IsVisible="{Binding !IsEditing}">
+          <TextBlock Text="{Binding IntervalDisplay}"
+                     VerticalAlignment="Center"
+                     FontFamily="Consolas"/>
+          <Button Content="✏️"
+                  Command="{Binding StartEditCommand}"
+                  Padding="5"
+                  Width="30"
+                  Background="Transparent"
+                  BorderThickness="0"/>
+        </StackPanel>
+
+        <!-- Режим редактирования -->
+        <StackPanel Orientation="Vertical" Spacing="5"
+                    IsVisible="{Binding IsEditing}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="Min:" VerticalAlignment="Center" Width="40"/>
+            <TextBox Text="{Binding EditableMinValue, StringFormat=\{0:F2\}}"
+                     Watermark="0.00"
+                     Width="150"
+                     HorizontalAlignment="Stretch"
+                     HorizontalContentAlignment="Right"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="Max:" VerticalAlignment="Center" Width="40"/>
+            <TextBox Text="{Binding EditableMaxValue, StringFormat=\{0:F2\}}"
+                     Watermark="0.00"
+                     Width="150"
+                     HorizontalAlignment="Stretch"
+                     HorizontalContentAlignment="Right"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
+            <Button Content="✅ Сохранить"
+                    Command="{Binding SaveCommand}"
+                    Padding="10,2"
+                    Margin="0,5,0,0"
+                    MinWidth="80"/>
+            <Button Content="❌ Отмена"
+                    Command="{Binding CancelCommand}"
+                    Padding="10,2"
+                    Margin="5,5,0,0"
+                    MinWidth="80"/>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </Border>
 </UserControl>

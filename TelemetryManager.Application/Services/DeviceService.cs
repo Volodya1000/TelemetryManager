@@ -155,15 +155,30 @@ public class DeviceService
     }
 
     public async ValueTask<(double currentMin, double currentMax)>
-        GetParameterInterval(ushort deviceId,
-                            SensorId sensorId,
-                            string parameterName)
+    GetParameterInterval(ushort deviceId, byte typeId, byte sourceId, string parameterName)
     {
+        // Проверка входных параметров
+        if (string.IsNullOrWhiteSpace(parameterName))
+            throw new ArgumentException("Parameter name cannot be empty or whitespace", nameof(parameterName));
+
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-        var interval = device.Sensors.First(s => s.Id == sensorId)
-            .Parameters.First(p => p.Name == new Name(parameterName))
-            .CurrentInterval;
-        return (interval.Min,interval.Max);
+        if (device == null)
+            throw new KeyNotFoundException($"Device with ID {deviceId} not found");
+
+        var sensor = device.Sensors
+            .FirstOrDefault(s => s.Id == new SensorId(typeId, sourceId));
+        if (sensor == null)
+            throw new KeyNotFoundException($"Sensor with TypeID {typeId} and SourceID {sourceId} not found in device {deviceId}");
+
+        var parameter = sensor.Parameters
+       .FirstOrDefault(p => p.Name.Value == parameterName);
+        if (parameter == null)
+            throw new KeyNotFoundException($"Parameter '{parameterName}' not found in sensor {typeId}/{sourceId}");
+
+        if (parameter.CurrentInterval == null)
+            throw new InvalidOperationException($"CurrentInterval is not set for parameter '{parameterName}'");
+
+        return (parameter.CurrentInterval.Min, parameter.CurrentInterval.Max);
     }
 
     public async Task SetParameterIntervalAsync(

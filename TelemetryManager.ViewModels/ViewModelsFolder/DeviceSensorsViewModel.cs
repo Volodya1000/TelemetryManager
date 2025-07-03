@@ -118,7 +118,8 @@ public class DeviceSensorsViewModel : ReactiveObject, IDisposable
                     sensor.SourceId,
                     sensor.Name.Value,
                     isConnected,
-                    sensor.Parameters
+                    sensor.Parameters,
+                    _deviceService
                 );
 
                 Sensors.Add(sensorVM);

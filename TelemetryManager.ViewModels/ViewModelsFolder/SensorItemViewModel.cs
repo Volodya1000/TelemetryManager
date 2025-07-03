@@ -1,10 +1,12 @@
-﻿using ReactiveUI;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data.Profiles;
 
 namespace TelemetryManager.ViewModels.ViewModelsFolder;
@@ -33,7 +35,8 @@ public class SensorItemViewModel : ReactiveObject
      byte sourceId,
      string name,
      bool isConnected,
-     IEnumerable<SensorParameterProfile> parameters)
+     IEnumerable<SensorParameterProfile> parameters,
+     DeviceService deviceService)
     {
         TypeId = typeId;
         SourceId = sourceId;
@@ -42,7 +45,7 @@ public class SensorItemViewModel : ReactiveObject
 
         foreach (var param in parameters)
         {
-            Parameters.Add(new SensorParameterItemViewModel(param));
+            Parameters.Add(new SensorParameterItemViewModel(deviceId, typeId, sourceId, param.Name.Value, deviceService));
         }
 
         this.WhenAnyValue(x => x.IsConnected)
