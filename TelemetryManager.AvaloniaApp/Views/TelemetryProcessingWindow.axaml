@@ -32,20 +32,18 @@
           RowDefinitions="Auto,Auto"
           Grid.Row="2"
           Margin="0,0,0,10"
-          IsEnabled="{Binding HasData}"
+          IsEnabled="{Binding HasFileLoaded}"
           x:DataType="vm:TelemetryProcessingViewModel">
+      <TextBlock Text="Дата с:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+      <DatePicker
+          SelectedDate="{Binding DateFromOffset, Mode=TwoWay}"
+          Grid.Row="1" Grid.Column="0"/>
 
-      <TextBlock Text="Дата с:"
-                 Grid.Row="0" Grid.Column="0"
-                 VerticalAlignment="Center"/>
-      <DatePicker SelectedDate="{Binding Filter.DateFrom}"
-                  Grid.Row="1" Grid.Column="0"/>
+      <TextBlock Text="Дата по:" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"/>
+      <DatePicker
+          SelectedDate="{Binding DateToOffset, Mode=TwoWay}"
+          Grid.Row="1" Grid.Column="1"/>
 
-      <TextBlock Text="Дата по:"
-                 Grid.Row="0" Grid.Column="1"
-                 VerticalAlignment="Center"/>
-      <DatePicker SelectedDate="{Binding Filter.DateTo}"
-                  Grid.Row="1" Grid.Column="1"/>
 
       <TextBlock Text="Device ID:"
                  Grid.Row="0" Grid.Column="2"

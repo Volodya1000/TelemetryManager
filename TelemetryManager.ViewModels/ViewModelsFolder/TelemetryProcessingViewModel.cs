@@ -26,6 +26,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
     [Reactive] public int TotalPages { get; private set; } = 1;
     [Reactive] public string StatusMessage { get; set; } = string.Empty;
     [Reactive] public bool HasData { get; private set; }
+    [Reactive] public bool HasFileLoaded { get; private set; }
 
     public int PageSize
     {
@@ -46,6 +47,33 @@ public class TelemetryProcessingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> LoadPacketsCommand { get; }
     public ReactiveCommand<Unit, Unit> PreviousPageCommand { get; }
     public ReactiveCommand<Unit, Unit> NextPageCommand { get; }
+
+    public DateTimeOffset? DateFromOffset
+    {
+        get => Filter.DateFrom.HasValue
+                 ? new DateTimeOffset(Filter.DateFrom.Value)
+                 : (DateTimeOffset?)null;
+        set
+        {
+            Filter.DateFrom = value?.DateTime;
+            this.RaisePropertyChanged(nameof(DateFromOffset));
+            // чтобы триггерить перезагрузку
+            this.RaisePropertyChanged(nameof(Packets));
+        }
+    }
+
+    public DateTimeOffset? DateToOffset
+    {
+        get => Filter.DateTo.HasValue
+                 ? new DateTimeOffset(Filter.DateTo.Value)
+                 : (DateTimeOffset?)null;
+        set
+        {
+            Filter.DateTo = value?.DateTime;
+            this.RaisePropertyChanged(nameof(DateToOffset));
+            this.RaisePropertyChanged(nameof(Packets));
+        }
+    }
 
     public TelemetryProcessingViewModel(
         TelemetryProcessingService telemetryProcessingService,
@@ -79,6 +107,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
                 await using var stream = _fileReaderService.OpenRead(filePath);
                 await _telemetryProcessingService.ProcessTelemetryStream(stream);
 
+                HasFileLoaded = true;
                 StatusMessage = "Файл успешно обработан";
                 await LoadPackets();
             }
