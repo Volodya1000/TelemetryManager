@@ -2,22 +2,39 @@
 using ReactiveUI.Fody.Helpers;
 using System.Globalization;
 using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Identifiers;
 
 namespace TelemetryManager.ViewModels.ViewModelsFolder;
-public class SensorParameterItemViewModel : ReactiveObject
+
+public class SensorParameterItemViewModel: ReactiveObject, IDisposable
 {
+    private readonly CompositeDisposable _disposables = new();
     private readonly DeviceService _deviceService;
     private readonly ushort _deviceId;
     private readonly byte _typeId;
     private readonly byte _sensorId;
     private readonly string _parameterName;
 
-    private string _editableMinValue;
-    private string _editableMaxValue;
+    [Reactive] public string Name { get; private set; }
+    [Reactive] public double MinValue { get; private set; }
+    [Reactive] public double MaxValue { get; private set; }
+    [Reactive] public bool IsEditing { get; private set; }
+    [Reactive] public string EditableMinValue { get; set; }
+    [Reactive] public string EditableMaxValue { get; set; }
+
+    private readonly ObservableAsPropertyHelper<string> _intervalDisplay;
+    public string IntervalDisplay => _intervalDisplay.Value;
+
+    public ReactiveCommand<Unit, Unit> StartEditCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+    public ReactiveCommand<Unit, Unit> LoadIntervalCommand { get; }
 
     public SensorParameterItemViewModel(
         ushort deviceId,
@@ -38,6 +55,11 @@ public class SensorParameterItemViewModel : ReactiveObject
         StartEditCommand = ReactiveCommand.Create(StartEdit);
         CancelCommand = ReactiveCommand.Create(Cancel);
 
+        this.WhenAnyValue(x => x.MinValue, x => x.MaxValue)
+          .Select(values => $"[{values.Item1:F2} - {values.Item2:F2}]")
+          .ToProperty(this, x => x.IntervalDisplay, out _intervalDisplay)
+          .DisposeWith(_disposables);
+
         SaveCommand = ReactiveCommand.CreateFromTask(
             Save,
             this.WhenAnyValue(
@@ -48,53 +70,13 @@ public class SensorParameterItemViewModel : ReactiveObject
 
         LoadIntervalCommand = ReactiveCommand.CreateFromTask(LoadCurrentIntervalAsync);
 
+        // Подписка на изменения MinValue и MaxValue для обновления IntervalDisplay
+        this.WhenAnyValue(x => x.MinValue, x => x.MaxValue)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(IntervalDisplay)));
+
         // Загрузка начальных значений
         LoadIntervalCommand.Execute().Subscribe();
     }
-
-    [Reactive]
-    public string Name { get; private set; }
-
-    [Reactive]
-    public double MinValue { get; private set; }
-
-    [Reactive]
-    public double MaxValue { get; private set; }
-
-    [Reactive]
-    public bool IsEditing { get; private set; }
-
-    public string EditableMinValue
-    {
-        get => _editableMinValue;
-        set
-        {
-            if (IsValidDouble(value))
-            {
-                this.RaiseAndSetIfChanged(ref _editableMinValue, value);
-            }
-        }
-    }
-
-    public string EditableMaxValue
-    {
-        get => _editableMaxValue;
-        set
-        {
-            if (IsValidDouble(value))
-            {
-                this.RaiseAndSetIfChanged(ref _editableMaxValue, value);
-            }
-        }
-    }
-
-    public string IntervalDisplay => $"[{MinValue:F2} - {MaxValue:F2}]";
-
-    // Команды
-    public ReactiveCommand<Unit, Unit> StartEditCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadIntervalCommand { get; }
 
     private async Task LoadCurrentIntervalAsync()
     {
@@ -104,16 +86,16 @@ public class SensorParameterItemViewModel : ReactiveObject
                 .GetParameterInterval(_deviceId, _typeId, _sensorId, _parameterName)
                 .ConfigureAwait(false);
 
-            MinValue = interval.currentMin;
-            MaxValue = interval.currentMax;
-
-            // Обновляем редактируемые значения
-            EditableMinValue = MinValue.ToString("F2", CultureInfo.InvariantCulture);
-            EditableMaxValue = MaxValue.ToString("F2", CultureInfo.InvariantCulture);
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                MinValue = interval.currentMin;
+                MaxValue = interval.currentMax;
+                EditableMinValue = MinValue.ToString("F2", CultureInfo.InvariantCulture);
+                EditableMaxValue = MaxValue.ToString("F2", CultureInfo.InvariantCulture);
+            });
         }
         catch (Exception ex)
         {
-            // Логирование ошибки
             Console.WriteLine($"Error loading interval: {ex.Message}");
         }
     }
@@ -129,19 +111,15 @@ public class SensorParameterItemViewModel : ReactiveObject
     {
         try
         {
-            MinValue = TryParseDouble(EditableMinValue);
-            MaxValue = TryParseDouble(EditableMaxValue);
-
-            // Корректировка если Min > Max
-            if (MinValue > MaxValue)
-            {
-                (MinValue, MaxValue) = (MaxValue, MinValue);
-            }
+            var newMin = TryParseDouble(EditableMinValue);
+            var newMax = TryParseDouble(EditableMaxValue);
 
             await _deviceService
-                .SetParameterIntervalAsync(_deviceId, _typeId, _sensorId, _parameterName, MinValue, MaxValue)
+                .SetParameterIntervalAsync(_deviceId, _typeId, _sensorId, _parameterName, newMin, newMax)
                 .ConfigureAwait(false);
 
+            MinValue = newMin;
+            MaxValue = newMax;
             IsEditing = false;
         }
         catch (Exception ex)
@@ -170,4 +148,6 @@ public class SensorParameterItemViewModel : ReactiveObject
         }
         return 0.0;
     }
+
+    public void Dispose() => _disposables?.Dispose();
 }
