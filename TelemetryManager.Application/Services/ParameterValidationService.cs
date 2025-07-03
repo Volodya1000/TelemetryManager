@@ -15,14 +15,14 @@ public class ParameterValidationService
         _deviceService = deviceService;
     }
 
-    public async Task ValidateAsync(ushort deviceId, SensorId sensorId, string parameterName, double value)
+    public async Task ValidateAsync(ushort deviceId, SensorId sensorId, string parameterName, double value, DateTime dateTime)
     {
         var result = await _deviceService.CheckParameterValue(deviceId, 
                                                               sensorId.TypeId, 
                                                               sensorId.SourceId, 
                                                               parameterName, 
                                                               value,
-                                                              DateTime.Now);
+                                                              dateTime);
 
         if (!result.isValid)
         {

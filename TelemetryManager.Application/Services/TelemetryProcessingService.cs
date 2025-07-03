@@ -76,7 +76,8 @@ public class TelemetryProcessingService
                         packet.DevId,
                         packet.SensorId,
                         parameter.Key,
-                        parameter.Value);
+                        parameter.Value,
+                        sendTime);
                 }
                 await _telemetryRepository.AddPacketAsync(telemetryPacket);
             }
