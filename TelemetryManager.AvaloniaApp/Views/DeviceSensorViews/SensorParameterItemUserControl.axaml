@@ -9,23 +9,42 @@
 
   <Border BorderBrush="#DDDDDD" BorderThickness="1" Margin="0,2" Padding="5"
           CornerRadius="3" Background="#FAFAFA">
-    <Grid ColumnDefinitions="*,*" VerticalAlignment="Center">
-      <!-- Название параметра -->
+    <Grid ColumnDefinitions="*, 3*" VerticalAlignment="Center">
+
+      <!-- Имя параметра - отображается всегда -->
       <TextBlock Grid.Column="0"
                  Text="{Binding Name}"
                  FontWeight="Bold"
                  VerticalAlignment="Center"
                  Margin="5,0"/>
 
-      <!-- Контейнер для интервала -->
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="10,0,0,0">
+      <!-- Контейнер для данных с разделением режимов -->
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
 
         <!-- Режим просмотра -->
-        <StackPanel Orientation="Horizontal" Spacing="5"
-                    IsVisible="{Binding !IsEditing}">
+        <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding !IsEditing}">
           <TextBlock Text="{Binding IntervalDisplay}"
                      VerticalAlignment="Center"
                      FontFamily="Consolas"/>
+
+          <TextBlock Text="{Binding Quantity}"
+                     VerticalAlignment="Center"
+                     FontStyle="Italic"
+                     Foreground="#666"/>
+
+          <TextBlock Text="("
+                     VerticalAlignment="Center"
+                     Foreground="#666"/>
+
+          <TextBlock Text="{Binding Unit}"
+                     VerticalAlignment="Center"
+                     FontStyle="Italic"
+                     Foreground="#666"/>
+
+          <TextBlock Text=")"
+                     VerticalAlignment="Center"
+                     Foreground="#666"/>
+
           <Button Content="✏️"
                   Command="{Binding StartEditCommand}"
                   Padding="5"
@@ -35,36 +54,61 @@
         </StackPanel>
 
         <!-- Режим редактирования -->
-        <StackPanel Orientation="Vertical" Spacing="5"
-                    IsVisible="{Binding IsEditing}">
-          <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBlock Text="Min:" VerticalAlignment="Center" Width="40"/>
-            <TextBox Text="{Binding EditableMinValue, StringFormat=\{0:F2\}}"
-                     Watermark="0.00"
-                     Width="150"
-                     HorizontalAlignment="Stretch"
-                     HorizontalContentAlignment="Right"/>
+        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" IsVisible="{Binding IsEditing}">
+
+          <StackPanel Orientation="Vertical" Spacing="5">
+            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+              <TextBlock Text="Min:" Width="40" VerticalAlignment="Center"/>
+              <TextBox Text="{Binding EditableMinValue, Mode=TwoWay}"
+                       Watermark="0.00"
+                       Width="150"
+                       HorizontalAlignment="Stretch"
+                       HorizontalContentAlignment="Right"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+              <TextBlock Text="Max:" Width="40" VerticalAlignment="Center"/>
+              <TextBox Text="{Binding EditableMaxValue, Mode=TwoWay}"
+                       Watermark="0.00"
+                       Width="150"
+                       HorizontalAlignment="Stretch"
+                       HorizontalContentAlignment="Right"/>
+            </StackPanel>
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="5">
-            <TextBlock Text="Max:" VerticalAlignment="Center" Width="40"/>
-            <TextBox Text="{Binding EditableMaxValue, StringFormat=\{0:F2\}}"
-                     Watermark="0.00"
-                     Width="150"
-                     HorizontalAlignment="Stretch"
-                     HorizontalContentAlignment="Right"/>
+
+          <!-- Unit и Quantity отображаем также в режиме редактирования -->
+          <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="10,0,0,0">
+            <TextBlock Text="{Binding Quantity}"
+                       VerticalAlignment="Center"
+                       FontStyle="Italic"
+                       Foreground="#666"/>
+
+            <TextBlock Text="("
+                       VerticalAlignment="Center"
+                       Foreground="#666"/>
+
+            <TextBlock Text="{Binding Unit}"
+                       VerticalAlignment="Center"
+                       FontStyle="Italic"
+                       Foreground="#666"/>
+
+            <TextBlock Text=")"
+                       VerticalAlignment="Center"
+                       Foreground="#666"/>
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
+
+          <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
             <Button Content="✅ Сохранить"
                     Command="{Binding SaveCommand}"
                     Padding="10,2"
-                    Margin="0,5,0,0"
                     MinWidth="80"/>
             <Button Content="❌ Отмена"
                     Command="{Binding CancelCommand}"
                     Padding="10,2"
-                    Margin="5,5,0,0"
+                    Margin="5,0,0,0"
                     MinWidth="80"/>
           </StackPanel>
+
         </StackPanel>
       </StackPanel>
     </Grid>

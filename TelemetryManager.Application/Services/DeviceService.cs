@@ -154,10 +154,12 @@ public class DeviceService
         return device.CheckParameterValue(sensorId, parameterNameVO, parameterValue);
     }
 
-    public async ValueTask<(double currentMin, double currentMax)>
-    GetParameterInterval(ushort deviceId, byte typeId, byte sourceId, string parameterName)
+    public async ValueTask<ParameterIntervalDto> GetParameterInterval(
+      ushort deviceId,
+      byte typeId,
+      byte sourceId,
+      string parameterName)
     {
-        // Проверка входных параметров
         if (string.IsNullOrWhiteSpace(parameterName))
             throw new ArgumentException("Parameter name cannot be empty or whitespace", nameof(parameterName));
 
@@ -171,14 +173,28 @@ public class DeviceService
             throw new KeyNotFoundException($"Sensor with TypeID {typeId} and SourceID {sourceId} not found in device {deviceId}");
 
         var parameter = sensor.Parameters
-       .FirstOrDefault(p => p.Name.Value == parameterName);
+            .FirstOrDefault(p => p.Name.Value == parameterName);
         if (parameter == null)
             throw new KeyNotFoundException($"Parameter '{parameterName}' not found in sensor {typeId}/{sourceId}");
 
         if (parameter.CurrentInterval == null)
             throw new InvalidOperationException($"CurrentInterval is not set for parameter '{parameterName}'");
 
-        return (parameter.CurrentInterval.Min, parameter.CurrentInterval.Max);
+        var definition = await _contentDefinitionRepository.GetDefinitionAsync(typeId);
+        if (definition == null)
+            throw new KeyNotFoundException($"Content definition not found for TypeID {typeId}");
+
+        var currentParameter = definition.Parameters
+            .FirstOrDefault(p => p.Name.Value == parameterName);
+        if (currentParameter == null)
+            throw new KeyNotFoundException($"Parameter definition '{parameterName}' not found in content definition for TypeID {typeId}");
+
+        return new ParameterIntervalDto(
+            parameter.CurrentInterval.Min,
+            parameter.CurrentInterval.Max,
+            currentParameter.Unit,
+            currentParameter.Quantity
+        );
     }
 
     public async Task SetParameterIntervalAsync(

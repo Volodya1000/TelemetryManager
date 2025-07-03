@@ -27,6 +27,8 @@ public class SensorParameterItemViewModel: ReactiveObject, IDisposable
     [Reactive] public bool IsEditing { get; private set; }
     [Reactive] public string EditableMinValue { get; set; }
     [Reactive] public string EditableMaxValue { get; set; }
+    [Reactive] public string Unit { get; private set; } = string.Empty;
+    [Reactive] public string Quantity { get; private set; } = string.Empty;
 
     private readonly ObservableAsPropertyHelper<string> _intervalDisplay;
     public string IntervalDisplay => _intervalDisplay.Value;
@@ -88,10 +90,13 @@ public class SensorParameterItemViewModel: ReactiveObject, IDisposable
 
             RxApp.MainThreadScheduler.Schedule(() =>
             {
-                MinValue = interval.currentMin;
-                MaxValue = interval.currentMax;
+                MinValue = interval.CurrentMin;
+                MaxValue = interval.CurrentMax;
                 EditableMinValue = MinValue.ToString("F2", CultureInfo.InvariantCulture);
                 EditableMaxValue = MaxValue.ToString("F2", CultureInfo.InvariantCulture);
+
+                Unit = interval.Unit;
+                Quantity = interval.Quantity;
             });
         }
         catch (Exception ex)
