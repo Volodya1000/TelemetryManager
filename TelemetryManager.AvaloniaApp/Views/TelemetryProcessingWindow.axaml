@@ -15,19 +15,7 @@
         CanResize="False">
 
   <Grid Margin="10" x:DataType="vm:TelemetryProcessingViewModel">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <!-- Кнопка выбора файла -->
-      <RowDefinition Height="Auto"/>
-      <!-- Сообщение статуса -->
-      <RowDefinition Height="Auto"/>
-      <!-- Фильтры -->
-      <RowDefinition Height="*"/>
-      <!-- Список (занимает все оставшееся пространство) -->
-      <RowDefinition Height="Auto"/>
-      <!-- Пагинация -->
-    </Grid.RowDefinitions>
-
+    <Grid.RowDefinitions>Auto,Auto,Auto,*,Auto</Grid.RowDefinitions>
     <!-- Кнопка выбора файла -->
     <Button Content="Выбрать файл (.bin)"
             Command="{Binding SelectFileCommand}"
@@ -44,6 +32,7 @@
           RowDefinitions="Auto,Auto"
           Grid.Row="2"
           Margin="0,0,0,10"
+          IsEnabled="{Binding HasData}"
           x:DataType="vm:TelemetryProcessingViewModel">
 
       <TextBlock Text="Дата с:"
