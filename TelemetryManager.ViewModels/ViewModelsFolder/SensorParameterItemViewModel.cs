@@ -85,7 +85,7 @@ public class SensorParameterItemViewModel: ReactiveObject, IDisposable
         try
         {
             var interval = await _deviceService
-                .GetParameterInterval(_deviceId, _typeId, _sensorId, _parameterName)
+                .GetParameterInterval(_deviceId, _typeId, _sensorId, _parameterName, DateTime.Now)
                 .ConfigureAwait(false);
 
             RxApp.MainThreadScheduler.Schedule(() =>

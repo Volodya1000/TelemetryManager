@@ -1,9 +1,13 @@
-﻿using TelemetryManager.Application.Interfaces;
+﻿using System;
+using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Core.Data;
 using TelemetryManager.Core.Data.TelemetryPackets;
+using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.EventsArgs;
+using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
 namespace TelemetryManager.Application.Services;
@@ -92,6 +96,56 @@ public class TelemetryProcessingService
             filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
     }
 
+    public async Task<PagedResponse<TelemetryPacketDto>> GetPacketsDetailedAsync(TelemetryPacketFilterRequest filter)
+    {
+        var packetsPagedResponce= await _telemetryRepository.GetPacketsAsync(
+            filter.DateFrom, filter.DateTo, filter.DeviceId,
+            filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
+
+
+        var packetsDtos = new List<TelemetryPacketDto>();
+        foreach (var packet in packetsPagedResponce.Data)
+        {
+            var parametrsDtosList = new List<PacketParameterDto>();
+
+            foreach(var parametr in packet.Content)
+            {
+                var parameterIntervalDto = await _deviceService.GetParameterInterval(packet.DevId,
+                                                                                     packet.SensorId.TypeId,
+                                                                                     packet.SensorId.SourceId,
+                                                                                     parametr.Key,
+                                                                                     packet.DateTimeOfSending);
+                var intervalValue = await _deviceService.CheckParameterValue(packet.DevId,
+                                                                      packet.SensorId.TypeId,
+                                                                      packet.SensorId.SourceId,
+                                                                      parametr.Key,
+                                                                      parametr.Value,
+                                                                      packet.DateTimeOfSending);
+
+
+                var parametrDto = new PacketParameterDto(parametr.Key,
+                                                         parametr.Value,
+                                                         intervalValue.isValid,
+                                                         parameterIntervalDto);
+                parametrsDtosList.Add(parametrDto);
+            }
+
+            var packetDto = new TelemetryPacketDto(packet.DateTimeOfSending,
+                                                   packet.DevId, 
+                                                   packet.SensorId.TypeId,
+                                                   packet.SensorId.SourceId,
+                                                   parametrsDtosList);
+
+            packetsDtos.Add(packetDto);
+        }
+
+        var pagedResponceDtos = new PagedResponse<TelemetryPacketDto>(packetsDtos,
+                                                                packetsPagedResponce.TotalRecords,
+                                                                packetsPagedResponce.PageNumber,
+                                                                packetsPagedResponce.PageSize);
+
+        return pagedResponceDtos;
+    }
 
     public List<ParsingError> GetParsingErrors() => parsingErrors;
 }

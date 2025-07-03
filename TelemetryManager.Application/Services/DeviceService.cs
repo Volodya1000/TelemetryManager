@@ -144,21 +144,24 @@ public class DeviceService
 
     public async ValueTask<(bool isValid, double deviation, Interval currentInterval)> 
         CheckParameterValue(ushort deviceId,
-                            SensorId sensorId,
+                            byte typeId,
+                            byte sourceId,
                             string parameterName,
-                            double parameterValue)
+                            double parameterValue,
+                            DateTime dateTime)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
 
         var parameterNameVO = new ParameterName(parameterName);
-        return device.CheckParameterValue(sensorId, parameterNameVO, parameterValue);
+        return device.CheckParameterValue(new SensorId(typeId, sourceId), parameterNameVO, parameterValue);
     }
 
     public async ValueTask<ParameterIntervalDto> GetParameterInterval(
       ushort deviceId,
       byte typeId,
       byte sourceId,
-      string parameterName)
+      string parameterName,
+      DateTime dateTime)
     {
         if (string.IsNullOrWhiteSpace(parameterName))
             throw new ArgumentException("Parameter name cannot be empty or whitespace", nameof(parameterName));
