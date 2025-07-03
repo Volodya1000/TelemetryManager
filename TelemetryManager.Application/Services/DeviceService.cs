@@ -209,4 +209,31 @@ public class DeviceService
         device.SetParameterInterval(sensorId, name, new Interval(min, max), DateTime.Now);
         await _deviceRepository.UpdateAsync(device);
     }
+
+    public async Task<IEnumerable<DeviceFilterDto>> GetDevicesForFilterAsync()
+    {
+        var devices = await _deviceRepository.GetAllAsync();
+
+        var result = new List<DeviceFilterDto>();
+
+        foreach (var device in devices)
+        {
+            var sensorsDto = new List<SensorFilterDto>();
+
+            foreach (var sensor in device.Sensors)
+            {
+                var contentDefinition = await _contentDefinitionRepository.GetDefinitionAsync(sensor.Id.TypeId);
+                var contentTypeDto = contentDefinition?.ToFilterDto();
+
+                var sensorDto = sensor.ToFilterDto(contentTypeDto);
+                sensorsDto.Add(sensorDto);
+            }
+
+            var deviceDto = device.ToFilterDto(sensorsDto);
+            result.Add(deviceDto);
+        }
+
+        return result;
+    }
+
 }
