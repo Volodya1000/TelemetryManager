@@ -48,20 +48,20 @@
       <TextBlock Text="Device ID:"
                  Grid.Row="0" Grid.Column="2"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.DeviceId}"
-               Grid.Row="1" Grid.Column="2"/>
+      <TextBox Text="{Binding DeviceIdText, Mode=TwoWay}"
+         Grid.Row="1" Grid.Column="2"/>
 
       <TextBlock Text="Sensor Type:"
                  Grid.Row="0" Grid.Column="3"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.SensorType}"
-               Grid.Row="1" Grid.Column="3"/>
+      <TextBox Text="{Binding SensorTypeText, Mode=TwoWay}"
+         Grid.Row="1" Grid.Column="3"/>
 
       <TextBlock Text="Sensor ID:"
                  Grid.Row="0" Grid.Column="4"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding Filter.SensorId}"
-               Grid.Row="1" Grid.Column="4"/>
+      <TextBox Text="{Binding SensorIdText, Mode=TwoWay}"
+          Grid.Row="1" Grid.Column="4"/>
 
       <Button Content="Обновить"
               Command="{Binding LoadPacketsCommand}"

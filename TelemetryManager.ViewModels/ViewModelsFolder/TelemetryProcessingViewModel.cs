@@ -75,6 +75,10 @@ public class TelemetryProcessingViewModel : ReactiveObject
         }
     }
 
+    [Reactive] public string DeviceIdText { get; set; } = string.Empty;
+    [Reactive] public string SensorTypeText { get; set; } = string.Empty;
+    [Reactive] public string SensorIdText { get; set; } = string.Empty;
+
     public TelemetryProcessingViewModel(
         TelemetryProcessingService telemetryProcessingService,
         IFileSelectionService fileSelectionService,
@@ -89,8 +93,34 @@ public class TelemetryProcessingViewModel : ReactiveObject
         PreviousPageCommand = ReactiveCommand.Create(PreviousPage, this.WhenAnyValue(vm => vm.CurrentPage, page => page > 1));
         NextPageCommand = ReactiveCommand.Create(NextPage, this.WhenAnyValue(vm => vm.CurrentPage, vm => vm.TotalPages, (page, total) => page < total));
 
-        // Initial load
         _ = LoadPackets();
+
+        this.WhenAnyValue(vm => vm.DeviceIdText)
+            .Subscribe(text =>
+            {
+                if (ushort.TryParse(text, out var v))
+                    Filter.DeviceId = v;
+                else
+                    Filter.DeviceId = null;
+            });
+
+        this.WhenAnyValue(vm => vm.SensorTypeText)
+            .Subscribe(text =>
+            {
+                if (byte.TryParse(text, out var v))
+                    Filter.SensorType = v;
+                else
+                    Filter.SensorType = null;
+            });
+
+        this.WhenAnyValue(vm => vm.SensorIdText)
+            .Subscribe(text =>
+            {
+                if (byte.TryParse(text, out var v))
+                    Filter.SensorId = v;
+                else
+                    Filter.SensorId = null;
+            });
     }
 
     private async Task SelectFile()
