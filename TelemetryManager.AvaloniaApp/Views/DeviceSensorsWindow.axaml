@@ -8,89 +8,68 @@
 
   <StackPanel Margin="20" Spacing="10">
     <TextBlock Text="{Binding DeviceHeader}" FontSize="16"/>
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" MaxWidth="400"/>
 
-    <!-- Блок ошибок -->
-    <TextBlock Text="{Binding ErrorMessage}"
-               Foreground="Red"
-               TextWrapping="Wrap"
-               MaxWidth="400"/>
-
-    <!-- Форма добавления сенсора -->
     <Grid ColumnDefinitions="*,2*" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
-      <!-- Тип сенсора -->
-      <TextBlock Grid.Row="0" Grid.Column="0"
-                 Text="Тип сенсора:"
-                 VerticalAlignment="Center"/>
-      <ComboBox Grid.Row="0" Grid.Column="1"
-                ItemsSource="{Binding AvailableSensorTypes}"
-                SelectedItem="{Binding SelectedSensorType}">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Тип сенсора:" VerticalAlignment="Center"/>
+      <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AvailableSensorTypes}" SelectedItem="{Binding SelectedSensorType}">
         <ComboBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding Name.Value}"/>
           </DataTemplate>
         </ComboBox.ItemTemplate>
       </ComboBox>
-
-      <!-- Source ID -->
-      <TextBlock Grid.Row="1" Grid.Column="0"
-                 Text="Source ID:"
-                 VerticalAlignment="Center"/>
-      <NumericUpDown Grid.Row="1" Grid.Column="1"
-                     Value="{Binding SourceId}"
-                     Minimum="0"
-                     Maximum="255"
-                     Watermark="0-255"/>
-
-      <!-- Кнопка добавления -->
-      <Button Grid.Row="2" Grid.Column="1"
-              Content="Добавить сенсор"
-              Command="{Binding AddSensorCommand}"
-              HorizontalAlignment="Right"
-              Padding="10 5"/>
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Source ID:" VerticalAlignment="Center"/>
+      <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding SourceId}" Minimum="0" Maximum="255" Watermark="0-255"/>
+      <Button Grid.Row="2" Grid.Column="1" Content="Добавить сенсор" Command="{Binding AddSensorCommand}" HorizontalAlignment="Right" Padding="10,5"/>
     </Grid>
 
     <TextBlock Text="Список сенсоров" FontWeight="Bold" Margin="0,10,0,5"/>
 
-    <!-- Таблица сенсоров -->
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
-      <!-- Шапка -->
-      <Grid Grid.Row="0" ColumnDefinitions="50,80,*,130,70" Background="#EEE">
+      <Grid Grid.Row="0" ColumnDefinitions="50,80,70,130,*" Background="#EEE">
         <TextBlock Grid.Column="0" Text="TypeID" FontWeight="Bold" Margin="5"/>
         <TextBlock Grid.Column="1" Text="SourceID" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="2" Text="Название" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="3" Text="Кол-во параметров" FontWeight="Bold" Margin="5"/>
-        <TextBlock Grid.Column="4" Text="Включён" FontWeight="Bold" Margin="5"/>
+        <TextBlock Grid.Column="2" Text="Включён" FontWeight="Bold" Margin="5"/>
+        <TextBlock Grid.Column="3" Text="Название" FontWeight="Bold" Margin="5"/>
       </Grid>
 
-      <!-- Список сенсоров с параметрами -->
       <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
         <ItemsControl ItemsSource="{Binding Sensors}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel HorizontalAlignment="Stretch"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <Expander Margin="0,2">
+              <Expander Margin="0,2" HorizontalAlignment="Stretch">
                 <Expander.Header>
-                  <Grid ColumnDefinitions="50,80,*,130,70">
+                  <!-- биндинг синхронизирует ширину Grid с родительским ContentPresenter -->
+                  <Grid Background="Transparent"
+                        HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=OneWayToSource}"
+                        ColumnDefinitions="50,80,70,130,*">
                     <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
                     <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
-                    <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
-                    <TextBlock Grid.Column="3" Text="{Binding Parameters.Count}" Margin="5"/>
-                    <CheckBox Grid.Column="4"
-                              IsChecked="{Binding IsConnected, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"
-                              Margin="5"/>
+                    <CheckBox Grid.Column="2"
+                             IsChecked="{Binding IsConnected, Mode=TwoWay}"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center"
+                             Margin="5"/>
+                    <TextBlock Grid.Column="3" Text="{Binding Name}" Margin="5"/>
                   </Grid>
                 </Expander.Header>
 
                 <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5,5,5">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <views:SensorParameterItemUserControl/>
+                      <views:SensorParameterItemUserControl HorizontalAlignment="Stretch"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

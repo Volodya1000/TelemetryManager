@@ -60,19 +60,24 @@ public static class DependencyInjection
 
     public static IServiceCollection AddLoggingWithSerilog(this IServiceCollection services)
     {
-        var logPath = Path.Combine(ProjectPaths.RootDirectory, "Logs", "telemetry.log");
+        const string outputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] " +
+            "[{Level:u3}] " +
+            "{Message:lj} " +
+            "Device: {DeviceId} " +
+            "Sensor: {SensorType}:{SensorSource} " +
+            "Offset: {Offset} " +
+            "Details: {Details}{NewLine}{Exception}";
 
         Log.Logger = new LoggerConfiguration()
-     .MinimumLevel
-     .Information()
-     .WriteTo.File(
-         path: logPath,
-         rollingInterval: RollingInterval.Day,
-         outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}")
-     .CreateLogger();
+            .MinimumLevel.Information()
+            .Enrich.FromLogContext()
+            .WriteTo.File(
+                path: Path.Combine(ProjectPaths.RootDirectory, "Logs", "telemetry.log"),
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: outputTemplate)
+            .CreateLogger();
 
-        services.AddLogging(loggingBuilder =>
-        {
+        services.AddLogging(loggingBuilder => {
             loggingBuilder.ClearProviders();
             loggingBuilder.AddSerilog();
         });
