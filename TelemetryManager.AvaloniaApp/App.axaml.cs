@@ -63,11 +63,8 @@ public partial class App : Avalonia.Application
 
     private void GenerateTelemetryData()
     {
-        string workingDirectory = Environment.CurrentDirectory;
-        string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.Parent.FullName;
-        string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
-
+        var telemetryPath = Path.Combine(ProjectPaths.RootDirectory, "TelemetryPacketFiles", "telemetry1.bin");
         var generator = ServiceProvider.GetRequiredService<TelemetryGenerator>();
-        generator.Generate(telemetryFilePath, 100, 1,0.5).Wait();
+        generator.Generate(telemetryPath, 100, 1,0.5).Wait();
     }
 }

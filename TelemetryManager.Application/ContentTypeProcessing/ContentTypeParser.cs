@@ -17,7 +17,7 @@ public class ContentTypeParser : IContentTypeParser
     {
         var def = await _repository.GetDefinitionAsync(typeId);
 
-        if (data.Length < def.TotalSizeBytes)
+        if (data.Length < def?.TotalSizeBytes)
             throw new ArgumentException($"Требуется {def.TotalSizeBytes} байт, получено {data.Length}");
 
         var result = new Dictionary<string, object>(def.Parameters.Count);
