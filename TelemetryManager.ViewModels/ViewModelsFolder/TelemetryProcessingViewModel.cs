@@ -58,8 +58,9 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
         // Реакция на изменение размера страницы
         Filter.WhenAnyValue(x => x.PageSize)
-            .Skip(1)
-            .InvokeCommand(this, x => x.FilterChangedCommand);
+          .Skip(1)
+          .Select(_ => Unit.Default) 
+          .InvokeCommand(this, x => x.FilterChangedCommand);
 
         // Реакция на изменение параметров фильтра
         Filter.WhenChanged

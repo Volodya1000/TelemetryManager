@@ -92,10 +92,6 @@
                              ToolTip.Tip="ID источника"/>
                   <TextBlock Text="{Binding PacketParameters.Count, StringFormat='Params: {0}'}"
                              Width="80"/>
-                  <!-- Добавлен статус валидности -->
-                  <TextBlock Text="{Binding IsValid, Converter={x:Static conv:ValidationToStyleConverter.Instance}, ConverterParameter=Text}"
-                             FontWeight="Bold"
-                             Margin="10,0,0,0"/>
                 </StackPanel>
               </Border>
             </Expander.Header>
@@ -169,7 +165,7 @@
                  Margin="10,0,0,0"/>
       </StackPanel>
 
-      <!-- Центр - навигация по страницам -->
+      <!-- навигация по страницам -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1">
         <Button Content="Предыдущая"
                 Command="{Binding PreviousPageCommand}"
