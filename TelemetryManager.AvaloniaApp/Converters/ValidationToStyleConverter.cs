@@ -26,7 +26,7 @@ public class ValidationToStyleConverter : IValueConverter
                 : Brushes.Red,
 
             "Text" => isValid
-                ? "✓ Valid"
+                ? "✓ Valid"   
                 : "⨉ Invalid",
 
             _ => null

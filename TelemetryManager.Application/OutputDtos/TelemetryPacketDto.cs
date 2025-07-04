@@ -1,6 +1,4 @@
-﻿using TelemetryManager.Core.Identifiers;
-
-namespace TelemetryManager.Application.OutputDtos;
+﻿namespace TelemetryManager.Application.OutputDtos;
 
 public record TelemetryPacketDto(
         DateTime DateTimeOfSending,
@@ -8,4 +6,7 @@ public record TelemetryPacketDto(
         byte TypeId,
         byte SourceId,
         IReadOnlyList<PacketParameterDto> PacketParameters
-    );
+    )
+{
+    public bool IsValid => PacketParameters.All( p => p.IsValid );
+}

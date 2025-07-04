@@ -29,7 +29,6 @@
                Grid.Row="1"
                Margin="0,0,0,10"/>
 
-    <!-- Фильтры (привязка к под-VM фильтра) -->
     <Grid ColumnDefinitions="*,*,*,*,*,*"
           RowDefinitions="Auto,Auto"
           Grid.Row="2"
@@ -75,8 +74,11 @@
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="dto:TelemetryPacketDto">
           <Expander HorizontalContentAlignment="Stretch">
+            <!-- Исправлено: добавлен .Instance и исправлен регистр IsValid -->
             <Expander.Header>
-              <Grid>
+              <Border Background="{Binding IsValid, Converter={x:Static conv:ValidationToStyleConverter.Instance}, ConverterParameter=Background}"
+                      Padding="5"
+                      CornerRadius="3">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                   <TextBlock Text="{Binding DateTimeOfSending, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss}'}"
                              Width="150"/>
@@ -90,8 +92,12 @@
                              ToolTip.Tip="ID источника"/>
                   <TextBlock Text="{Binding PacketParameters.Count, StringFormat='Params: {0}'}"
                              Width="80"/>
+                  <!-- Добавлен статус валидности -->
+                  <TextBlock Text="{Binding IsValid, Converter={x:Static conv:ValidationToStyleConverter.Instance}, ConverterParameter=Text}"
+                             FontWeight="Bold"
+                             Margin="10,0,0,0"/>
                 </StackPanel>
-              </Grid>
+              </Border>
             </Expander.Header>
 
             <Expander.Content>
