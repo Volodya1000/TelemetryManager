@@ -7,22 +7,35 @@ public class SensorParameterProfile
 {
     public ParameterName Name { get; }
 
-    public Interval CurrentInterval { get; private set; }
+    public Interval CurrentInterval => _intervalHistory.Last().Interval;
 
-    public SensorParameterProfile(ParameterName name, Interval interval)
-    {
-        Name = name;
-        CurrentInterval = interval;
-    }
-
-    private readonly List<ParameterIntervalChangeRecord> _intervalHistory = new();
+    private readonly List<ParameterIntervalChangeRecord> _intervalHistory;
 
     public IReadOnlyList<ParameterIntervalChangeRecord> IntervalHistory => _intervalHistory.AsReadOnly();
 
+    public SensorParameterProfile(ParameterName name, Interval initialInterval, DateTime initialTimestamp)
+    {
+        Name = name;
+        _intervalHistory = new List<ParameterIntervalChangeRecord>
+        {
+            new ParameterIntervalChangeRecord(initialTimestamp, initialInterval)
+        };
+    }
 
     public void SetInterval(Interval newInterval, DateTime timestamp)
     {
-        CurrentInterval = newInterval;
+        if (timestamp < _intervalHistory.Last().ChangeTime)
+        {
+            throw new ArgumentException("New interval timestamp cannot be earlier than last record timestamp");
+        }
+
         _intervalHistory.Add(new ParameterIntervalChangeRecord(timestamp, newInterval));
+    }
+
+    public Interval GetIntervalForDate(DateTime date)
+    {
+        return _intervalHistory
+            .LastOrDefault(record => record.ChangeTime <= date)?.Interval
+            ?? _intervalHistory.First().Interval;
     }
 }

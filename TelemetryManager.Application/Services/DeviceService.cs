@@ -59,7 +59,7 @@ public class DeviceService
 
         foreach (var parametrDefenition in contentDefenition.Parameters)
         {
-            var parameter = new SensorParameterProfile(parametrDefenition.Name, new Interval(double.MinValue, double.MaxValue));
+            var parameter = new SensorParameterProfile(parametrDefenition.Name, new Interval(double.MinValue, double.MaxValue), DateTime.Now);
             sensorParameterList.Add(parameter);
         }
 
@@ -142,21 +142,27 @@ public class DeviceService
             .Select(d => d.DeviceId);
     }
 
-    public async ValueTask<(bool isValid, double deviation, Interval currentInterval)> 
-        CheckParameterValue(ushort deviceId,
-                            byte typeId,
-                            byte sourceId,
-                            string parameterName,
-                            double parameterValue,
-                            DateTime dateTime)
+    public async Task<(bool isValid, double deviation, Interval currentInterval)>
+       CheckParameterValue(ushort deviceId,
+                          byte typeId,
+                          byte sourceId,
+                          string parameterName,
+                          double parameterValue,
+                          DateTime dateTime)
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
-
         var parameterNameVO = new ParameterName(parameterName);
-        return device.CheckParameterValue(new SensorId(typeId, sourceId), parameterNameVO, parameterValue);
+
+        var result = device.CheckParameterValue(
+            new SensorId(typeId, sourceId),
+            parameterNameVO,
+            parameterValue,
+            dateTime);
+
+        return result;
     }
 
-    public async ValueTask<ParameterIntervalDto> GetParameterInterval(
+    public async Task<ParameterIntervalDto> GetParameterInterval(
       ushort deviceId,
       byte typeId,
       byte sourceId,
@@ -180,8 +186,7 @@ public class DeviceService
         if (parameter == null)
             throw new KeyNotFoundException($"Parameter '{parameterName}' not found in sensor {typeId}/{sourceId}");
 
-        if (parameter.CurrentInterval == null)
-            throw new InvalidOperationException($"CurrentInterval is not set for parameter '{parameterName}'");
+        var currentInterval= parameter.GetIntervalForDate(dateTime);
 
         var definition = await _contentDefinitionRepository.GetDefinitionAsync(typeId);
         if (definition == null)
@@ -193,8 +198,8 @@ public class DeviceService
             throw new KeyNotFoundException($"Parameter definition '{parameterName}' not found in content definition for TypeID {typeId}");
 
         return new ParameterIntervalDto(
-            parameter.CurrentInterval.Min,
-            parameter.CurrentInterval.Max,
+            currentInterval.Min,
+            currentInterval.Max,
             currentParameter.Unit,
             currentParameter.Quantity
         );

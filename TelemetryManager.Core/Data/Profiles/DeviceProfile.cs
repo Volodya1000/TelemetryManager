@@ -87,10 +87,10 @@ public class DeviceProfile
     }
 
     public (bool isValid, double deviation, Interval currentInterval)
-       CheckParameterValue(SensorId sensorId, ParameterName parameterName, double value)
+       CheckParameterValue(SensorId sensorId, ParameterName parameterName, double value,DateTime dateTime)
     {
         var parameter = GetParameter(sensorId, parameterName);
-        var interval = parameter.CurrentInterval;
+        var interval = parameter.GetIntervalForDate(dateTime);
 
         if (value < interval.Min)
         {
