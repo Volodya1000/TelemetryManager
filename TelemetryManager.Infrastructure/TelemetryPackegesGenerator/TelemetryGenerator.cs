@@ -8,7 +8,6 @@ namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 
 public class TelemetryGenerator
 {
-
     private readonly Random _random = new Random();
 
     private readonly IDeviceRepository _deviceRepository;
@@ -20,19 +19,21 @@ public class TelemetryGenerator
         _contentGenerator= contentGenerator;
     }
 
-    public async Task Generate(string filePath,int packetsCount, double noiseRatio=0)
+    public async Task Generate(string filePath, int packetsCount, double noiseRatio = 0, double validityRatio = 1.0)
     {
         using var fileStream = new FileStream(filePath, FileMode.Create);
         for (int i = 0; i < packetsCount; i++)
         {
             GenerateNoise(fileStream, noiseRatio);
-            var packet = await GenerateValidPacket();
+            bool shouldBeValid = _random.NextDouble() < validityRatio;
+            var packet = await GeneratePacket(shouldBeValid);
+
             CorruptPacketIfNeeded(ref packet, noiseRatio);
             fileStream.Write(packet, 0, packet.Length);
         }
     }
 
-    private async Task<byte[]> GenerateValidPacket()
+    private async Task<byte[]> GeneratePacket(bool shouldBeValid)
     {
         var allDevices = (await _deviceRepository.GetAllAsync()).ToList();
 
@@ -44,7 +45,7 @@ public class TelemetryGenerator
 
         SensorProfile currentSensor = currentDevice.Sensors.ElementAt(randomSensorIndex);
 
-        byte[] content = await _contentGenerator.GenerateContentAsync(currentSensor,true);
+        byte[] content = await _contentGenerator.GenerateContentAsync(currentSensor, shouldBeValid);
 
         uint time = DefaultTimeGenerator();
         int paddingSize = PacketHelper.CalculatePadding(content.Length);

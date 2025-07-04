@@ -34,45 +34,79 @@ public class ContentGenerator
         var (minPossible, maxPossible) = GetTypeRange(paramDef.DataType);
         double minInterval = interval.Min;
         double maxInterval = interval.Max;
-        bool isValid;
-        double doubleValue;
 
         for (int attempt = 0; attempt < 10; attempt++)
         {
+            double doubleValue;
+
             if (shouldBeValid)
             {
+                // Генерация валидного значения
                 doubleValue = minInterval + _random.NextDouble() * (maxInterval - minInterval);
             }
             else
             {
-                double leftLength = minInterval - minPossible;
-                double rightLength = maxPossible - maxInterval;
-                double totalLength = leftLength + rightLength;
-
-                if (totalLength <= 0)
-                {
-                    doubleValue = minInterval + _random.NextDouble() * (maxInterval - minInterval);
-                }
-                else
-                {
-                    double r = _random.NextDouble() * totalLength;
-                    doubleValue = r < leftLength
-                        ? minPossible + r
-                        : maxInterval + (r - leftLength);
-                }
+                // Генерация гарантированно невалидного значения
+                doubleValue = GenerateInvalidValue(minInterval, maxInterval, minPossible, maxPossible);
             }
 
             var value = ConvertDouble(doubleValue, paramDef.DataType);
             double convertedValue = paramDef.Handler.ConvertToDouble(value);
-            isValid = interval.Contains(convertedValue);
+            bool isValid = interval.Contains(convertedValue);
 
-            if (shouldBeValid == isValid) return value;
+            if (shouldBeValid == isValid)
+                return value;
         }
 
+        // Если после 10 попыток не удалось — возвращаем хоть что-то приближённое
         return ConvertDouble(
-            minPossible + _random.NextDouble() * (maxPossible - minPossible),
+            minInterval + _random.NextDouble() * (maxInterval - minInterval),
             paramDef.DataType
         );
+    }
+
+    private double GenerateInvalidValue(double minValid, double maxValid, double absMin, double absMax)
+    {
+        // Случайный коэффициент от 0.1 до 3.0
+        double multiplier = 0.1 + _random.NextDouble() * (3.0 - 0.1);
+
+        bool canGoBelow = minValid > absMin;
+        bool canGoAbove = maxValid < absMax;
+
+        if (canGoBelow && canGoAbove)
+        {
+            if (_random.Next(2) == 0)
+                return ShiftBelow(minValid, multiplier, absMin);
+            else
+                return ShiftAbove(maxValid, multiplier, absMax);
+        }
+        else if (canGoBelow)
+        {
+            return ShiftBelow(minValid, multiplier, absMin);
+        }
+        else if (canGoAbove)
+        {
+            return ShiftAbove(maxValid, multiplier, absMax);
+        }
+        else
+        {
+            // Весь диапазон допустим — не можем выйти за границы
+            return minValid + _random.NextDouble() * (maxValid - minValid);
+        }
+    }
+
+    private double ShiftBelow(double minValid, double multiplier, double absMin)
+    {
+        double shift = Math.Max(1.0, Math.Abs(minValid) * multiplier);
+        double result = minValid - shift;
+        return result < absMin ? absMin : result;
+    }
+
+    private double ShiftAbove(double maxValid, double multiplier, double absMax)
+    {
+        double shift = Math.Max(1.0, Math.Abs(maxValid) * multiplier);
+        double result = maxValid + shift;
+        return result > absMax ? absMax : result;
     }
 
     private int WriteValue(byte[] buffer, int offset, object value, Type type, int byteSize)

@@ -68,35 +68,37 @@
       </Grid>
 
       <!-- Список сенсоров с параметрами -->
-      <ItemsControl Grid.Row="1" ItemsSource="{Binding Sensors}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Expander Margin="0,2">
-              <Expander.Header>
-                <Grid ColumnDefinitions="50,80,*,130,70">
-                  <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
-                  <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
-                  <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
-                  <TextBlock Grid.Column="3" Text="{Binding Parameters.Count}" Margin="5"/>
-                  <CheckBox Grid.Column="4"
-                            IsChecked="{Binding IsConnected, Mode=TwoWay}"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Margin="5"/>
-                </Grid>
-              </Expander.Header>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Sensors}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Expander Margin="0,2">
+                <Expander.Header>
+                  <Grid ColumnDefinitions="50,80,*,130,70">
+                    <TextBlock Grid.Column="0" Text="{Binding TypeId}" Margin="5"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SourceId}" Margin="5"/>
+                    <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5"/>
+                    <TextBlock Grid.Column="3" Text="{Binding Parameters.Count}" Margin="5"/>
+                    <CheckBox Grid.Column="4"
+                              IsChecked="{Binding IsConnected, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"
+                              Margin="5"/>
+                  </Grid>
+                </Expander.Header>
 
-              <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5,5,5">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <views:SensorParameterItemUserControl/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </Expander>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+                <ItemsControl ItemsSource="{Binding Parameters}" Margin="20,5,5,5">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <views:SensorParameterItemUserControl/>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Expander>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
     </Grid>
   </StackPanel>
 </Window>

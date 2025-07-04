@@ -43,29 +43,32 @@ public class DeviceService
     }
 
     public async Task AddSensorWithParametersAsync(
-      ushort deviceId,
-      byte sensorTypeId,
-      byte sensorSourceId,
-      string sensorName)
+       ushort deviceId,
+       byte sensorTypeId,
+       byte sensorSourceId,
+       string sensorName,
+       IReadOnlyDictionary<string, Interval> initialIntervals = null) 
     {
         var device = await _deviceRepository.GetByIdAsync(deviceId);
         var sensorId = new SensorId(sensorTypeId, sensorSourceId);
         var sensorNameVO = new Name(sensorName);
 
         var sensorParameterList = new Collection<SensorParameterProfile>();
+        var contentDefinition = await _contentDefinitionRepository.GetDefinitionAsync(sensorTypeId)
+            ?? throw new ArgumentException($"TypeId {sensorTypeId} does not exist", nameof(sensorTypeId));
 
-        var contentDefenition = await _contentDefinitionRepository.GetDefinitionAsync(sensorTypeId)
-            ?? throw new ArgumentException($"TypeId {sensorTypeId} not exists", nameof(sensorTypeId));
-
-        foreach (var parametrDefenition in contentDefenition.Parameters)
+        foreach (var parameterDefinition in contentDefinition.Parameters)
         {
-            var parameter = new SensorParameterProfile(parametrDefenition.Name, new Interval(double.MinValue, double.MaxValue), DateTime.Now);
+            var interval = initialIntervals != null && initialIntervals.TryGetValue(parameterDefinition.Name.Value, out var initialInterval)
+                ? initialInterval
+                : new Interval(double.MinValue, double.MaxValue);
+
+            var parameter = new SensorParameterProfile(parameterDefinition.Name, interval, DateTime.Now);
             sensorParameterList.Add(parameter);
         }
 
         var sensor = new SensorProfile(sensorId, sensorNameVO, sensorParameterList);
         sensor.MarkConnected(DateTime.Now);
-
         device.AddSensor(sensor);
         await _deviceRepository.UpdateAsync(device);
     }
