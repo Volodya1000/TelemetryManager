@@ -1,6 +1,10 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
@@ -18,7 +22,8 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
     private PagedResponse<TelemetryPacket>? _currentPage;
 
-    public TelemetryPacketFilterRequest Filter { get; } = new();
+    // Основная ViewModel содержит ViewModel фильтра
+    public TelemetryFilterViewModel Filter { get; } = new();
 
     public List<TelemetryPacket> Packets => _currentPage?.Data ?? new List<TelemetryPacket>();
 
@@ -28,56 +33,11 @@ public class TelemetryProcessingViewModel : ReactiveObject
     [Reactive] public bool HasData { get; private set; }
     [Reactive] public bool HasFileLoaded { get; private set; }
 
-    public int PageSize
-    {
-        get => Filter.PageSize;
-        set
-        {
-            if (value == Filter.PageSize) return;
-
-            Filter.PageSize = value;
-            CurrentPage = 1;
-            _ = LoadPackets();
-        }
-    }
-
-    public List<int> PageSizeOptions { get; } = new() { 5, 10, 20, 50, 100 };
-
     public ReactiveCommand<Unit, Unit> SelectFileCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadPacketsCommand { get; }
     public ReactiveCommand<Unit, Unit> PreviousPageCommand { get; }
     public ReactiveCommand<Unit, Unit> NextPageCommand { get; }
-
-    public DateTimeOffset? DateFromOffset
-    {
-        get => Filter.DateFrom.HasValue
-                 ? new DateTimeOffset(Filter.DateFrom.Value)
-                 : (DateTimeOffset?)null;
-        set
-        {
-            Filter.DateFrom = value?.DateTime;
-            this.RaisePropertyChanged(nameof(DateFromOffset));
-            // чтобы триггерить перезагрузку
-            this.RaisePropertyChanged(nameof(Packets));
-        }
-    }
-
-    public DateTimeOffset? DateToOffset
-    {
-        get => Filter.DateTo.HasValue
-                 ? new DateTimeOffset(Filter.DateTo.Value)
-                 : (DateTimeOffset?)null;
-        set
-        {
-            Filter.DateTo = value?.DateTime;
-            this.RaisePropertyChanged(nameof(DateToOffset));
-            this.RaisePropertyChanged(nameof(Packets));
-        }
-    }
-
-    [Reactive] public string DeviceIdText { get; set; } = string.Empty;
-    [Reactive] public string SensorTypeText { get; set; } = string.Empty;
-    [Reactive] public string SensorIdText { get; set; } = string.Empty;
+    public ReactiveCommand<Unit, Unit> FilterChangedCommand { get; }
 
     public TelemetryProcessingViewModel(
         TelemetryProcessingService telemetryProcessingService,
@@ -88,39 +48,31 @@ public class TelemetryProcessingViewModel : ReactiveObject
         _fileSelectionService = fileSelectionService;
         _fileReaderService = fileReaderService;
 
+        FilterChangedCommand = ReactiveCommand.CreateFromTask(HandleFilterChanged);
         SelectFileCommand = ReactiveCommand.CreateFromTask(SelectFile);
         LoadPacketsCommand = ReactiveCommand.CreateFromTask(LoadPackets);
-        PreviousPageCommand = ReactiveCommand.Create(PreviousPage, this.WhenAnyValue(vm => vm.CurrentPage, page => page > 1));
-        NextPageCommand = ReactiveCommand.Create(NextPage, this.WhenAnyValue(vm => vm.CurrentPage, vm => vm.TotalPages, (page, total) => page < total));
+        PreviousPageCommand = ReactiveCommand.Create(PreviousPage,
+            this.WhenAnyValue(vm => vm.CurrentPage, page => page > 1));
+        NextPageCommand = ReactiveCommand.Create(NextPage,
+            this.WhenAnyValue(vm => vm.CurrentPage, vm => vm.TotalPages, (page, total) => page < total));
+
+        // Реакция на изменение размера страницы
+        Filter.WhenAnyValue(x => x.PageSize)
+            .Skip(1)
+            .InvokeCommand(this, x => x.FilterChangedCommand);
+
+        // Реакция на изменение параметров фильтра
+        Filter.WhenChanged
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .InvokeCommand(this, x => x.FilterChangedCommand);
 
         _ = LoadPackets();
+    }
 
-        this.WhenAnyValue(vm => vm.DeviceIdText)
-            .Subscribe(text =>
-            {
-                if (ushort.TryParse(text, out var v))
-                    Filter.DeviceId = v;
-                else
-                    Filter.DeviceId = null;
-            });
-
-        this.WhenAnyValue(vm => vm.SensorTypeText)
-            .Subscribe(text =>
-            {
-                if (byte.TryParse(text, out var v))
-                    Filter.SensorType = v;
-                else
-                    Filter.SensorType = null;
-            });
-
-        this.WhenAnyValue(vm => vm.SensorIdText)
-            .Subscribe(text =>
-            {
-                if (byte.TryParse(text, out var v))
-                    Filter.SensorId = v;
-                else
-                    Filter.SensorId = null;
-            });
+    private async Task HandleFilterChanged()
+    {
+        CurrentPage = 1;
+        await LoadPackets();
     }
 
     private async Task SelectFile()
@@ -139,6 +91,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
 
                 HasFileLoaded = true;
                 StatusMessage = "Файл успешно обработан";
+                CurrentPage = 1;
                 await LoadPackets();
             }
         }
@@ -154,25 +107,42 @@ public class TelemetryProcessingViewModel : ReactiveObject
         {
             if (CurrentPage < 1) CurrentPage = 1;
 
-            Filter.PageNumber = CurrentPage;
-            _currentPage = await _telemetryProcessingService.GetPacketsAsync(Filter);
+            var request = Filter.CreateRequest(CurrentPage);
+            var response = await _telemetryProcessingService.GetPacketsAsync(request);
 
-            TotalPages = _currentPage.TotalPages;
-
-            if (CurrentPage > TotalPages && TotalPages > 0)
+            // Создаем Subject для обработки в UI-потоке
+            var updateSubject = new Subject<PagedResponse<TelemetryPacket>>();
+            updateSubject.ObserveOn(RxApp.MainThreadScheduler).Subscribe(r =>
             {
-                CurrentPage = TotalPages;
-                await LoadPackets();
-                return;
-            }
+                _currentPage = r;
+                TotalPages = r.TotalPages;
 
-            this.RaisePropertyChanged(nameof(Packets));
-            HasData = _currentPage.Data?.Count > 0;
+                if (CurrentPage > r.TotalPages && r.TotalPages > 0)
+                {
+                    CurrentPage = r.TotalPages;
+                    // Перезапускаем загрузку через команду
+                    FilterChangedCommand.Execute().Subscribe();
+                    return;
+                }
+
+                this.RaisePropertyChanged(nameof(Packets));
+                HasData = r.Data?.Count > 0;
+            });
+
+            updateSubject.OnNext(response);
+            updateSubject.OnCompleted();
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Ошибка загрузки данных: {ex.Message}";
-            HasData = false;
+            var errorSubject = new Subject<Exception>();
+            errorSubject.ObserveOn(RxApp.MainThreadScheduler).Subscribe(e =>
+            {
+                StatusMessage = $"Ошибка загрузки данных: {e.Message}";
+                HasData = false;
+            });
+
+            errorSubject.OnNext(ex);
+            errorSubject.OnCompleted();
         }
     }
 

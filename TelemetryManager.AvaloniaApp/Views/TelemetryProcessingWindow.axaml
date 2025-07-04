@@ -16,6 +16,7 @@
 
   <Grid Margin="10" x:DataType="vm:TelemetryProcessingViewModel">
     <Grid.RowDefinitions>Auto,Auto,Auto,*,Auto</Grid.RowDefinitions>
+
     <!-- Кнопка выбора файла -->
     <Button Content="Выбрать файл (.bin)"
             Command="{Binding SelectFileCommand}"
@@ -27,40 +28,38 @@
                Grid.Row="1"
                Margin="0,0,0,10"/>
 
-    <!-- Фильтры -->
+    <!-- Фильтры (привязка к под-VM фильтра) -->
     <Grid ColumnDefinitions="*,*,*,*,*,*"
           RowDefinitions="Auto,Auto"
           Grid.Row="2"
           Margin="0,0,0,10"
-          IsEnabled="{Binding HasFileLoaded}"
-          x:DataType="vm:TelemetryProcessingViewModel">
+          IsEnabled="{Binding HasFileLoaded}">
       <TextBlock Text="Дата с:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
       <DatePicker
-          SelectedDate="{Binding DateFromOffset, Mode=TwoWay}"
+          SelectedDate="{Binding Filter.DateFrom, Mode=TwoWay}"
           Grid.Row="1" Grid.Column="0"/>
 
       <TextBlock Text="Дата по:" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"/>
       <DatePicker
-          SelectedDate="{Binding DateToOffset, Mode=TwoWay}"
+          SelectedDate="{Binding Filter.DateTo, Mode=TwoWay}"
           Grid.Row="1" Grid.Column="1"/>
-
 
       <TextBlock Text="Device ID:"
                  Grid.Row="0" Grid.Column="2"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding DeviceIdText, Mode=TwoWay}"
+      <TextBox Text="{Binding Filter.DeviceIdText, Mode=TwoWay}"
          Grid.Row="1" Grid.Column="2"/>
 
       <TextBlock Text="Sensor Type:"
                  Grid.Row="0" Grid.Column="3"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding SensorTypeText, Mode=TwoWay}"
+      <TextBox Text="{Binding Filter.SensorTypeText, Mode=TwoWay}"
          Grid.Row="1" Grid.Column="3"/>
 
       <TextBlock Text="Sensor ID:"
                  Grid.Row="0" Grid.Column="4"
                  VerticalAlignment="Center"/>
-      <TextBox Text="{Binding SensorIdText, Mode=TwoWay}"
+      <TextBox Text="{Binding Filter.SensorIdText, Mode=TwoWay}"
           Grid.Row="1" Grid.Column="4"/>
 
       <Button Content="Обновить"
@@ -68,15 +67,13 @@
               Grid.Row="1" Grid.Column="5"/>
     </Grid>
 
-    <!-- Список (занимает все доступное пространство) -->
+    <!-- Список пакетов -->
     <ListBox ItemsSource="{Binding Packets}"
          Grid.Row="3"
-         IsVisible="{Binding HasData}"
-         x:DataType="vm:TelemetryProcessingViewModel">
+         IsVisible="{Binding HasData}">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="packets:TelemetryPacket">
           <Expander HorizontalContentAlignment="Stretch">
-            <!-- Заголовок с основной информацией -->
             <Expander.Header>
               <Grid>
                 <StackPanel Orientation="Horizontal" Spacing="10">
@@ -89,7 +86,6 @@
               </Grid>
             </Expander.Header>
 
-            <!-- Детализированное содержимое Content -->
             <Expander.Content>
               <ScrollViewer MaxHeight="200">
                 <ItemsControl ItemsSource="{Binding Content}">
@@ -112,7 +108,7 @@
       </ListBox.ItemTemplate>
     </ListBox>
 
-    <!-- Пагинация -->
+    <!-- Пагинация (с привязкой к под-VM фильтра) -->
     <Grid Grid.Row="4"
        Margin="0,10"
        IsVisible="{Binding HasData}">
@@ -125,8 +121,8 @@
       <!-- Левая часть - выбор размера страницы -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
         <TextBlock Text="Записей на странице:" VerticalAlignment="Center"/>
-        <ComboBox ItemsSource="{Binding PageSizeOptions}"
-                 SelectedItem="{Binding PageSize}"
+        <ComboBox ItemsSource="{Binding Filter.PageSizeOptions}"
+                 SelectedItem="{Binding Filter.PageSize, Mode=TwoWay}"
                  Width="80"
                  Margin="10,0,0,0"/>
       </StackPanel>

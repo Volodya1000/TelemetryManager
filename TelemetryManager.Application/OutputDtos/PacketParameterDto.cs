@@ -2,7 +2,7 @@
 
 public record PacketParameterDto(
      string ParameterName,
-     double value,
-     bool InInterval,
+     double Value,
+     bool IsValid,
      ParameterIntervalDto ParameterInterval
      );
