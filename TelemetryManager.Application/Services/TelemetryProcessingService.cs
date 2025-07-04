@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Application.OutputDtos;
@@ -18,9 +19,6 @@ public class TelemetryProcessingService
     private readonly ITelemetryRepository _telemetryRepository;
     private readonly DeviceService _deviceService;
     private readonly ParameterValidationService _parameterValidationService;
-
-
-    private readonly List<ParsingError> parsingErrors = new List<ParsingError>();
 
     public event EventHandler<ParameterOutOfRangeEventArgs>? ParameterOutOfRange;
 
@@ -48,8 +46,7 @@ public class TelemetryProcessingService
 
         var baseTime = DateTime.UtcNow;
 
-        await foreach (var packet in _parser.Parse(stream, deviceSensorsIdsDictionary,
-            error => parsingErrors.Add(error)))
+        await foreach (var packet in _parser.Parse(stream, deviceSensorsIdsDictionary))
         {
             var sendTime = baseTime + TimeSpan.FromMilliseconds(packet.Time);
 
@@ -82,11 +79,6 @@ public class TelemetryProcessingService
                 await _telemetryRepository.AddPacketAsync(telemetryPacket);
             }
         }
-
-        //if (parsingErrors.Count > 0)
-        //{
-        //    await _errorRepository.SaveErrorsAsync(parsingErrors);
-        //}
     }
 
 
@@ -139,6 +131,4 @@ public class TelemetryProcessingService
             packetsPagedResponse.PageNumber,
             packetsPagedResponse.PageSize);
     }
-
-    public List<ParsingError> GetParsingErrors() => parsingErrors;
 }

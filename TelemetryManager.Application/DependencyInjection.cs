@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using TelemetryManager.Application.ContentTypeProcessing;
 using TelemetryManager.Application.Interfaces;
 using TelemetryManager.Application.Interfaces.Services;

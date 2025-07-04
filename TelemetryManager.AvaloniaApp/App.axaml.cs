@@ -11,7 +11,6 @@ using TelemetryManager.AvaloniaApp.Services;
 using TelemetryManager.AvaloniaApp.ViewModels;
 using TelemetryManager.AvaloniaApp.Views;
 using TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
-using TelemetryManager.ViewModels.ViewModelsFolder;
 using TelemetryManager.ViewModels.ViewModelsServicesInterfaces;
 
 namespace TelemetryManager.AvaloniaApp;
@@ -69,6 +68,6 @@ public partial class App : Avalonia.Application
         string telemetryFilePath = Path.Combine(projectDirectory, "TelemetryPacketFiles", "telemetry1.bin");
 
         var generator = ServiceProvider.GetRequiredService<TelemetryGenerator>();
-        generator.Generate(telemetryFilePath, 4, 0,0).Wait();
+        generator.Generate(telemetryFilePath, 100, 1,0.5).Wait();
     }
 }
