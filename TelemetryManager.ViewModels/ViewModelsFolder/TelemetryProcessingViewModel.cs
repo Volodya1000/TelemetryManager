@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using TelemetryManager.Application.Interfaces.Services;
+using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Requests;
 using TelemetryManager.Application.Services;
 using TelemetryManager.Core.Data;
@@ -20,12 +21,11 @@ public class TelemetryProcessingViewModel : ReactiveObject
     private readonly IFileSelectionService _fileSelectionService;
     private readonly IFileReaderService _fileReaderService;
 
-    private PagedResponse<TelemetryPacket>? _currentPage;
-
-    // Основная ViewModel содержит ViewModel фильтра
     public TelemetryFilterViewModel Filter { get; } = new();
 
-    public List<TelemetryPacket> Packets => _currentPage?.Data ?? new List<TelemetryPacket>();
+    private PagedResponse<TelemetryPacketDto>? _currentPage;
+
+    public List<TelemetryPacketDto> Packets => _currentPage?.Data ?? new List<TelemetryPacketDto>();
 
     [Reactive] public int CurrentPage { get; private set; } = 1;
     [Reactive] public int TotalPages { get; private set; } = 1;
@@ -108,10 +108,10 @@ public class TelemetryProcessingViewModel : ReactiveObject
             if (CurrentPage < 1) CurrentPage = 1;
 
             var request = Filter.CreateRequest(CurrentPage);
-            var response = await _telemetryProcessingService.GetPacketsAsync(request);
+            var response = await _telemetryProcessingService.GetPacketsDetailedAsync(request);
 
             // Создаем Subject для обработки в UI-потоке
-            var updateSubject = new Subject<PagedResponse<TelemetryPacket>>();
+            var updateSubject = new Subject<PagedResponse<TelemetryPacketDto>>();
             updateSubject.ObserveOn(RxApp.MainThreadScheduler).Subscribe(r =>
             {
                 _currentPage = r;
