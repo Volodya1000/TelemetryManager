@@ -1,4 +1,5 @@
-﻿using TelemetryManager.Core.Data.ValueObjects;
+﻿using System.Collections.ObjectModel;
+using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Data.ValueObjects.HistoryRecords;
 
 namespace TelemetryManager.Core.Data.Profiles;
@@ -9,14 +10,14 @@ public class SensorParameterProfile
 
     public Interval CurrentInterval => _intervalHistory.Last().Interval;
 
-    private readonly List<ParameterIntervalChangeRecord> _intervalHistory;
+    private readonly Collection<ParameterIntervalChangeRecord> _intervalHistory;
 
-    public IReadOnlyList<ParameterIntervalChangeRecord> IntervalHistory => _intervalHistory.AsReadOnly();
+    public IReadOnlyCollection<ParameterIntervalChangeRecord> IntervalHistory => _intervalHistory.AsReadOnly();
 
     public SensorParameterProfile(ParameterName name, Interval initialInterval, DateTime initialTimestamp)
     {
         Name = name;
-        _intervalHistory = new List<ParameterIntervalChangeRecord>
+        _intervalHistory = new Collection<ParameterIntervalChangeRecord>
         {
             new ParameterIntervalChangeRecord(initialTimestamp, initialInterval)
         };

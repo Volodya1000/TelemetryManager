@@ -4,6 +4,7 @@ using TelemetryManager.Application.Mapping;
 using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Data.ValueObjects;
+using TelemetryManager.Core.Data.ValueObjects.HistoryRecords;
 using TelemetryManager.Core.Identifiers;
 using TelemetryManager.Core.Interfaces.Repositories;
 
@@ -245,6 +246,30 @@ public class DeviceService
         }
 
         return result;
+    }
+
+    public async Task<IEnumerable<ParameterIntervalChangeRecord>> GetParameterHistory(ushort deviceId,
+                                          byte typeId,
+                                          byte sourceId,
+                                          string parameterName)
+    {
+
+        var device = await _deviceRepository.GetByIdAsync(deviceId);
+
+        if (device == null)
+            throw new KeyNotFoundException($"Device with ID {deviceId} not found");
+
+        var sensor = device.Sensors
+            .FirstOrDefault(s => s.Id == new SensorId(typeId, sourceId));
+        if (sensor == null)
+            throw new KeyNotFoundException($"Sensor with TypeID {typeId} and SourceID {sourceId} not found in device {deviceId}");
+
+        var parameter = sensor.Parameters
+            .FirstOrDefault(p => p.Name.Value == parameterName);
+        if (parameter == null)
+            throw new KeyNotFoundException($"Parameter '{parameterName}' not found in sensor {typeId}/{sourceId}");
+
+        return parameter.IntervalHistory;
     }
 
 }

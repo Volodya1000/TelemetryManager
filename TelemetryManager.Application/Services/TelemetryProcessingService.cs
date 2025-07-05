@@ -81,14 +81,6 @@ public class TelemetryProcessingService
         }
     }
 
-
-    public async Task<PagedResponse<TelemetryPacket>> GetPacketsAsync(TelemetryPacketFilterRequest filter)
-    {
-        return  await _telemetryRepository.GetPacketsAsync(
-            filter.DateFrom, filter.DateTo, filter.DeviceId,
-            filter.SensorType, filter.SensorId, filter.PageNumber, filter.PageSize);
-    }
-
     public async Task<PagedResponse<TelemetryPacketDto>> GetPacketsDetailedAsync(TelemetryPacketFilterRequest filter)
     {
         var packetsPagedResponse = await _telemetryRepository.GetPacketsAsync(

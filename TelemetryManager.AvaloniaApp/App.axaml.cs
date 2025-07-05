@@ -51,20 +51,10 @@ public partial class App : Avalonia.Application
             var contentRegistrar = ServiceProvider.GetRequiredService<DeviceContentRegistrar>();
             contentRegistrar.RegisterAllContent();
 
-            // Генерируем телеметрию
-            GenerateTelemetryData();
-
             // Устанавливаем главное окно и DataContext
             desktop.MainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private void GenerateTelemetryData()
-    {
-        //var telemetryPath = Path.Combine(ProjectPaths.RootDirectory, "TelemetryPacketFiles", "telemetry1.bin");
-        //var generator = ServiceProvider.GetRequiredService<TelemetryGenerator>();
-        //generator.Generate(telemetryPath, 100, 1,0.5).Wait();
     }
 }
