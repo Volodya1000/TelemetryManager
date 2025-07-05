@@ -12,8 +12,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
-        serviceCollection.AddScoped<IFileReaderService, FileReaderService>();
-        serviceCollection.AddScoped<FileReaderService>();
+        serviceCollection.AddScoped<IFileOperationsService, FileOperationsService>();
+        serviceCollection.AddScoped<FileOperationsService>();
         serviceCollection.AddScoped<TelemetryGenerator>();
         serviceCollection.AddScoped<ContentGenerator>();
 

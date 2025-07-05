@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.Core.Utils;
@@ -6,7 +7,7 @@ using TelemetryManager.Infrastructure.Parsing.Data;
 
 namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator;
 
-public class TelemetryGenerator
+public class TelemetryGenerator : ITelemetryGenerator
 {
     private readonly Random _random = new Random();
 
@@ -16,21 +17,31 @@ public class TelemetryGenerator
     public TelemetryGenerator(IDeviceRepository deviceRepository, ContentGenerator contentGenerator)
     {
         _deviceRepository = deviceRepository;
-        _contentGenerator= contentGenerator;
+        _contentGenerator = contentGenerator;
     }
 
-    public async Task Generate(string filePath, int packetsCount, double noiseRatio = 0, double validityRatio = 1.0)
+    public async Task<byte[]> GeneratePackets(int packetsCount, double noiseRatio = 0, double validityRatio = 1.0)
     {
-        using var fileStream = new FileStream(filePath, FileMode.Create);
+        if (packetsCount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(packetsCount), "Количество пакетов должно быть больше нуля");
+
+        if (noiseRatio < 0 || noiseRatio > 1)
+            throw new ArgumentOutOfRangeException(nameof(noiseRatio), "Вероятность шума должна быть в диапазоне от 0 до 1");
+
+        if (validityRatio < 0 || validityRatio > 1)
+            throw new ArgumentOutOfRangeException(nameof(validityRatio), "Вероятность валидности должна быть в диапазоне от 0 до 1");
+
+        using var memoryStream = new MemoryStream();
         for (int i = 0; i < packetsCount; i++)
         {
-            GenerateNoise(fileStream, noiseRatio);
+            GenerateNoise(memoryStream, noiseRatio);
             bool shouldBeValid = _random.NextDouble() < validityRatio;
             var packet = await GeneratePacket(shouldBeValid);
 
             CorruptPacketIfNeeded(ref packet, noiseRatio);
-            fileStream.Write(packet, 0, packet.Length);
+            memoryStream.Write(packet, 0, packet.Length);
         }
+        return memoryStream.ToArray();
     }
 
     private async Task<byte[]> GeneratePacket(bool shouldBeValid)
@@ -82,11 +93,11 @@ public class TelemetryGenerator
 
     private uint DefaultTimeGenerator()
     {
-         var currentTime=(uint)_random.Next(1, 101);
+        var currentTime = (uint)_random.Next(1, 101);
         return currentTime;
     }
 
-    private void GenerateNoise(Stream stream,double noiseRatio)
+    private void GenerateNoise(Stream stream, double noiseRatio)
     {
         if (_random.NextDouble() >= noiseRatio) return;
 

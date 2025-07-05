@@ -19,7 +19,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
 {
     private readonly TelemetryProcessingService _telemetryProcessingService;
     private readonly IFileSelectionService _fileSelectionService;
-    private readonly IFileReaderService _fileReaderService;
+    private readonly IFileOperationsService _fileReaderService;
 
     public TelemetryFilterViewModel Filter { get; } = new();
 
@@ -42,7 +42,7 @@ public class TelemetryProcessingViewModel : ReactiveObject
     public TelemetryProcessingViewModel(
         TelemetryProcessingService telemetryProcessingService,
         IFileSelectionService fileSelectionService,
-        IFileReaderService fileReaderService)
+        IFileOperationsService fileReaderService)
     {
         _telemetryProcessingService = telemetryProcessingService;
         _fileSelectionService = fileSelectionService;
