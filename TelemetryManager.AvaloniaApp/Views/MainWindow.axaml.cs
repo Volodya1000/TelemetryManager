@@ -36,6 +36,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 interaction.SetOutput(Unit.Default);
             })
             .DisposeWith(disposables);
+
+            ViewModel.OpenCreateTelemetryWindowCommand
+           .Subscribe(_ =>
+           {
+               var window = App.ServiceProvider.GetRequiredService<CreateTelemetryWindow>();
+               window.Show();
+           })
+           .DisposeWith(disposables);
         });
 
     }

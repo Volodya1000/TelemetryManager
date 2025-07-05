@@ -57,7 +57,7 @@ public class CreateTelemetryViewModel : ReactiveObject
 
     private async Task Create()
     {
-        var filePath = await _fileSelectionService.SelectFolderAndNameForNewFileAsync(
+        var filePath = await _fileSelectionService.SelectFilePathForNewFileAsync(
             "Сохранить телеметрию",
             $"telemetry_{DateTime.Now:yyyyMMdd_HHmmss}.bin",
             "Бинарные файлы телеметрии",

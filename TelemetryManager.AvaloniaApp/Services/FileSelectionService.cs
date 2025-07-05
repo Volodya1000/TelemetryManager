@@ -25,25 +25,23 @@ public class AvaloniaFileSelectionService : IFileSelectionService
         return files.Count > 0 ? files[0].Path.AbsolutePath : null;
     }
 
-    public async Task<string?> SelectFolderAndNameForNewFileAsync(
-         string title,
-         string defaultFileName,
-         string fileTypeDescription,
-         string[] patterns)
+    public async Task<string?> SelectFilePathForNewFileAsync(
+      string title,
+      string defaultFileName,
+      string fileTypeDescription,
+      string[] patterns)
     {
-        var folder = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-        {
-            Title = title,
-            AllowMultiple = false
-        });
-
-        if (folder.Count == 0) return null;
-
         var saveDialog = new FilePickerSaveOptions
         {
             Title = title,
             SuggestedFileName = defaultFileName,
-            FileTypeChoices = new[] { new FilePickerFileType(fileTypeDescription) { Patterns = patterns } },
+            FileTypeChoices = new[]
+            {
+            new FilePickerFileType(fileTypeDescription)
+            {
+                Patterns = patterns
+            }
+        },
             DefaultExtension = patterns.Length > 0 ? patterns[0].TrimStart('*') : null
         };
 

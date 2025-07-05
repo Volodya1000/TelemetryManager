@@ -15,7 +15,6 @@ namespace TelemetryManager.ViewModels.ViewModelsFolder;
 public class MainWindowViewModel : ReactiveObject
 {
     private readonly DeviceService _deviceService;
-    private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
     [Reactive] public string NewDeviceName { get; set; } = "";
     [Reactive] public ushort NewDeviceId { get; set; }
@@ -29,14 +28,14 @@ public class MainWindowViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> OpenDeviceSensorsWindowCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenTelemetryProcessingCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenCreateTelemetryWindowCommand { get; }
 
     public Interaction<DeviceSensorsParams, Unit> ShowDeviceSensorsDialogInteraction { get; } = new();
     public Interaction<Unit, Unit> ShowTelemetryProcessingInteraction { get; } = new();
 
-    public MainWindowViewModel(DeviceService deviceService, IContentDefinitionRepository contentDefinitionRepository)
+    public MainWindowViewModel(DeviceService deviceService)
     {
         _deviceService = deviceService;
-        _contentDefinitionRepository = contentDefinitionRepository;
 
         LoadDevicesCommand = ReactiveCommand.CreateFromTask(LoadDevicesAsync);
 
@@ -61,6 +60,8 @@ public class MainWindowViewModel : ReactiveObject
         // Обработка ошибок добавления
         AddDeviceCommand.ThrownExceptions.Subscribe(ex =>
             ErrorMessage = $"Ошибка добавления: {ex.Message}");
+
+        OpenCreateTelemetryWindowCommand = ReactiveCommand.CreateFromTask(()=>Task.CompletedTask);
 
 
         LoadDevicesCommand.Execute().Subscribe();

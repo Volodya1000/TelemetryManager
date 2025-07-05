@@ -13,8 +13,7 @@ public static class DependencyInjection
     {
         serviceCollection.AddTransient<IPacketStreamParser, PacketStreamParser>();
         serviceCollection.AddScoped<IFileOperationsService, FileOperationsService>();
-        serviceCollection.AddScoped<FileOperationsService>();
-        serviceCollection.AddScoped<TelemetryGenerator>();
+        serviceCollection.AddScoped<ITelemetryGenerator,TelemetryGenerator>();
         serviceCollection.AddScoped<ContentGenerator>();
 
         return serviceCollection;

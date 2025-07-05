@@ -57,6 +57,11 @@
         Margin="0 10"
         HorizontalAlignment="Stretch"/>
 
+    <Button Content="Генерация телеметрии"
+      Command="{Binding OpenCreateTelemetryWindowCommand}"
+      Margin="0 10"
+      HorizontalAlignment="Stretch"/>
+
 
     <TextBlock Text="Список устройств" FontSize="16" FontWeight="Bold"/>
     <Grid ColumnDefinitions="Auto,*,200" Margin="0 5">

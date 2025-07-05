@@ -3,7 +3,7 @@
 public interface IFileSelectionService
 {
     Task<string?> SelectFileAsync(string title, string fileTypeDescription, string[] patterns);
-    Task<string?> SelectFolderAndNameForNewFileAsync(
+    public Task<string?> SelectFilePathForNewFileAsync(
         string title,
         string defaultFileName,
         string fileTypeDescription,

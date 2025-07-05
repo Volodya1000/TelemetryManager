@@ -36,9 +36,10 @@ public static class DependencyInjection
     {
         serviceCollection.AddTransient<MainWindow>()
             .AddTransient<TelemetryProcessingWindow>()
+            .AddTransient<CreateTelemetryWindow>()
             .AddTransient<Func<DeviceSensorsParams, DeviceSensorsWindow>>(provider =>
-             param =>
-             {
+            param =>
+            {
                  var deviceService = provider.GetRequiredService<DeviceService>();
                  var contentRepo = provider.GetRequiredService<IContentDefinitionRepository>();
                  var viewModel = new DeviceSensorsViewModel(
@@ -46,14 +47,15 @@ public static class DependencyInjection
                      deviceService,
                      contentRepo);
                  return new DeviceSensorsWindow(viewModel);
-             });
+            });
         return serviceCollection;
     }
 
     public static IServiceCollection AddApplicationViewModels(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<MainWindowViewModel>()
-            .AddTransient<TelemetryProcessingViewModel>();
+            .AddTransient<TelemetryProcessingViewModel>()
+            .AddTransient<CreateTelemetryViewModel>();
 
         return serviceCollection;
     }
