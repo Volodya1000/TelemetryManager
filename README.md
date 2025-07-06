@@ -51,7 +51,7 @@
 ### Использование DDD
 При реализации проекта я тренировался в использовании domain driven design.
 
-Device  реализован как агрегата. Sensor  и parameter как entity. Все они содержат бизнес логику. В доменной модели используются value objects  для имён и интервалов. В репозитории сохраняется только корен агрегата device.
+Device  реализован как агрегат. Sensor  и parameter как entity. Все они содержат бизнес логику. В доменной модели используются value objects  для имён и интервалов. В репозитории сохраняется только корень агрегата device.
 Классы агрегата и entity можно посмтреть в этой папке [Папка Profiles](TelemetryManager.Core/Data/Profiles)
 
 Классы value objects можно посмотреть  в этой папке [Папка value objects](TelemetryManager.Core/Data/ValueObjects/)
@@ -78,5 +78,48 @@ public class IntHandler : IDataTypeHandler
 
     public double ConvertToDouble(object value)
         => (int)value;
+}
+```
+
+
+### Классы доменной модели описывающий конкретный тип поля content  и один параметр поля content 
+```csharp
+public class ContentDefinition
+{
+    public byte TypeId { get; }
+    public Name Name { get; }
+    public IReadOnlyList<ParameterDefinition> Parameters { get; }
+    public int TotalSizeBytes { get; }
+
+    public ContentDefinition(byte typeId, Name name, IEnumerable<ParameterDefinition> parameters)
+    {
+        if (parameters.GroupBy(p => p.Name).Any(g => g.Count() > 1))
+            throw new ArgumentException("Duplicate parameter names");
+
+        TypeId = typeId;
+        Name = name;
+        Parameters = parameters.ToList().AsReadOnly();
+        TotalSizeBytes = Parameters.Sum(p => p.ByteSize);
+    }
+}
+
+public class ParameterDefinition
+{
+    public ParameterName Name { get; }
+    public string Quantity { get; }
+    public string Unit { get; }
+    public Type DataType { get; }
+    public IDataTypeHandler Handler { get; }
+
+    public ParameterDefinition(ParameterName name, string quantity, string unit, Type dataType, IDataTypeHandler handler)
+    {
+        Name = name;
+        Quantity = quantity;
+        Unit = unit;
+        DataType = dataType; 
+        Handler = handler;
+    }
+
+    public int ByteSize => Handler.GetSize();
 }
 ```
