@@ -52,7 +52,9 @@
 При реализации проекта я тренировался в использовании domain driven design.
 
 Device  реализован как агрегата. Sensor  и parameter как entity. Все они содержат бизнес логику. В доменной модели используются value objects  для имён и интервалов. В репозитории сохраняется только корен агрегата device.
-Файлы можно посмтреть в этой папке [Папка Profiles](TelemetryManager.Core/Data/Profiles)
+Классы агрегата и entity можно посмтреть в этой папке [Папка Profiles](TelemetryManager.Core/Data/Profiles)
+
+Классы value objects можно посмотреть  в этой папке [Папка value objects](TelemetryManager.Core/Data/ValueObjects/)
 
 ### Гибкое добавление новых форматов поля content
 Реализована гибкая возможность добавления новых типов поля content засчёт того, что использовать интерфейс 
