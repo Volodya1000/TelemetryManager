@@ -1,4 +1,6 @@
-﻿using TelemetryManager.Application.Interfaces.Services;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Core.Data.SensorParameter;
 using TelemetryManager.Core.Data.ValueObjects;
 using TelemetryManager.Core.Interfaces.Repositories;
@@ -9,9 +11,13 @@ public class ContentDefinitionService : IContentDefinitionService
 {
     private readonly IContentDefinitionRepository _contentDefinitionRepository;
 
-    public ContentDefinitionService(IContentDefinitionRepository contentDefinitionRepository)
+    private readonly IDataTypeHandlerService _dataTypeHandlerService;
+
+    public ContentDefinitionService(IContentDefinitionRepository contentDefinitionRepository,
+                                    IDataTypeHandlerService dataTypeHandlerService)
     {
         _contentDefinitionRepository = contentDefinitionRepository;
+        _dataTypeHandlerService = dataTypeHandlerService;
     }
 
     public async Task RegisterAsync(
@@ -24,7 +30,8 @@ public class ContentDefinitionService : IContentDefinitionService
                 new ParameterName(p.ParamName),
                 p.Description,
                 p.Unit,
-                p.DataType
+                p.DataType,
+                _dataTypeHandlerService.GetHandler(p.DataType)
             )).ToList();
 
         var contentDefinition = new ContentDefinition(

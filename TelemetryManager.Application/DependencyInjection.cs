@@ -12,11 +12,12 @@ public static class DependencyInjection
     {
         serviceCollection.AddTransient<IContentTypeParser, ContentTypeParser>();
 
-        serviceCollection.AddScoped<TelemetryProcessingService>();
-        serviceCollection.AddScoped<ParameterValidationService>();
-        serviceCollection.AddScoped<DeviceService>();
-        serviceCollection.AddScoped<IContentDefinitionService, ContentDefinitionService>();
-        serviceCollection.AddScoped<SensorContentRegistrar>();
+        serviceCollection.AddScoped<TelemetryProcessingService>()
+            .AddScoped<ParameterValidationService>()
+            .AddScoped<DeviceService>()
+            .AddScoped<IContentDefinitionService, ContentDefinitionService>()
+            .AddScoped<SensorContentRegistrar>()
+            .AddSingleton<IDataTypeHandlerService, DataTypeHandlerService>();
 
         return serviceCollection;
     }

@@ -11,13 +11,13 @@ public class ParameterDefinition
     public Type DataType { get; }
     public IDataTypeHandler Handler { get; }
 
-    public ParameterDefinition(ParameterName name, string quantity, string unit, Type dataType)
+    public ParameterDefinition(ParameterName name, string quantity, string unit, Type dataType, IDataTypeHandler handler)
     {
         Name = name;
         Quantity = quantity;
         Unit = unit;
-        DataType = dataType;
-        Handler = DataTypeHandlerRegistry.GetHandler(dataType);
+        DataType = dataType; 
+        Handler = handler;
     }
 
     public int ByteSize => Handler.GetSize();

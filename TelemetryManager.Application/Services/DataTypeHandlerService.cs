@@ -1,14 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using TelemetryManager.Core.Interfaces;
+using TelemetryManager.Application.Interfaces.Services;
+using TelemetryManager.Core.Data.SensorParameter;
 
-namespace TelemetryManager.Core.Data.SensorParameter;
+namespace TelemetryManager.Application.Services;
 
-
-public static class DataTypeHandlerRegistry
+public class DataTypeHandlerService: IDataTypeHandlerService
 {
-    private static readonly ConcurrentDictionary<Type, IDataTypeHandler> _handlers = new();
+    private readonly ConcurrentDictionary<Type, IDataTypeHandler> _handlers = new();
 
-    static DataTypeHandlerRegistry()
+    public DataTypeHandlerService()
     {
         RegisterHandler(typeof(bool), new BoolHandler());
         RegisterHandler(typeof(sbyte), new SByteHandler());
@@ -24,13 +25,13 @@ public static class DataTypeHandlerRegistry
         RegisterHandler(typeof(decimal), new DecimalHandler());
     }
 
-    public static void RegisterHandler(Type type, IDataTypeHandler handler)
+    public void RegisterHandler(Type type, IDataTypeHandler handler)
     {
         if (!_handlers.TryAdd(type, handler))
             throw new InvalidOperationException($"Обработчик для типа {type.Name} уже зарегистрирован.");
     }
 
-    public static IDataTypeHandler GetHandler(Type type)
+    public IDataTypeHandler GetHandler(Type type)
     {
         if (_handlers.TryGetValue(type, out var handler))
             return handler;
