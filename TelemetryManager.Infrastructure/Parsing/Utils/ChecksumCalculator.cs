@@ -1,4 +1,4 @@
-﻿namespace TelemetryManager.Core.Utils;
+﻿namespace TelemetryManager.Infrastructure.Parsing.Utils;
 
 public static class ChecksumCalculator
 {

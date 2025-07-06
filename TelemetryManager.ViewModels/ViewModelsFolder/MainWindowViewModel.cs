@@ -1,12 +1,9 @@
-﻿using DynamicData;
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using TelemetryManager.Application.OutputDtos;
 using TelemetryManager.Application.Services;
-using TelemetryManager.Core.Interfaces.Repositories;
 using TelemetryManager.ViewModels.DialogInteractionParams;
 using TelemetryManager.ViewModels.ModelsForUI;
 

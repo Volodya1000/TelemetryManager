@@ -2,7 +2,7 @@
 using TelemetryManager.Application.Interfaces.Services;
 using TelemetryManager.Core.Data.Profiles;
 using TelemetryManager.Core.Interfaces.Repositories;
-using TelemetryManager.Core.Utils;
+using TelemetryManager.Infrastructure.Parsing.Utils;
 using TelemetryManager.Infrastructure.Parsing.Data;
 
 namespace TelemetryManager.Infrastructure.TelemetryPackegesGenerator;

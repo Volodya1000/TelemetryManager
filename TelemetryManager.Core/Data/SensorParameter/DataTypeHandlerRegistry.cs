@@ -10,7 +10,6 @@ public static class DataTypeHandlerRegistry
 
     static DataTypeHandlerRegistry()
     {
-        // Регистрация обработчиков для всех поддерживаемых типов
         RegisterHandler(typeof(bool), new BoolHandler());
         RegisterHandler(typeof(sbyte), new SByteHandler());
         RegisterHandler(typeof(byte), new ByteHandler());
